@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wonk Chat • Sign in</title>
+    <link rel="stylesheet" href="/main.css" />
+    <link rel="stylesheet" href="/signin/style.css" />
+  </head>
+  <body>
+    <div class="signin-container">
+      <h1 class="signin-header">Sign in</h1>
+      <h5 id="logout-reason"><%= reason %></h5>
+
+      <form action="/auth" method="post" id="signin-form">
+        <fieldset class="input-field">
+          <legend>Username</legend>
+          <input type="text" name="username" id="username" minlength=3 maxlength=16 pattern="[a-zA-Z0-9_]*" />
+        </fieldset>
+        <fieldset class="input-field">
+          <legend>Password</legend>
+          <input type="password" name="password" id="password" spellcheck=false minlength=8 />
+          <br>
+          <input type="checkbox" id="show-password">
+          <label for="show-password">Show password</label>
+        </fieldset>
+        <button type="submit" class="submit-button">Sign in</button>
+      </form>
+    </div>
+    <script src="/signin/signin.js"></script>
+  </body>
+</html>

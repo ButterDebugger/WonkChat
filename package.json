@@ -1,0 +1,25 @@
+{
+  "name": "etst-ape",
+  "version": "1.0.0",
+  "description": "Website Thing",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "ButterBoyJulian",
+  "license": "MIT",
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.0.3",
+    "ejs": "^3.1.8",
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.0",
+    "jsonwebtoken": "^8.5.1",
+    "seedrandom": "^3.0.5",
+    "socket.io": "^4.5.2",
+    "uuid": "^9.0.0"
+  },
+  "engines": {
+    "node": "16.x"
+  }
+}

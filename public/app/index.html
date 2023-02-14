@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wonk Chat</title>
+    <link rel="stylesheet" href="/main.css" />
+    <link rel="stylesheet" href="/app/style.css" />
+    <link rel="stylesheet" href="/app/navbar.css" />
+    <link rel="stylesheet" href="/app/attachments.css" />
+  </head>
+  <body>
+    <nav id="navbar">
+      <div id="navbar-channels"></div>
+      <div class="navbar-spacer"></div>
+      <div id="navbar-buttons">
+        <div class="navbar-button">
+          <input type="text" id="navbar-join-room" placeholder="#roomname" pattern="[a-z0-9_]*" maxlength=17>
+          <button type="text" id="navbar-join-room-button">Join</button>
+        </div>
+      </div>
+    </nav>
+
+    <div id="app">
+      <div class="header-container">
+        <img id="navbar-bars" class="no-select no-drag" src="/icons/bars-solid.svg"></img>
+
+        <div id="header">
+          <span id="chat-name"></span>
+          <span id="chat-description"></span>
+        </div>
+      </div>
+
+      <div id="chatroom">
+        <div id="chat" class="chatroom-tab">
+          <div id="messages-wrapper"></div>
+
+          <div id="message-wrapper">
+            <div id="attachment-box" class="hidden">
+              <img id="upload-button" class="no-select no-drag" src="/icons/file-arrow-up-solid.svg"></img>
+              <div id="attachments-container"></div>
+
+              <form class="hidden" action="/upload" method="post" enctype="multipart/form-data">
+                <input type='file' name='files' multiple>
+              </form>
+            </div>
+
+            <div id="message-box">
+              <img id="attach-button" class="no-select no-drag" src="/icons/circle-plus-solid.svg"></img>
+              <input type="text" id="message" placeholder="Message" disabled>
+              <img id="send-button" class="no-select no-drag" src="/icons/circle-arrow-up-solid.svg"></img>
+            </div>
+          </div>
+        </div>
+
+        <div id="members-wrapper" class="chatroom-tab"></div>
+      </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module" src="/app/client.mjs"></script>
+  </body>
+</html>

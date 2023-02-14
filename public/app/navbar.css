@@ -1,0 +1,95 @@
+#navbar {
+    background-color: var(--dark-container-color);
+    width: 220px;
+    z-index: 10;
+
+    display: flex;
+    flex-direction: column;
+}
+.navbar-spacer {
+    min-height: 8px;
+    flex: 1;
+}
+
+#navbar.pulled-out {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+}
+#navbar.pulled-out ~ #app {
+    filter: brightness(0.5);
+    background-color: rgba(0,0,0,0.5);
+}
+
+#navbar-channels {
+    margin-top: 8px;
+    overflow: hidden scroll;
+}
+
+#navbar-bars {
+    display: none;
+}
+
+@media screen and (max-width: 980px) {
+    #navbar:not(.pulled-out) {
+        display: none;
+    }
+    #navbar-bars {
+        display: inline-block;
+    }
+}
+
+
+.navbar-channel {
+    padding: 8px 12px;
+    transition: background-color 0.1s ease-in-out;
+    cursor: pointer;
+    border-radius: 0px 12px 12px 0px;
+    gap: 8px;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+.navbar-channel:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+#navbar-buttons {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+}
+.navbar-button {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+#navbar-join-room {
+    width: 120px;
+    padding: 1px 4px;
+    border-radius: 8px;
+}
+#navbar-join-room:invalid {
+    border-color: #d93025;
+    border-style: dashed;
+}
+#navbar-join-room-button {
+    padding: 4px 12px;
+}
+
+.room-name {
+    font-weight: 600;
+    word-break: break-all;
+}
+
+.room-close {
+    filter: saturate(0);
+    cursor: pointer;
+    height: 22px;
+}
+.room-close:hover {
+    filter: none;
+}

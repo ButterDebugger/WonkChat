@@ -1,0 +1,111 @@
+html, body {
+    height: 100%;
+    margin: 0px;
+}
+body {
+    overflow: hidden;
+    display: flex;
+}
+
+#app {
+    flex: 1;
+    padding: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+#header {
+    background-color: var(--container-color);
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 22px;
+    flex: 1;
+}
+
+#chatroom {
+    flex: 1;
+    overflow: hidden;
+
+    display: flex;
+    gap: 20px;
+}
+
+.chatroom-tab {
+    background-color: var(--container-color);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+#chat {
+    min-width: 440px;
+    flex: 1;
+    padding: 0px;
+
+    display: flex;
+    flex-direction: column;
+}
+
+#messages-wrapper {
+    flex: 1;
+    padding: 20px;
+    word-break: break-all;
+    overflow: hidden scroll;
+    scroll-behavior: smooth;
+}
+.messages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#message-wrapper {
+    background-color: var(--dark-container-color);
+    border-radius: 8px;
+    
+    display: flex;
+    flex-direction: column;
+}
+#message-box {
+    padding: 8px 12px;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#message {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+
+    background-color: transparent;
+    border: none;
+    outline: none;
+}
+#message:disabled ~ #send-button {
+    cursor: not-allowed;
+}
+
+#members-wrapper {
+    overflow: hidden scroll;
+    word-break: break-all;
+    width: 220px;
+}
+.members-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}

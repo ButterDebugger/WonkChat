@@ -1,0 +1,54 @@
+#attachment-box {
+    padding: 8px 12px;
+    border-bottom: var(--container-color) 3px dashed;
+
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+
+.attachment-spacer {
+    flex: 1;
+}
+
+#attach-button, #send-button, #navbar-bars {
+    height: 28px;
+    cursor: pointer;
+}
+
+#attach-button[hasAttachments=true] {
+    animation: spin 12s linear infinite;
+}
+
+#upload-button {
+    height: 28px;
+    margin: 0px 3.5px;
+    margin-top: auto;
+    cursor: pointer;
+}
+#upload-button.loading {
+    cursor: progress;
+}
+
+#attachments-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    max-height: 96px;
+    overflow: hidden scroll;
+}
+
+.attachment {
+    border-radius: 10px;
+    padding: 5px 6px;
+    color: #b1b1b1;
+    font-weight: 600;
+    font-size: 13px;
+    background-color: rgba(255, 255, 255, 0.2);
+    max-width: 8em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: default;
+}
