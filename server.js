@@ -1,16 +1,21 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
-const path = require("path");
-const { authenticateToken, sessionToken } = require("./auth.js");
+import express from "express";
+import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
+import { Server as socketServer } from "socket.io";
+import path from "node:path";
+import http from "node:http";
+import dotenv from "dotenv";
+import { authenticateToken, sessionToken } from "./auth.js";
+import attachments from "./attachments.js";
+import sockets from "./sockets.js";
 
-require("dotenv").config();
+dotenv.config();
 const nameRegex = /[a-zA-Z0-9_]*/g;
 const port = process.env.PORT ?? 8080;
 
 const app = express();
-const server = require("http").Server(app);
-const io = require("socket.io")(server);
+const server = http.Server(app);
+const io = new socketServer(server);
 
 // Add middleware
 app.use(cookieParser());
@@ -27,7 +32,7 @@ app.get("/", (req, res) => {
 	res.redirect("/app");
 });
 app.use("/app", authenticateToken);
-app.use(express.static(path.join(__dirname, "public"), {
+app.use(express.static(path.join(process.cwd(), "public"), {
 	extensions: ['html', 'htm']
 }));
 
@@ -65,14 +70,11 @@ app.get("/auth", (req, res) => {
 });
 
 // Create socket server
-require("./socketServer.js")(io);
+sockets(io);
 
 // Handle attachments
-const attachments = require("./attachments.js");
-
 app.use(attachments.router);
-
-attachments.clear();
+attachments.clean();
 
 // Start the server
 server.listen(port, () => {

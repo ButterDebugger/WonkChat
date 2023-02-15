@@ -1,11 +1,11 @@
-const express = require("express");
-const fileUpload = require('express-fileupload');
-const path = require("path");
-const fs = require("fs");
-const seedrandom = require("seedrandom");
-const { authenticateToken } = require("./auth.js");
+import express from "express";
+import fileUpload from "express-fileupload";
+import path from "node:path";
+import fs from "node:fs";
+import seedrandom from "seedrandom";
+import { authenticateToken } from "./auth.js";
 
-const attachmentsPath = path.join(__dirname, "attachments");
+const attachmentsPath = path.join(process.cwd(), "attachments");
 if (!fs.existsSync(attachmentsPath)) {
     fs.mkdirSync(attachmentsPath);
 }
@@ -35,7 +35,7 @@ router.get("/upload", (req, res) => {
 	res.redirect("/app");
 });
 router.use("/attachments", (req, res) => {
-    express.static(path.join(__dirname, "attachments"))(req, res, () => {
+    express.static(path.join(process.cwd(), "attachments"))(req, res, () => {
         res.status(404).end();
     });
 });
@@ -54,7 +54,7 @@ function saveFiles(files, uid) {
             }
 
 			var fileloc = `attachments/${uid}/${fileid}/${file.name}`;
-            var filepath = path.join(__dirname, fileloc);
+            var filepath = path.join(process.cwd(), fileloc);
 
             file.mv(filepath, (err) => {
                 if (err) {
@@ -83,16 +83,16 @@ function saveFiles(files, uid) {
     });
 }
 
-function clearAttachments() { // Clear attachments folder
-	fs.readdirSync(path.join(__dirname, "attachments")).forEach(f => {
-		fs.rmSync(path.join(__dirname, "attachments", f), {
+function clean() { // Clear attachments folder
+	fs.readdirSync(path.join(process.cwd(), "attachments")).forEach(f => {
+		fs.rmSync(path.join(process.cwd(), "attachments", f), {
 			recursive: true,
 			force: true
 		});
 	});
 }
 
-module.exports = {
-    router: router,
-    clear: clearAttachments
+export default {
+    router,
+    clean
 }

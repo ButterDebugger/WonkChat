@@ -17,5 +17,6 @@
     "seedrandom": "^3.0.5",
     "socket.io": "^4.5.2",
     "uuid": "^9.0.0"
-  }
+  },
+  "type": "module"
 }

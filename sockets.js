@@ -1,5 +1,5 @@
-const { verifyToken } = require("./auth.js");
-const { existsSync } = require("fs");
+import { verifyToken } from "./auth.js";
+import fs from "node:fs";
 const roomRegex = /[a-z0-9_]*/g;
 
 function socketConnection(io, socket) {
@@ -138,7 +138,7 @@ function socketAuthorized(io, socket) {
         data.attachments = data.attachments.filter(attachment => {
             return (
                 /^attachments\/([0-9a-f]{24})\/([0-9a-zA-Z]{24})\/(.+)$/g.test(attachment) &&
-                existsSync(__dirname, attachment)
+                fs.existsSync(__dirname, attachment)
             );
         });
 
@@ -170,7 +170,7 @@ function socketAuthorized(io, socket) {
     });
 }
 
-module.exports = (io) => {
+function init(io) {
     // Declare variables
     io.wonk = {
         userSocks: new Map(),
@@ -213,3 +213,5 @@ module.exports = (io) => {
         socketConnection(io, socket);
     });
 }
+
+export default init;

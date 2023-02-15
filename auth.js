@@ -1,7 +1,7 @@
-const jwt = require("jsonwebtoken");
-const seedrandom = require("seedrandom");
+import jwt from "jsonwebtoken";
+import seedrandom from "seedrandom";
 
-async function authenticateToken(req, res, next) {
+export async function authenticateToken(req, res, next) {
 	var result = await verifyToken(req.cookies["token"]);
 
 	if (result.success) {
@@ -16,7 +16,7 @@ async function authenticateToken(req, res, next) {
 	}
 }
 
-function verifyToken(token) {
+export function verifyToken(token) {
 	return new Promise((resolve) => {
 		if (!token) { // Token cookie is not set
 			resolve({
@@ -60,7 +60,7 @@ function verifyToken(token) {
 	});
 }
 
-function sessionToken(username, password) {
+export function sessionToken(username, password) {
 	const rng = new seedrandom(`${username}/${password}/${process.env.USER_SALT}`);
 	const hexChars = "0123456789abcdef";
 
@@ -91,10 +91,4 @@ function sessionToken(username, password) {
 	var token = jwt.sign(user, process.env.TOKEN_SECRET);
 
 	return token;
-}
-
-module.exports = {
-    authenticateToken,
-    verifyToken,
-	sessionToken
 }
