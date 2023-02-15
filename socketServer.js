@@ -1,6 +1,6 @@
 const { verifyToken } = require("./auth.js");
-const { roomRegex } = require("./config.js")();
 const { existsSync } = require("fs");
+const roomRegex = /[a-z0-9_]*/g;
 
 function socketConnection(io, socket) {
     socket.authorized = false;

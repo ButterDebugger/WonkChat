@@ -12,9 +12,7 @@ async function authenticateToken(req, res, next) {
 			res.clearCookie("token");
 		}
 
-		res.render("signin", {
-			reason: result.reason
-		});
+		res.redirect("/login")
 	}
 }
 
@@ -30,7 +28,7 @@ function verifyToken(token) {
 			return;
 		}
 	
-		jwt.verify(token, process.env.TOKEN_SECRETE, (err, user) => {
+		jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
 			if (err) { // Token is not valid
 				resolve({
 					success: false,
@@ -90,7 +88,7 @@ function sessionToken(username, password) {
 		discriminator: discriminator,
 		iat: Date.now()
 	};
-	var token = jwt.sign(user, process.env.TOKEN_SECRETE);
+	var token = jwt.sign(user, process.env.TOKEN_SECRET);
 
 	return token;
 }

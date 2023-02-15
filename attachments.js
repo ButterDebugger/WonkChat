@@ -5,6 +5,11 @@ const fs = require("fs");
 const seedrandom = require("seedrandom");
 const { authenticateToken } = require("./auth.js");
 
+const attachmentsPath = path.join(__dirname, "attachments");
+if (!fs.existsSync(attachmentsPath)) {
+    fs.mkdirSync(attachmentsPath);
+}
+
 const router = new express.Router();
 
 router.use(fileUpload({
@@ -79,7 +84,7 @@ function saveFiles(files, uid) {
 }
 
 function clearAttachments() { // Clear attachments folder
-	fs.readdirSync(path.join(__dirname, "attachments/")).forEach(f => {
+	fs.readdirSync(path.join(__dirname, "attachments")).forEach(f => {
 		fs.rmSync(path.join(__dirname, "attachments", f), {
 			recursive: true,
 			force: true

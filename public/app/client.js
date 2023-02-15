@@ -11,12 +11,12 @@ import { getCookies } from "https://butterycode.com/static/js/1.2/utils.js";
 import {
     init as initAttachments,
     attachmentsContainer
-} from "/app/attachments.mjs";
+} from "/app/attachments.js";
 
 import {
     init as initNavbar,
     navbarChannels
-} from "/app/navbar.mjs";
+} from "/app/navbar.js";
 
 initAttachments();
 initNavbar();

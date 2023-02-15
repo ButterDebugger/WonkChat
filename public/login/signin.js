@@ -1,8 +1,8 @@
 const passwordEle = document.getElementById("password");
 const showPasswordBox = document.getElementById("show-password");
 
-if (!(location.pathname == "/signin" || location.pathname == "/signin/") || location.search.length > 0) {
-    window.history.replaceState(null, null, "/signin/")
+if (!(location.pathname == "/login" || location.pathname == "/login/") || location.search.length > 0) {
+    window.history.replaceState(null, null, "/login/")
 }
 
 showPasswordBox.addEventListener("change", ({ target }) => {

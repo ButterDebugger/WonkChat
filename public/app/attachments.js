@@ -9,7 +9,7 @@ import {
     getMessagesContainer,
     messageInput,
     client
-} from "/app/client.mjs";
+} from "/app/client.js";
 
 export function init() {
     attachBtn.addEventListener("click", () => {
