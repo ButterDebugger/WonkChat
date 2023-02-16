@@ -1,7 +1,9 @@
 import jwt from "jsonwebtoken";
-import seedrandom from "seedrandom";
+import db from "./database.sdk.js";
 
-export async function authenticateToken(req, res, next) {
+const randomInt = (min = 0, max = 1) => Math.floor(Math.random() * (max - min + 1) + min);
+
+export async function authenticate(req, res, next) {
 	var result = await verifyToken(req.cookies["token"]);
 
 	if (result.success) {
@@ -60,35 +62,58 @@ export function verifyToken(token) {
 	});
 }
 
-export function sessionToken(username, password) {
-	const rng = new seedrandom(`${username}/${password}/${process.env.USER_SALT}`);
+function generateSnowflake() { // TODO: make more unique
 	const hexChars = "0123456789abcdef";
-
-	// Generate unique id
 	let id = "";
 	for (var i = 0; i < 24; i++) {
-		id += hexChars.charAt(Math.floor(rng() * hexChars.length));
+		id += hexChars.charAt(Math.floor(Math.random() * hexChars.length));
+	}
+	return id;
+}
+
+function generateColor(pastel = false) {
+	let color = pastel ? [
+		255, randomInt(162, 255), 162 // Pastel color
+	] : [
+		255, randomInt(36, 255), 36 // Solid color
+	];
+
+	for (let i = color.length - 1; i > 0; i--) { // Shuffle rgb color array
+		let j = Math.floor(Math.random() * (i + 1));
+		let temp = color[i];
+		color[i] = color[j];
+		color[j] = temp;
 	}
 
-	// Generate color
-	let color = "#";
-	for (var i = 0; i < 6; i++) {
-		color += hexChars.charAt(Math.floor(rng() * hexChars.length));
-	}
+	color = "#" + color.map(val => ("00" + val.toString(16)).slice(-2)).join(''); // Turn array into hex string
+	
+	return color;
+}
 
-	// Generate discriminator
-	var discriminator = Math.floor(rng() * 100);
+function checkAccount(username, password) { // TODO: check for an account
+	return false;
+}
+
+export function sessionToken(username, password = null) {
+	let isGuest = password === null;
+
+	if (isGuest) {
+		let account = checkAccount(username, password);
+	} else {
+
+	}
 
 	// Create token
-	var user = {
+	let user = {
+		id: generateSnowflake(),
 		username: username,
+		guest: isGuest,
 		password: password,
-		id: id,
-		color: color,
-		discriminator: discriminator,
+		color: generateColor(isGuest),
+		discriminator: isGuest ? Math.floor(Math.random() * 100) : null,
 		iat: Date.now()
 	};
-	var token = jwt.sign(user, process.env.TOKEN_SECRET);
+	let token = jwt.sign(user, process.env.TOKEN_SECRET);
 
 	return token;
 }

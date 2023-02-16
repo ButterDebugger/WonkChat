@@ -3,7 +3,7 @@ import fileUpload from "express-fileupload";
 import path from "node:path";
 import fs from "node:fs";
 import seedrandom from "seedrandom";
-import { authenticateToken } from "./auth.js";
+import { authenticate } from "./auth.js";
 
 const attachmentsPath = path.join(process.cwd(), "attachments");
 if (!fs.existsSync(attachmentsPath)) {
@@ -16,7 +16,7 @@ router.use(fileUpload({
     createParentPath: true
 }));
 
-router.post("/upload", authenticateToken, async (req, res) => {
+router.post("/upload", authenticate, async (req, res) => {
     if (!req.files) return res.status(400).end();
 
 	let files = req?.files?.files;

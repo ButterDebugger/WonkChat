@@ -3,13 +3,6 @@ html, body {
     margin: 0px;
 }
 
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-
 .signin-container {
     padding: 48px 36px;
     border: 1px solid rgba(0, 0, 0, 0.2);
@@ -24,23 +17,30 @@ body {
     padding: 2px 8px 8px 8px;
     border-radius: 8px;
     border: 2px solid rgba(0, 0, 0, 0.2);
-    width: fit-content;
+}
+
+.blank-field {
+    margin: 8px 0px;
 }
 
 #signin-form {
     display: flex;
     flex-direction: column;
-    align-items: center;
 }
 
 #username, #password {
     padding: 6px;
     border-radius: 8px;
     border: 2px solid rgba(0, 0, 0, 0.2);
+    width: -webkit-fill-available;
 }
 #username:invalid, #password:invalid {
     border-color: #d93025;
     border-style: dashed;
+}
+
+#password::-ms-reveal, #password::-ms-clear {
+    display: none;
 }
 
 #show-password {
@@ -67,6 +67,8 @@ label[for=show-password] {
     text-align: center;
 }
 
-.submit-button {
+#submit-button {
     margin: 12px 0px 0px;
+    align-self: center;
+    width: fit-content;
 }

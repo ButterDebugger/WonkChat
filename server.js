@@ -5,7 +5,7 @@ import { Server as socketServer } from "socket.io";
 import path from "node:path";
 import http from "node:http";
 import dotenv from "dotenv";
-import { authenticateToken, sessionToken } from "./auth.js";
+import { authenticate, sessionToken } from "./auth.js";
 import attachments from "./attachments.js";
 import sockets from "./sockets.js";
 
@@ -22,16 +22,11 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-	console.log("url", req.url)
-	next();
-})
-
 // App routes
 app.get("/", (req, res) => {
 	res.redirect("/app");
 });
-app.use("/app", authenticateToken);
+app.use("/app", authenticate);
 app.use(express.static(path.join(process.cwd(), "public"), {
 	extensions: ['html', 'htm']
 }));
@@ -44,29 +39,53 @@ app.get("/logout", (req, res) => {
 
 // Auth routes
 app.post("/auth", (req, res) => {
-	var { username, password } = req.body;
+	let { username, haspassword, password } = req.body;
 
-	if (typeof username !== "string" || typeof password !== "string") return res.status(400).end();
-	
-	// Check if username and password is acceptable
-	if (
-		username.length < 3 ||
-		username.length > 16 ||
-		password.length < 8 ||
-		username.replace(nameRegex, '').length > 0
-	) {
-		res.redirect("/login");
+	haspassword ??= "off";
+
+	if (typeof username !== "string" || typeof haspassword !== "string" || typeof password !== "string") {
+		if (req.accepts("text/html")) {
+			res.redirect("/login");
+		} else {
+			res.status(400).end();
+		}
 		return;
 	}
 
-	// Create session token
-	res.cookie("token", sessionToken(username, password));
-
-	// Redirect user back to index
-	res.redirect("/");
-});
-app.get("/auth", (req, res) => {
-	res.redirect("/login");
+	haspassword = haspassword === "on" ? true : false;
+	
+	if (!haspassword) { // User is a guest
+		if ( // Check if username is valid
+			username.length < 3 ||
+			username.length > 16 ||
+			username.replace(nameRegex, '').length > 0
+		) { // Credentials are invalid
+			if (req.accepts("text/html")) {
+				res.redirect("/login");
+			} else {
+				res.status(400).end();
+			}
+		} else { // Generate session token
+			res.cookie("token", sessionToken(username));
+			res.redirect("/");
+		}
+	} else { // User has an account
+		if ( // Check if username and password is valid
+			username.length < 3 ||
+			username.length > 16 ||
+			password.length < 8 ||
+			username.replace(nameRegex, '').length > 0
+		) { // Credentials are invalid
+			if (req.accepts("text/html")) {
+				res.redirect("/login");
+			} else {
+				res.status(400).end();
+			}
+		} else { // Generate session token
+			res.cookie("token", sessionToken(username, password));
+			res.redirect("/");
+		}
+	}
 });
 
 // Create socket server
