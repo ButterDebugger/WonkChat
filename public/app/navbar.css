@@ -77,7 +77,8 @@
     border-style: dashed;
 }
 #navbar-join-room-button {
-    padding: 4px 12px;
+    height: 28px;
+    cursor: pointer;
 }
 
 .room-name {

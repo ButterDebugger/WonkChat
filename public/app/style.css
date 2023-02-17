@@ -52,6 +52,10 @@ body {
     flex-direction: column;
 }
 
+/*
+ *  Message styles
+ */
+
 #messages-wrapper {
     flex: 1;
     padding: 20px;
@@ -64,15 +68,38 @@ body {
     flex-direction: column;
     gap: 4px;
 }
+.message {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: .35rem;
+}
+.message span[name="discriminator"] {
+    display: none;
+}
+.message span[name="username"]:hover ~ span[name="discriminator"] {
+    display: initial;
+}
+span[name="timestamp"] {
+    font-style: italic;
+}
+span[name="discriminator"], span[name="timestamp"] {
+    color: #a7a9aa;
+    font-size: 0.8em;
+}
 
-#message-wrapper {
+/*
+ *  Message box styles
+ */
+
+#messagebox-wrapper {
     background-color: var(--dark-container-color);
     border-radius: 8px;
     
     display: flex;
     flex-direction: column;
 }
-#message-box {
+#messagebox {
     padding: 8px 12px;
 
     display: flex;
@@ -86,7 +113,7 @@ body {
     }
 }
 
-#message {
+#message-input {
     flex: 1;
     padding: 8px;
     border-radius: 8px;
@@ -95,9 +122,13 @@ body {
     border: none;
     outline: none;
 }
-#message:disabled ~ #send-button {
+#message-input:disabled ~ #send-button {
     cursor: not-allowed;
 }
+
+/*
+ *  Chatroom sidebar styles
+ */
 
 #members-wrapper {
     overflow: hidden scroll;

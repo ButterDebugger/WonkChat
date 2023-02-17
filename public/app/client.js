@@ -3,8 +3,8 @@ const membersWrapper = document.getElementById("members-wrapper");
 const sendButton = document.getElementById("send-button");
 const chatnameEle = document.getElementById("chat-name");
 const chatdescEle = document.getElementById("chat-description");
-const messageBox = document.getElementById("message-box");
-export const messageInput = document.getElementById("message");
+const messageBox = document.getElementById("messagebox");
+export const messageInput = document.getElementById("message-input");
 
 import { getCookies } from "https://butterycode.com/static/js/1.2/utils.js";
 
@@ -17,6 +17,10 @@ import {
     init as initNavbar,
     navbarChannels
 } from "/app/navbar.js";
+
+import {
+    chatMessage
+} from "./components.js";
 
 initAttachments();
 initNavbar();
@@ -179,18 +183,16 @@ socket.on("leftRoom", (data) => {
 });
 
 socket.on("message", (data) => {
-    var msgEle = document.createElement("div");
 
-    var nameEle = document.createElement("span");
-    nameEle.innerText = `${data.author.username}`;
-    nameEle.style.color = data.author.color;
-    msgEle.appendChild(nameEle);
+    let ele = chatMessage(
+        data.author.username,
+        data.author.color,
+        data.author.discriminator,
+        data.content,
+        Date.now() // TODO: make more accurate
+    );
 
-    var contEle = document.createElement("span");
-    contEle.innerText = `: ${data.content}`;
-    msgEle.appendChild(contEle);
-
-    addChatElement(msgEle, data.room);
+    addChatElement(ele, data.room);
 
     console.log("message", data);
 });

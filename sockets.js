@@ -54,14 +54,14 @@ function socketConnection(io, socket) {
 
 function socketAuthorized(io, socket) {
     function updateMembers(room, iterator = () => {}) {
-        var roomSockets = io.sockets.adapter.rooms.get(room);
+        let roomSockets = io.sockets.adapter.rooms.get(room);
 
         if (typeof roomSockets == "undefined") return;
 
-        var members = Array.from(roomSockets).map(sockid => {
-            var sock = io.sockets.sockets.get(sockid);
-            var user = sock.user;
-            var member = {
+        let members = Array.from(roomSockets).map(sockid => {
+            let sock = io.sockets.sockets.get(sockid);
+            let user = sock.user;
+            let member = {
                 username: user.username,
                 color: user.color,
                 discriminator: user.discriminator,
@@ -83,7 +83,7 @@ function socketAuthorized(io, socket) {
     function isValidRoomname(room) {
         if (typeof room !== "string") return false;
         if (!room.startsWith("#")) return false;
-        var roomname = room.substring(1);
+        let roomname = room.substring(1);
         if (
             roomname.length < 3 ||
             roomname.length > 16 ||
@@ -146,7 +146,8 @@ function socketAuthorized(io, socket) {
             content: data.content,
             author: {
                 username: socket.user.username,
-                color: socket.user.color
+                color: socket.user.color,
+                discriminator: socket.user.discriminator
             },
             room: data.room,
             attachments: data.attachments

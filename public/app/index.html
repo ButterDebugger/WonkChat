@@ -17,7 +17,7 @@
       <div id="navbar-buttons">
         <div class="navbar-button">
           <input type="text" id="navbar-join-room" placeholder="#roomname" pattern="[a-z0-9_]*" maxlength=17>
-          <button type="text" id="navbar-join-room-button">Join</button>
+          <img id="navbar-join-room-button" class="no-select no-drag" src="/icons/right-to-bracket-solid.svg">
         </div>
       </div>
     </nav>
@@ -36,7 +36,7 @@
         <div id="chat" class="chatroom-tab">
           <div id="messages-wrapper"></div>
 
-          <div id="message-wrapper">
+          <div id="messagebox-wrapper">
             <div id="attachment-box" class="hidden">
               <img id="upload-button" class="no-select no-drag" src="/icons/file-arrow-up-solid.svg"></img>
               <div id="attachments-container"></div>
@@ -46,9 +46,9 @@
               </form>
             </div>
 
-            <div id="message-box">
+            <div id="messagebox">
               <img id="attach-button" class="no-select no-drag" src="/icons/circle-plus-solid.svg"></img>
-              <input type="text" id="message" placeholder="Message" disabled>
+              <input type="text" id="message-input" placeholder="Message" disabled>
               <img id="send-button" class="no-select no-drag" src="/icons/circle-arrow-up-solid.svg"></img>
             </div>
           </div>
