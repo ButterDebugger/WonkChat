@@ -138,7 +138,7 @@ function socketAuthorized(io, socket) {
         data.attachments = data.attachments.filter(attachment => {
             return (
                 /^attachments\/([0-9a-f]{24})\/([0-9a-zA-Z]{24})\/(.+)$/g.test(attachment) &&
-                fs.existsSync(__dirname, attachment)
+                fs.existsSync(process.cwd(), attachment)
             );
         });
 
