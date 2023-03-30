@@ -1,13 +1,13 @@
 import express from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
-import { Server as socketServer } from "socket.io";
+import { Server as SocketServer } from "socket.io";
 import path from "node:path";
 import http from "node:http";
 import dotenv from "dotenv";
 import { authenticate, sessionToken } from "./auth.js";
 import attachments from "./attachments.js";
-import sockets from "./sockets.js";
+import gateway from "./gateway.js";
 
 dotenv.config();
 const nameRegex = /[a-zA-Z0-9_]*/g;
@@ -15,7 +15,7 @@ const port = process.env.PORT ?? 8080;
 
 const app = express();
 const server = http.Server(app);
-const io = new socketServer(server);
+const io = new SocketServer(server);
 
 // Add middleware
 app.use(cookieParser());
@@ -88,8 +88,8 @@ app.post("/auth", (req, res) => {
 	}
 });
 
-// Create socket server
-sockets(io);
+// Handle gateway
+gateway(app, io);
 
 // Handle attachments
 app.use(attachments.router);
