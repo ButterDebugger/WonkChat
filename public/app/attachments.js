@@ -1,6 +1,5 @@
 const attachBtn = document.getElementById("attach-button");
 const attachmentBox = document.getElementById("attachment-box");
-const uploadBtn = document.getElementById("upload-button");
 const attachmentform = attachmentBox.querySelector("form");
 export const attachmentsContainer = document.getElementById("attachments-container");
 
@@ -16,18 +15,15 @@ export function init() {
         var scroll = isAtBottomOfMessages();
         var messages = getMessagesContainer();
 
-        attachmentBox.classList.toggle("hidden");
-
         if (scroll) {
             messages.style["scroll-behavior"] = "unset";
             messages.lastChild.scrollIntoView();
             messages.style["scroll-behavior"] = "";
         }
-    });
-    
-    uploadBtn.addEventListener("click", () => {
-        if (uploadBtn.classList.contains("loading")) return;
-        attachmentform.querySelector("input[name='files']").click();
+        
+        if (!attachBtn.classList.contains("loading")) {
+            attachmentform.querySelector("input[name='files']").click();
+        }
     });
     
     attachmentform.addEventListener("submit", (e) => {
@@ -43,7 +39,7 @@ export function init() {
 function uploadAttachments() {
     if (messageInput.disabled) return;
     messageInput.disabled = true;
-    uploadBtn.classList.add("loading");
+    attachBtn.classList.add("loading");
 
     fetch(attachmentform.action, {
         method: attachmentform.method,
@@ -77,6 +73,6 @@ function uploadAttachments() {
     })
     .finally(() => {
         messageInput.disabled = false;
-        uploadBtn.classList.remove("loading");
+        attachBtn.classList.remove("loading");
     });
 };

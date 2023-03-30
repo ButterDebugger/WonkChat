@@ -6,6 +6,10 @@
     flex-direction: row;
     gap: 8px;
 }
+#attachment-box:has(#attachments-container:empty) {
+    visibility: hidden !important;
+    display: none !important;
+}
 
 .attachment-spacer {
     flex: 1;
