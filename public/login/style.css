@@ -38,6 +38,10 @@ html, body {
     border-color: #d93025;
     border-style: dashed;
 }
+input:required + legend::after {
+    content: ' *';
+    color: #d93025;
+}
 
 #password::-ms-reveal, #password::-ms-clear {
     display: none;

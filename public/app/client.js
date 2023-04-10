@@ -11,12 +11,12 @@ import { getCookies } from "https://butterycode.com/static/js/1.2/utils.js";
 import {
     init as initAttachments,
     attachmentsContainer
-} from "/app/attachments.js";
+} from "./attachments.js";
 
 import {
     init as initNavbar,
     navbarChannels
-} from "/app/navbar.js";
+} from "./navbar.js";
 
 import {
     chatMessage
@@ -25,39 +25,40 @@ import {
 initAttachments();
 initNavbar();
 
-export const socket = io();
+import { socket, receiver, makeRequest, gatewayUrl } from "./comms.js";
+
 export let client = {
+    linked: false,
     currentRoom: null,
     roomInfo: new Map(),
     rooms: [],
     attachments: []
+};
+
+receiver.addEventListener("link", ({ detail }) => {
+    if (detail.success === false) return;
+
+    client.linked = true;
+
+    unlockClient();
+    joinRoom("#wonk");
+});
+
+function unlockClient() {
+    messageInput.disabled = false;
 }
 
-socket.once("connect", () => {
-    socket.emit("auth", getCookies().get("token"));
-});
-
-socket.once("rejected", (details) => {
-    console.log(details);
-    location.href = "/logout";
-});
-
-socket.once("authorized", () => {
-    console.log("authorized");
-    messageInput.disabled = false;
-    socket.emit("joinRoom", "#wonk");
-});
-
-socket.on("ping", () => {
-    socket.emit("pong", {});
-});
-
-socket.on("disconnect", () => {
+function lockClient() {
     messageInput.disabled = true;
-    location.reload();
+}
+
+receiver.addEventListener("close", () => {
+    lockClient();
 });
 
-socket.on("updateMembers", (data) => {
+// TODO: add "destroy" event for when the client cant reconnect after 5 tries or something
+
+/*socket.on("updateMembers", (data) => {
     console.log("updateMembers", data);
     
     var members = getMembersContainer(data.room);
@@ -195,7 +196,16 @@ socket.on("message", (data) => {
     addChatElement(ele, data.room);
 
     console.log("message", data);
-});
+});*/
+
+export async function joinRoom(room) {
+    // socket.emit("joinRoom", room);
+
+    let res = await makeRequest({
+        method: "post",
+        url: `${gatewayUrl}/rooms/${room}/join`
+    }).catch(() => {});
+}
 
 function addChatElement(ele, room = null) {
     var scroll = isAtBottomOfMessages();

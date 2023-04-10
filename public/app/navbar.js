@@ -5,18 +5,17 @@ const navbarEle = document.getElementById("navbar");
 export const navbarChannels = document.getElementById("navbar-channels");
 
 import { isChildOf } from "https://butterycode.com/static/js/1.2/utils.js";
-
-import { socket } from "/app/client.js";
+import { joinRoom } from "./client.js";
 
 export function init() {
     navbarJoinRoomInput.addEventListener("keypress", ({ code, shiftKey }) => {
         if (code == "Enter" && !shiftKey) {
-            joinRoom();
+            join();
         }
     });
     
     navbarJoinRoomButton.addEventListener("click", () => {
-        joinRoom();
+        join();
     });
     
     document.addEventListener("click", ({ target }) => {
@@ -34,10 +33,10 @@ export function init() {
     });
 }
 
-function joinRoom() {
+function join() {
     var room = navbarJoinRoomInput.value;
     navbarJoinRoomInput.value = "";
 
-    socket.emit("joinRoom", room);
+    joinRoom(room);
 }
 

@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import db from "./database.sdk.js";
 
 const randomInt = (min = 0, max = 1) => Math.floor(Math.random() * (max - min + 1) + min);
 
@@ -96,24 +95,67 @@ function checkAccount(username, password) { // TODO: check for an account
 
 export function sessionToken(username, password = null) {
 	let isGuest = password === null;
-
-	if (isGuest) {
-		let account = checkAccount(username, password);
-	} else {
-
-	}
-
-	// Create token
 	let user = {
 		id: generateSnowflake(),
 		username: username,
 		guest: isGuest,
 		password: password,
-		color: generateColor(isGuest),
 		discriminator: isGuest ? Math.floor(Math.random() * 100) : null,
 		iat: Date.now()
-	};
-	let token = jwt.sign(user, process.env.TOKEN_SECRET);
+	}
 
-	return token;
+	if (isGuest) {
+		user.color = generateColor(isGuest, false);
+	} else {
+		// let account = checkAccount(username, password); // TODO: finish this
+		user.color = generateColor(isGuest, true);
+	}
+
+	// Create token
+	return jwt.sign(user, process.env.TOKEN_SECRET);
+}
+
+export function authRoute(req, res) {
+	let { username, password, isGuest } = req.body;
+
+	if (typeof username !== "string" || typeof password !== "string" || typeof isGuest !== "boolean") {
+		res.status(400).json({
+			error: true,
+			message: "Invalid body"
+		});
+		return;
+	}
+	
+	if (isGuest) { // User is a guest
+		if ( // Check if username is valid
+			username.length < 3 ||
+			username.length > 16 ||
+			username.replace(/[a-zA-Z0-9_]*/g, '').length > 0
+		) { // Credentials are invalid
+			res.status(400).json({
+				error: true,
+				message: "Invalid credentials"
+			});
+		} else { // Generate session token
+			res.status(200).json({
+				token: sessionToken(username)
+			});
+		}
+	} else { // User has an account
+		if ( // Check if username and password is valid
+			username.length < 3 ||
+			username.length > 16 ||
+			password.length < 8 ||
+			username.replace(/[a-zA-Z0-9_]*/g, '').length > 0
+		) { // Credentials are invalid
+			res.status(400).json({
+				error: true,
+				message: "Invalid credentials"
+			});
+		} else { // Generate session token
+			res.status(200).json({
+				token: sessionToken(username, password)
+			});
+		}
+	}
 }

@@ -5,18 +5,18 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Wonk Chat • Sign in</title>
-    <link rel="stylesheet" href="/main.css" />
-    <link rel="stylesheet" href="/login/style.css" />
+    <link rel="stylesheet" href="../main.css" />
+    <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <div class="signin-container absolute-center">
       <h1 class="signin-header">Sign in</h1>
       <h5 id="logout-reason"></h5>
 
-      <form action="/auth" method="post" id="signin-form">
+      <form id="signin-form">
         <fieldset class="input-field">
+          <input type="text" name="username" id="username" minlength=3 maxlength=16 pattern="[a-zA-Z0-9_]*" required/>
           <legend>Username</legend>
-          <input type="text" name="username" id="username" minlength=3 maxlength=16 pattern="[a-zA-Z0-9_]*" />
         </fieldset>
 
         <div class="blank-field">
@@ -25,8 +25,8 @@
         </div>
 
         <fieldset class="input-field hidden" id="password-field">
-          <legend>Password</legend>
           <input type="password" name="password" id="password" spellcheck=false minlength=8 />
+          <legend>Password</legend>
           <br>
           <input type="checkbox" id="show-password">
           <label for="show-password">Show password</label>
@@ -35,6 +35,7 @@
         <button type="submit" id="submit-button">Join as Guest</button>
       </form>
     </div>
-    <script src="/login/signin.js"></script>
+    <script src="https://unpkg.com/axios@1.3.4/dist/axios.min.js"></script>
+    <script type="module" src="./signin.js"></script>
   </body>
 </html>
