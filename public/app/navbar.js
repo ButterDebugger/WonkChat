@@ -4,7 +4,7 @@ const navbarBars = document.getElementById("navbar-bars");
 const navbarEle = document.getElementById("navbar");
 export const navbarChannels = document.getElementById("navbar-channels");
 
-import { isChildOf } from "https://butterycode.com/static/js/1.2/utils.js";
+import { isChildOf } from "https://butterycode.com/static/js/utils.js@1.2?min";
 import { joinRoom } from "./client.js";
 
 export function init() {

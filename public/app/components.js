@@ -1,4 +1,4 @@
-const isNil = val => val !== (val ?? !val);
+import { isNil, dom, domParser } from "https://butterycode.com/static/js/utils.js@1.2?min";
 
 export function chatMessage(username, color, discriminator, content, timestamp) {
     let msgContainer = document.createElement("div");

@@ -6,7 +6,7 @@ const chatdescEle = document.getElementById("chat-description");
 const messageBox = document.getElementById("messagebox");
 export const messageInput = document.getElementById("message-input");
 
-import { getCookies } from "https://butterycode.com/static/js/1.2/utils.js";
+import { getCookies } from "https://butterycode.com/static/js/utils.js@1.2?min";
 
 import {
     init as initAttachments,
