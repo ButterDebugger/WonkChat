@@ -3,7 +3,7 @@ export let socket;
 
 export const websocketUrl = `${location.protocol == "https:" ? "wss" : "ws"}://${location.host}/`;
 export const baseUrl = location.origin;
-export const gatewayUrl =  `${baseUrl}/api`;
+export const gatewayUrl = `${baseUrl}/api`;
 
 init();
 

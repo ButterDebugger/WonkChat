@@ -1,4 +1,7 @@
+import { WebSocket } from "ws";
+
 let wss, router;
+let clientSockets = {};
 
 function generateId() {
 	let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -16,6 +19,8 @@ function initRouter(router) {
         for (let socket of wss.clients) {
             if (socket.id == session && socket.isOpen()) {
                 socket.session = req.user.id;
+                clientSockets[req.user.id] = socket;
+                
                 socket.json({
                     event: "link",
                     success: true
@@ -79,6 +84,13 @@ function initWebsocket(wss) {
             ping(socket);
         });
     }, 30_000);
+}
+
+export function getSocket(id) {
+    let socket = clientSockets[id];
+    if (!(socket instanceof WebSocket)) return null;
+    if (socket?.isOpen() === false) return null;
+    return socket;
 }
 
 export default function(websocketServer, gatewayRouter) {

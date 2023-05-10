@@ -41,7 +41,7 @@ receiver.addEventListener("link", ({ detail }) => {
     client.linked = true;
 
     unlockClient();
-    joinRoom("#wonk");
+    joinRoom("wonk");
 });
 
 function unlockClient() {
