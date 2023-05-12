@@ -1,3 +1,5 @@
+import db from "./database.js";
+
 let users = [];
 let rooms = [];
 let messages = [];
@@ -34,6 +36,6 @@ class Attachment {
     }
 }
 
-export function createUser() {
+export async function createUser() {
     
 }

@@ -3,11 +3,10 @@ import fileUpload from "express-fileupload";
 import path from "node:path";
 import fs from "node:fs";
 import seedrandom from "seedrandom";
-import { authenticate } from "./auth.js";
+import { authenticate } from "../api/auth.js";
 
-const attachmentsPath = path.join(process.cwd(), "attachments");
-if (!fs.existsSync(attachmentsPath)) {
-    fs.mkdirSync(attachmentsPath);
+if (!fs.existsSync(path.join(process.cwd(), "storage/attachments"))) {
+    fs.mkdirSync(path.join(process.cwd(), "storage/attachments"));
 }
 
 const router = new express.Router();
@@ -35,7 +34,7 @@ router.get("/upload", (req, res) => {
 	res.redirect("/app");
 });
 router.use("/attachments", (req, res) => {
-    express.static(path.join(process.cwd(), "attachments"))(req, res, () => {
+    express.static(path.join(process.cwd(), "storage/attachments"))(req, res, () => {
         res.status(404).end();
     });
 });
@@ -54,7 +53,7 @@ function saveFiles(files, uid) {
             }
 
 			var fileloc = `attachments/${uid}/${fileid}/${file.name}`;
-            var filepath = path.join(process.cwd(), fileloc);
+            var filepath = path.join(process.cwd(), "storage", fileloc);
 
             file.mv(filepath, (err) => {
                 if (err) {
@@ -84,8 +83,8 @@ function saveFiles(files, uid) {
 }
 
 function clean() { // Clear attachments folder
-	fs.readdirSync(path.join(process.cwd(), "attachments")).forEach(f => {
-		fs.rmSync(path.join(process.cwd(), "attachments", f), {
+	fs.readdirSync(path.join(process.cwd(), "storage/attachments")).forEach(f => {
+		fs.rmSync(path.join(process.cwd(), "storage/attachments", f), {
 			recursive: true,
 			force: true
 		});
