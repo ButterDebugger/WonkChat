@@ -56,7 +56,7 @@ receiver.addEventListener("close", () => {
     lockClient();
 });
 
-// TODO: add "destroy" event for when the client cant reconnect after 5 tries or something
+// TODO: add "destroy" event for when the client cant reconnect after 5 tries and will be redirected to a something went wrong page
 
 /*socket.on("updateMembers", (data) => {
     console.log("updateMembers", data);
@@ -181,21 +181,6 @@ socket.on("leftRoom", (data) => {
     } else {
         switchRooms(client.rooms[0]);
     }
-});
-
-socket.on("message", (data) => {
-
-    let ele = chatMessage(
-        data.author.username,
-        data.author.color,
-        data.author.discriminator,
-        data.content,
-        Date.now() // TODO: make more accurate
-    );
-
-    addChatElement(ele, data.room);
-
-    console.log("message", data);
 });*/
 
 export async function joinRoom(room) {
@@ -266,24 +251,43 @@ sendButton.addEventListener("click", () => {
     sendMessage();
 });
 
-function sendMessage() {
+async function sendMessage() {
     if (messageInput.disabled) return;
 
-    var content = messageInput.value;
+    let content = messageInput.value;
     messageInput.value = "";
 
     while (attachmentsContainer.firstChild) {
         attachmentsContainer.removeChild(attachmentsContainer.firstChild);
     }
 
-    socket.emit("message", {
-        content: content,
-        room: client.currentRoom,
-        attachments: client.attachments
+    let res = await makeRequest({
+        method: "post",
+        url: `${gatewayUrl}/rooms/${client.currentRoom}/message`,
+        data: {
+            content: content,
+            attachments: client.attachments
+        }
     });
+
+    // TODO: handle bad requests
 
     client.attachments = [];
 }
+
+receiver.addEventListener("message", ({ detail }) => {
+    console.log("message", detail);
+
+    let ele = chatMessage(
+        detail.author.username,
+        detail.author.color,
+        detail.author.discriminator,
+        detail.content,
+        detail.timestamp
+    );
+
+    addChatElement(ele, detail.room);
+});
 
 export {
     isAtBottomOfMessages,

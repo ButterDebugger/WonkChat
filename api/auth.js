@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { createUserSession } from "../storage/data.js";
 
 const randomInt = (min = 0, max = 1) => Math.floor(Math.random() * (max - min + 1) + min);
 
@@ -50,6 +51,8 @@ export function verifyToken(token) {
 				});
 				return;
 			}
+
+			createUserSession(user.id); // Create a session user
 			
 			resolve({
 				success: true,

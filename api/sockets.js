@@ -65,6 +65,10 @@ function initWebsocket(wss) {
                 socket.alive = true;
             }
         });
+
+        socket.on("close", () => {
+            delete clientSockets[socket.session];
+        });
     });
 
     function ping(socket) {
@@ -84,6 +88,10 @@ function initWebsocket(wss) {
             ping(socket);
         });
     }, 30_000);
+}
+
+export function getSocketIds() {
+    return Object.keys(clientSockets);
 }
 
 export function getSocket(id) {
