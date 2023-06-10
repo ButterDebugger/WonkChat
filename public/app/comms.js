@@ -50,7 +50,7 @@ function init() {
     });
 }
 
-export async function makeRequest(options) { // TODO: finish and test
+export function makeRequest(options) { // TODO: finish and test
     return new Promise((resolve, reject) => {
         axios(options).then((res) => {
             resolve(res);
