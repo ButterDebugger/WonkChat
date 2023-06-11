@@ -6,7 +6,7 @@ const chatdescEle = document.getElementById("chat-description");
 const messageBox = document.getElementById("messagebox");
 export const messageInput = document.getElementById("message-input");
 
-import { getCookies } from "https://butterycode.com/static/js/utils.js@1.2?min";
+import { getCookies } from "https://butterycode.com/static/js/utils.js@1.2";
 
 import {
     init as initAttachments,
@@ -30,18 +30,19 @@ import { socket, receiver, makeRequest, gatewayUrl } from "./comms.js";
 export let client = {
     linked: false,
     currentRoom: null,
-    roomInfo: new Map(),
-    rooms: [],
+    rooms: new Map(),
     attachments: []
 };
 
-receiver.addEventListener("link", ({ detail }) => {
+receiver.addEventListener("link", async ({ detail }) => {
     if (detail.success === false) return;
 
     client.linked = true;
 
+    await syncClient();
+
     unlockClient();
-    joinRoom("wonk");
+    if (!client.rooms.has("wonk")) joinRoom("wonk");
 });
 
 function unlockClient() {
@@ -55,6 +56,23 @@ function lockClient() {
 receiver.addEventListener("close", () => {
     lockClient();
 });
+
+async function syncClient() {
+    let res = await makeRequest({
+        method: "get",
+        url: `${gatewayUrl}/sync/me`
+    });
+
+    if (res.status !== 200) return; // TODO: handle this impossibility
+
+    console.log("sync", res.data);
+
+    for (let roomname in res.data.rooms) {
+        let roomInfo = res.data.rooms[roomname];
+        client.rooms.set(roomname, roomInfo);
+        joinedRoomHandler(roomInfo);
+    }
+}
 
 // TODO: add "destroy" event for when the client cant reconnect after 5 tries and will be redirected to a something went wrong page
 
@@ -115,36 +133,69 @@ receiver.addEventListener("close", () => {
     });
 });
 
-socket.on("joinedRoom", (data) => {
+socket.on("leftRoom", (data) => {
+    console.log("leftRoom", data);
+
+    client.rooms.delete(data.room);
+
+    navbarChannels.querySelector(`.navbar-channel[room="${data.room}"]`).remove();
+    getMessagesContainer(data.room).remove();
+    getMembersContainer(data.room).remove();
+
+    if (client.rooms.size == 0) {
+        chatnameEle.innerText = "";
+        chatdescEle.innerText = "";
+        messageInput.placeholder = `Message no one`;
+        messageInput.disabled = true;
+    } else {
+        switchRooms(client.rooms.entries().next().value[1].name);
+    }
+});*/
+
+export async function joinRoom(roomname) {
+    // socket.emit("joinRoom", room);
+
+    let res = await makeRequest({
+        method: "post",
+        url: `${gatewayUrl}/rooms/${roomname}/join`
+    });
+
+    if (res.status === 200) {
+        joinedRoomHandler(res.data);
+    }
+
+    // TODO: add reject handler
+}
+
+function joinedRoomHandler(data) {
     console.log("joinedRoom", data);
 
-    client.rooms.push(data.room);
-    client.roomInfo.set(data.room, {
-        room: data.room,
+    client.rooms.set(data.name, {
+        name: data.name,
         description: data.description
     });
 
     // Add navbar channel button
     var chanEle = document.createElement("div");
-    chanEle.setAttribute("room", data.room);
+    chanEle.setAttribute("room", data.name);
     chanEle.classList.add("navbar-channel");
 
     var nameEle = document.createElement("span");
     nameEle.classList.add("room-name");
-    nameEle.innerText = `${data.room}`;
+    nameEle.innerText = `#${data.name}`;
     chanEle.appendChild(nameEle);
 
     var closeEle = document.createElement("img");
     closeEle.classList.add("no-select", "no-drag", "room-close");
     closeEle.src = "/icons/xmark-solid.svg";
     closeEle.addEventListener("click", () => {
-        socket.emit("leaveRoom", data.room);
+        socket.emit("leaveRoom", data.name);
     });
     chanEle.appendChild(closeEle);
 
     chanEle.addEventListener("click", ({ target }) => {
         if (target === closeEle) return;
-        switchRooms(data.room);
+        switchRooms(data.name);
     });
 
     navbarChannels.appendChild(chanEle);
@@ -152,50 +203,21 @@ socket.on("joinedRoom", (data) => {
     // Add chatroom containers
     var msgCont = document.createElement("div");
     msgCont.classList.add("messages-container");
-    msgCont.setAttribute("room", data.room);
+    msgCont.setAttribute("room", data.name);
     messagesWrapper.appendChild(msgCont);
     
     var memCont = document.createElement("div");
     memCont.classList.add("members-container");
-    memCont.setAttribute("room", data.room);
+    memCont.setAttribute("room", data.name);
     membersWrapper.appendChild(memCont);
 
-    switchRooms(data.room);
-});
-
-socket.on("leftRoom", (data) => {
-    console.log("leftRoom", data);
-
-    client.rooms = client.rooms.filter(room => room !== data.room);
-    client.roomInfo.delete(data.room);
-
-    navbarChannels.querySelector(`.navbar-channel[room="${data.room}"]`).remove();
-    getMessagesContainer(data.room).remove();
-    getMembersContainer(data.room).remove();
-
-    if (client.rooms == 0) {
-        chatnameEle.innerText = "";
-        chatdescEle.innerText = "";
-        messageInput.placeholder = `Message no one`;
-        messageInput.disabled = true;
-    } else {
-        switchRooms(client.rooms[0]);
-    }
-});*/
-
-export async function joinRoom(room) {
-    // socket.emit("joinRoom", room);
-
-    let res = await makeRequest({
-        method: "post",
-        url: `${gatewayUrl}/rooms/${room}/join`
-    }).catch(() => {});
+    switchRooms(data.name);
 }
 
-function addChatElement(ele, room = null) {
+function addChatElement(ele, roomname = null) {
     var scroll = isAtBottomOfMessages();
 
-    getMessagesContainer(room).appendChild(ele);
+    getMessagesContainer(roomname).appendChild(ele);
 
     if (scroll) {
         messagesWrapper.style["scroll-behavior"] = "unset";
@@ -204,15 +226,15 @@ function addChatElement(ele, room = null) {
     }
 }
 
-function getMessagesContainer(room = null) {
-    return messagesWrapper.querySelector(`.messages-container[room="${room === null ? client.currentRoom : room}"]`);
+function getMessagesContainer(roomname = null) {
+    return messagesWrapper.querySelector(`.messages-container[room="${roomname === null ? client.currentRoom : roomname}"]`);
 }
 
-function getMembersContainer(room = null) {
-    return membersWrapper.querySelector(`.members-container[room="${room === null ? client.currentRoom : room}"]`);
+function getMembersContainer(roomname = null) {
+    return membersWrapper.querySelector(`.members-container[room="${roomname === null ? client.currentRoom : roomname}"]`);
 }
 
-function switchRooms(room) {
+function switchRooms(roomname) {
     messagesWrapper.querySelectorAll(".messages-container").forEach(ele => {
         ele.classList.add("hidden");
     });
@@ -220,16 +242,16 @@ function switchRooms(room) {
         ele.classList.add("hidden");
     });
 
-    client.currentRoom = room;
-    var roomInfo = client.roomInfo.get(room);
+    client.currentRoom = roomname;
+    let roomInfo = client.rooms.get(roomname);
 
-    chatnameEle.innerText = roomInfo.room;
+    chatnameEle.innerText = `#${roomInfo.name}`;
     chatdescEle.innerText = roomInfo.description;
-    messageInput.placeholder = `Message ${roomInfo.room}`;
+    messageInput.placeholder = `Message ${roomInfo.name}`;
     messageInput.disabled = false;
 
-    getMessagesContainer(room).classList.remove("hidden");
-    getMembersContainer(room).classList.remove("hidden");
+    getMessagesContainer(roomname).classList.remove("hidden");
+    getMembersContainer(roomname).classList.remove("hidden");
 }
 
 function isAtBottomOfMessages() {
