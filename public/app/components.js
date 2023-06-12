@@ -30,6 +30,7 @@ export function chatMessage(username, color, discriminator, content, timestamp) 
     }
 
     let nameContainer = document.createElement("div");
+    nameContainer.classList.add("name-container");
 
     let nameEle = document.createElement("span");
     nameEle.setAttribute("name", "username");

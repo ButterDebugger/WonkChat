@@ -53,6 +53,8 @@ body {
 
     display: flex;
     flex-direction: column;
+
+    overflow-y: auto;
 }
 
 /*
@@ -77,18 +79,21 @@ body {
     align-items: baseline;
     gap: .35rem;
 }
-.message span[name="discriminator"] {
+.name-container {
+    white-space: nowrap;
+}
+.message span[name="username"]:not(:hover) ~ span[name="discriminator"] {
     display: none;
 }
-.message span[name="username"]:hover ~ span[name="discriminator"] {
-    display: initial;
-}
-span[name="timestamp"] {
+.message span[name="timestamp"] {
     font-style: italic;
 }
-span[name="discriminator"], span[name="timestamp"] {
+.message span[name="discriminator"], .message span[name="timestamp"] {
     color: #a7a9aa;
     font-size: 0.8em;
+}
+.message span[name="discriminator"], .message span[name="timestamp"], .message span[name="username"] {
+    white-space: nowrap;
 }
 
 /*
