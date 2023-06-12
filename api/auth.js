@@ -30,7 +30,7 @@ export function verifyToken(token) {
 			return;
 		}
 	
-		jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
+		jwt.verify(token, process.env.TOKEN_SECRET, async (err, user) => {
 			if (err) { // Token is not valid
 				resolve({
 					success: false,
@@ -52,7 +52,12 @@ export function verifyToken(token) {
 				return;
 			}
 
-			createUserSession(user.id); // Create a session user
+			createUserSession(user.id, {
+				username: user.username,
+				guest: user.guest,
+				discriminator: user.discriminator,
+				color: user.color
+			}); // Create a session user
 			
 			resolve({
 				success: true,

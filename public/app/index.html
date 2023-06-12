@@ -9,8 +9,10 @@
     <link rel="stylesheet" href="./style.css" />
     <link rel="stylesheet" href="./navbar.css" />
     <link rel="stylesheet" href="./attachments.css" />
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
   </head>
-  <body>
+  <body class="full-page">
     <nav id="navbar">
       <div id="navbar-channels"></div>
       <div class="navbar-spacer"></div>
@@ -23,16 +25,16 @@
     </nav>
 
     <div id="app">
-      <div class="header-container">
-        <img id="navbar-bars" class="no-select no-drag" src="../icons/bars-solid.svg"></img>
-
-        <div id="header">
-          <span id="chat-name"></span>
-          <span id="chat-description"></span>
-        </div>
-      </div>
-
       <div id="chatroom">
+        <div class="header-container">
+          <div id="header">
+            <img id="navbar-bars" class="no-select no-drag" src="../icons/bars-solid.svg"></img>
+            <span id="chat-name"></span>
+            <span id="chat-description"></span>
+            <img id="members-show" class="no-select no-drag" src="../icons/user-group-solid.svg"></img>
+          </div>
+        </div>
+        
         <div id="chat" class="chatroom-tab">
           <div id="messages-wrapper"></div>
 
@@ -47,14 +49,14 @@
 
             <div id="messagebox">
               <img id="attach-button" class="no-select no-drag" src="../icons/circle-plus-solid.svg"></img>
-              <input type="text" id="message-input" placeholder="Message" disabled>
+              <input type="text" id="message-input" maxlength=1000 placeholder="Message" disabled>
               <img id="send-button" class="no-select no-drag" src="../icons/circle-arrow-up-solid.svg"></img>
             </div>
           </div>
         </div>
-
-        <div id="members-wrapper" class="chatroom-tab"></div>
       </div>
+
+      <div id="members-wrapper" class="chatroom-tab"></div>
     </div>
     <script src="https://unpkg.com/axios@1.3.4/dist/axios.min.js"></script>
     <script type="module" src="./main.js"></script>

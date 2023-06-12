@@ -19,6 +19,14 @@ body, input, button {
     font-family: 'Noto Sans', sans-serif;
 }
 
+/* Tippy styles; NOTE: this is not the correct way to do this */
+.tippy-box {
+    background-color: #161619;
+}
+.tippy-arrow {
+    color: #161619;
+}
+
 /* Scrollbar styles */
 ::-webkit-scrollbar {
     width: 8px;

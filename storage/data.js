@@ -1,10 +1,7 @@
 import db from "./database.js";
 
 let sessions = new Map();
-let users = [];
 let rooms = new Map();
-let messages = [];
-let attachments = [];
 
 class User {
     constructor(id) {
@@ -12,10 +9,16 @@ class User {
         this.rooms = new Set();
     }
 
-    joinRoom(roomname) {
+    async joinRoom(roomname) {
+        let room = await getRoom(roomname);
+        room.members.add(this.id);
+        
         this.rooms.add(roomname);
     }
-    leaveRoom(roomname) {
+    async leaveRoom(roomname) {
+        let room = await getRoom(roomname);
+        room.members.delete(this.id);
+        
         this.rooms.delete(roomname);
     }
 }
@@ -24,6 +27,7 @@ class Room {
     constructor(name, description = "") {
         this.name = name;
         this.description = description;
+        this.members = new Set();
         this.messages = [];
     }
 }
@@ -47,10 +51,16 @@ class Attachment {
 
 // TODO: add optional database handing into functions
 
-export async function createUserSession(id) {
+export async function createUserSession(id, extra = {}) {
     if (sessions.has(id)) return;
 
-    sessions.set(id, new User(id));
+    let user = new User(id);
+
+    for (let key in extra) {
+        user[key] = extra[key];
+    }
+
+    sessions.set(id, user);
 }
 
 export async function getUserSession(id) {

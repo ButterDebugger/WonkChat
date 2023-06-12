@@ -22,6 +22,11 @@ import {
     chatMessage
 } from "./components.js";
 
+import {
+    getMembersContainer,
+    updateMembers
+} from "./members.js";
+
 initAttachments();
 initNavbar();
 
@@ -76,62 +81,7 @@ async function syncClient() {
 
 // TODO: add "destroy" event for when the client cant reconnect after 5 tries and will be redirected to a something went wrong page
 
-/*socket.on("updateMembers", (data) => {
-    console.log("updateMembers", data);
-    
-    var members = getMembersContainer(data.room);
-    
-    while (members.firstChild) {
-        members.removeChild(members.firstChild);
-    }
-
-    data.members.forEach(user => {
-        if (user.new) {
-            var newEle = document.createElement("div");
-
-            var nameEle = document.createElement("span");
-            nameEle.innerText = `${user.username}`;
-            nameEle.style.color = user.color;
-            newEle.appendChild(nameEle);
-        
-            var contEle = document.createElement("span");
-            contEle.innerText = " has joined the chat";
-            contEle.style.color = "rgba(255, 255, 255, 0.6)";
-            newEle.appendChild(contEle);
-        
-            addChatElement(newEle, data.room);
-        } else if (user.left) {
-            var leftEle = document.createElement("div");
-
-            var nameEle = document.createElement("span");
-            nameEle.innerText = `${user.username}`;
-            nameEle.style.color = user.color;
-            leftEle.appendChild(nameEle);
-        
-            var contEle = document.createElement("span");
-            contEle.innerText = " has left the chat";
-            contEle.style.color = "rgba(255, 255, 255, 0.6)";
-            leftEle.appendChild(contEle);
-
-            addChatElement(leftEle, data.room);
-            return; // Cancel adding member to member list
-        }
-
-        var memEle = document.createElement("div");
-
-        var nameEle = document.createElement("span");
-        nameEle.innerText = `${user.username}`;
-        nameEle.style.color = user.color;
-        memEle.appendChild(nameEle);
-
-        var discEle = document.createElement("span");
-        discEle.innerText = `#${user.discriminator}`;
-        discEle.style.color = "rgba(255, 255, 255, 0.2)";
-        memEle.appendChild(discEle);
-    
-        members.appendChild(memEle);
-    });
-});
+/*
 
 socket.on("leftRoom", (data) => {
     console.log("leftRoom", data);
@@ -150,24 +100,24 @@ socket.on("leftRoom", (data) => {
     } else {
         switchRooms(client.rooms.entries().next().value[1].name);
     }
-});*/
+});
+*/
 
 export async function joinRoom(roomname) {
     // socket.emit("joinRoom", room);
 
-    let res = await makeRequest({
+    let joinRes = await makeRequest({
         method: "post",
         url: `${gatewayUrl}/rooms/${roomname}/join`
     });
 
-    if (res.status === 200) {
-        joinedRoomHandler(res.data);
-    }
-
     // TODO: add reject handler
+    if (joinRes.status === 200) {
+        joinedRoomHandler(joinRes.data);
+    }
 }
 
-function joinedRoomHandler(data) {
+async function joinedRoomHandler(data) {
     console.log("joinedRoom", data);
 
     client.rooms.set(data.name, {
@@ -210,6 +160,13 @@ function joinedRoomHandler(data) {
     memCont.classList.add("members-container");
     memCont.setAttribute("room", data.name);
     membersWrapper.appendChild(memCont);
+    
+    let membersRes = await makeRequest({
+        method: "get",
+        url: `${gatewayUrl}/rooms/${data.name}/members`
+    });
+
+    updateMembers(data.name, membersRes.data.members);
 
     switchRooms(data.name);
 }
@@ -228,10 +185,6 @@ function addChatElement(ele, roomname = null) {
 
 function getMessagesContainer(roomname = null) {
     return messagesWrapper.querySelector(`.messages-container[room="${roomname === null ? client.currentRoom : roomname}"]`);
-}
-
-function getMembersContainer(roomname = null) {
-    return membersWrapper.querySelector(`.members-container[room="${roomname === null ? client.currentRoom : roomname}"]`);
 }
 
 function switchRooms(roomname) {
@@ -313,6 +266,5 @@ receiver.addEventListener("message", ({ detail }) => {
 
 export {
     isAtBottomOfMessages,
-    getMessagesContainer,
-    getMembersContainer
+    getMessagesContainer
 }

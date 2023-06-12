@@ -29,7 +29,7 @@ router.post("/rooms/:roomname/join", async (req, res) => {
         message: "Room doesn't exist"
     });
 
-    userSession.joinRoom(roomname);
+    await userSession.joinRoom(roomname);
 
     res.status(200).json({
         name: room.name,
@@ -41,6 +41,36 @@ router.post("/rooms/:roomname/leave", (req, res) => {
     let { roomname } = req.params;
 
     // ...
+});
+
+router.get("/rooms/:roomname/members", async (req, res) => {
+    let { roomname } = req.params;
+
+    // TODO: make sure the user is in the room
+
+    let room = await getRoom(roomname);
+
+    if (room === null) return res.status(400).json({
+        error: true,
+        message: "Room doesn't exist"
+    });
+
+    let userSessions = await Promise.all(Array.from(room.members).map((value) => {
+        return getUserSession(value);
+    }));
+
+    let members = userSessions.reduce((arr, user) => {
+        if (user !== null) arr.push({
+            username: user.username,
+            discriminator: user.discriminator,
+            color: user.color
+        });
+        return arr;
+    }, []);
+
+    res.status(200).json({
+        members: members
+    });
 });
 
 router.post("/rooms/:roomname/create", (req, res) => {
@@ -56,6 +86,11 @@ router.post("/rooms/:roomname/message", async (req, res) => {
     if (typeof content !== "string" || !Array.isArray(attachments)) return res.status(400).json({
         error: true,
         message: "Invalid json body"
+    });
+
+    if (content.length > 1000) return res.status(400).json({
+        error: true,
+        message: "Invalid message content"
     });
 
     let userSession = await getUserSession(req.user.id);
