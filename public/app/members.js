@@ -1,13 +1,16 @@
 const membersShow = document.getElementById("members-show");
 const membersWrapper = document.getElementById("members-wrapper");
 
-export let members = new Map(); // TODO: cache members
-
 import {
-    client
+    client,
+    getUsers
 } from "./client.js";
 
-import { receiver } from "./comms.js";
+import {
+    userDisplay
+} from "./components.js"
+
+import { receiver, gatewayUrl, makeRequest } from "./comms.js";
 
 tippy(membersShow, {
     content: 'Toggle Member List'
@@ -23,9 +26,10 @@ receiver.addEventListener("updateMember", ({ detail }) => {
     // TODO: update member on member list
 });
 
-export function setMembers(roomname, members) {
-    console.log("setMembers", members);
-
+export async function setMembers(roomname, ids) {
+    console.log("setMembers", ids);
+    
+    let members = await getUsers(ids);
     let membersContainer = getMembersContainer(roomname);
     
     while (membersContainer.firstChild) {
@@ -33,7 +37,7 @@ export function setMembers(roomname, members) {
     }
 
     members.forEach(user => {
-        if (user.new) {
+        /*if (user.new) {
             var newEle = document.createElement("div");
 
             var nameEle = document.createElement("span");
@@ -62,21 +66,11 @@ export function setMembers(roomname, members) {
 
             addChatElement(leftEle, roomname);
             return; // Cancel adding member to member list
-        }
+        }*/
 
-        var memEle = document.createElement("div");
+        console.log(user)
 
-        var nameEle = document.createElement("span");
-        nameEle.innerText = `${user.username}`;
-        nameEle.style.color = user.color;
-        memEle.appendChild(nameEle);
-
-        var discEle = document.createElement("span");
-        discEle.innerText = `#${user.discriminator}`;
-        discEle.style.color = "rgba(255, 255, 255, 0.2)";
-        memEle.appendChild(discEle);
-    
-        membersContainer.appendChild(memEle);
+        membersContainer.appendChild(userDisplay(user.username, user.color, user.discriminator));
     });
 };
 

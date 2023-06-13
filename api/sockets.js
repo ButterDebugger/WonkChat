@@ -23,7 +23,8 @@ function initRouter(router) {
                 
                 socket.json({
                     event: "link",
-                    success: true
+                    success: true,
+                    session: session
                 });
                 res.json({
                     success: true

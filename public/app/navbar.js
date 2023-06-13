@@ -5,7 +5,7 @@ const navbarEle = document.getElementById("navbar");
 export const navbarChannels = document.getElementById("navbar-channels");
 
 import { isChildOf } from "https://butterycode.com/static/js/utils.js@1.2?min";
-import { joinRoom } from "./client.js";
+import { joinRoom } from "./chat.js";
 
 export function init() {
     navbarJoinRoomInput.addEventListener("keypress", ({ code, shiftKey }) => {

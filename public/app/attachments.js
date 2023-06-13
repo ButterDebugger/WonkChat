@@ -4,11 +4,14 @@ const attachmentform = attachmentBox.querySelector("form");
 export const attachmentsContainer = document.getElementById("attachments-container");
 
 import {
-    isAtBottomOfMessages,
-    getMessagesContainer,
-    messageInput,
     client
 } from "./client.js";
+
+import {
+    isAtBottomOfMessages,
+    getMessagesContainer,
+    messageInput
+} from "./chat.js";
 
 export function init() {
     attachBtn.addEventListener("click", () => {

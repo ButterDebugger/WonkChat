@@ -108,3 +108,19 @@ export function chatNotification(username, color, discriminator, content, timest
 
     return msgContainer;
 }
+
+export function userDisplay(username, color, discriminator) {
+    var userEle = document.createElement("div");
+
+    var nameEle = document.createElement("span");
+    nameEle.innerText = `${username}`;
+    nameEle.style.color = color;
+    userEle.appendChild(nameEle);
+
+    var discEle = document.createElement("span");
+    discEle.innerText = "#" + `00${discriminator}`.slice(2);
+    discEle.style.color = "rgba(255, 255, 255, 0.2)";
+    userEle.appendChild(discEle);
+
+    return userEle;
+}

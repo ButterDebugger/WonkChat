@@ -34,17 +34,15 @@ router.post("/rooms/:roomname/join", async (req, res) => {
     for (let id of room.members) {
         if (id === req.user.id) continue;
 
-        getSocket(id).json({
+        let socket = getSocket(id);
+        if (socket === null) continue;
+
+        socket.json({
             event: "updateMember",
             room: roomname,
-            member: {
-                id: req.user.id,
-                username: req.user.username,
-                color: req.user.color,
-                discriminator: req.user.discriminator
-            },
+            id: req.user.id,
             state: "join"
-        })
+        });
     }
 
     res.status(200).json({
@@ -71,22 +69,8 @@ router.get("/rooms/:roomname/members", async (req, res) => {
         message: "Room doesn't exist"
     });
 
-    let userSessions = await Promise.all(Array.from(room.members).map((value) => {
-        return getUserSession(value);
-    }));
-
-    let members = userSessions.reduce((arr, user) => {
-        if (user !== null) arr.push({
-            id: user.id,
-            username: user.username,
-            discriminator: user.discriminator,
-            color: user.color
-        });
-        return arr;
-    }, []);
-
     res.status(200).json({
-        members: members
+        members: Array.from(room.members)
     });
 });
 
@@ -125,7 +109,10 @@ router.post("/rooms/:roomname/message", async (req, res) => {
     });
 
     for (let id of room.members) {
-        getSocket(id).json({
+        let socket = getSocket(id);
+        if (socket === null) continue;
+
+        socket.json({
             event: "message",
             author: {
                 username: req.user.username,
@@ -146,6 +133,33 @@ router.post("/rooms/:roomname/typing", (req, res) => {
     let { roomname } = req.params;
 
     // ...
+});
+
+router.get("/users", async (req, res) => {
+    let { ids } = req.query;
+
+    if (typeof ids !== "string") return res.status(400).json({
+        error: true,
+        message: "Empty query string"
+    });
+
+    let userSessions = await Promise.all(ids.split(",").map((value) => {
+        return getUserSession(value);
+    }));
+
+    let users = userSessions.reduce((arr, user) => {
+        if (user !== null) arr.push({
+            id: user.id,
+            username: user.username,
+            discriminator: user.discriminator,
+            color: user.color
+        });
+        return arr;
+    }, []);
+    
+    res.status(200).json({
+        users: users
+    });
 });
 
 router.get("/sync/me", async (req, res) => {
