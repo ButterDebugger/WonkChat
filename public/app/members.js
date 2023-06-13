@@ -68,8 +68,6 @@ export async function setMembers(roomname, ids) {
             return; // Cancel adding member to member list
         }*/
 
-        console.log(user)
-
         membersContainer.appendChild(userDisplay(user.username, user.color, user.discriminator));
     });
 };
