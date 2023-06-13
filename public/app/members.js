@@ -10,7 +10,7 @@ import {
     userDisplay
 } from "./components.js"
 
-import { receiver, gatewayUrl, makeRequest } from "./comms.js";
+import { receiver } from "./comms.js";
 
 tippy(membersShow, {
     content: 'Toggle Member List'
