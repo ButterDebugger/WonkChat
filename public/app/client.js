@@ -24,7 +24,7 @@ import {
 
 import {
     getMembersContainer,
-    updateMembers
+    setMembers
 } from "./members.js";
 
 initAttachments();
@@ -166,7 +166,7 @@ async function joinedRoomHandler(data) {
         url: `${gatewayUrl}/rooms/${data.name}/members`
     });
 
-    updateMembers(data.name, membersRes.data.members);
+    setMembers(data.name, membersRes.data.members);
 
     switchRooms(data.name);
 }

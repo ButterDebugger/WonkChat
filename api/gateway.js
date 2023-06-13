@@ -31,6 +31,22 @@ router.post("/rooms/:roomname/join", async (req, res) => {
 
     await userSession.joinRoom(roomname);
 
+    for (let id of room.members) {
+        if (id === req.user.id) continue;
+
+        getSocket(id).json({
+            event: "updateMember",
+            room: roomname,
+            member: {
+                id: req.user.id,
+                username: req.user.username,
+                color: req.user.color,
+                discriminator: req.user.discriminator
+            },
+            state: "join"
+        })
+    }
+
     res.status(200).json({
         name: room.name,
         description: room.description
@@ -61,6 +77,7 @@ router.get("/rooms/:roomname/members", async (req, res) => {
 
     let members = userSessions.reduce((arr, user) => {
         if (user !== null) arr.push({
+            id: user.id,
             username: user.username,
             discriminator: user.discriminator,
             color: user.color
@@ -100,7 +117,14 @@ router.post("/rooms/:roomname/message", async (req, res) => {
         message: "Cannot send a message in a room that you are not in"
     });
 
-    for (let id of getSocketIds()) {
+    let room = await getRoom(roomname);
+
+    if (room === null) return res.status(400).json({
+        error: true,
+        message: "Room doesn't exist"
+    });
+
+    for (let id of room.members) {
         getSocket(id).json({
             event: "message",
             author: {
@@ -148,7 +172,7 @@ export default function(app, wss) {
     app.use("/api", authenticate, router);
 
     // Create starting room
-    createRoom("wonk")
+    createRoom("wonk");
     
     // Handle attachments
     app.use(attachments.router); // TODO: move this under the api router
