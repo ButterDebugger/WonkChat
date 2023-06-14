@@ -14,19 +14,22 @@ router.post("/rooms/:roomname/join", async (req, res) => {
 
     if (!isValidRoomname(roomname)) return res.status(400).json({
         error: true,
-        message: "Invalid room name"
+        message: "Invalid room name",
+        code: 301
     });
 
     if (userSession.rooms.has(roomname)) return res.status(400).json({
         error: true,
-        message: "Already joined this room"
+        message: "Already joined this room",
+        code: 302
     });
 
     let room = await getRoom(roomname);
 
     if (room === null) return res.status(400).json({
         error: true,
-        message: "Room doesn't exist"
+        message: "Room doesn't exist",
+        code: 303
     });
 
     await userSession.joinRoom(roomname);
@@ -66,7 +69,8 @@ router.get("/rooms/:roomname/members", async (req, res) => {
 
     if (room === null) return res.status(400).json({
         error: true,
-        message: "Room doesn't exist"
+        message: "Room doesn't exist",
+        code: 303
     });
 
     res.status(200).json({
@@ -86,26 +90,30 @@ router.post("/rooms/:roomname/message", async (req, res) => {
 
     if (typeof content !== "string" || !Array.isArray(attachments)) return res.status(400).json({
         error: true,
-        message: "Invalid json body"
+        message: "Invalid body",
+        code: 101
     });
 
     if (content.length > 1000) return res.status(400).json({
         error: true,
-        message: "Invalid message content"
+        message: "Invalid message content",
+        code: 201
     });
 
     let userSession = await getUserSession(req.user.id);
 
     if (!userSession.rooms.has(roomname)) return res.status(400).json({
         error: true,
-        message: "Cannot send a message in a room that you are not in"
+        message: "Cannot send a message in a room that you are not in",
+        code: 304
     });
 
     let room = await getRoom(roomname);
 
     if (room === null) return res.status(400).json({
         error: true,
-        message: "Room doesn't exist"
+        message: "Room doesn't exist",
+        code: 303
     });
 
     for (let id of room.members) {
@@ -140,7 +148,8 @@ router.get("/users", async (req, res) => {
 
     if (typeof ids !== "string") return res.status(400).json({
         error: true,
-        message: "Empty query string"
+        message: "Missing query string",
+        code: 102
     });
 
     let userSessions = await Promise.all(ids.split(",").map((value) => {

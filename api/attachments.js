@@ -16,17 +16,16 @@ router.use(fileUpload({
 }));
 
 router.post("/upload", authenticate, async (req, res) => {
-    if (!req.files) return res.status(400).end();
-
-	let files = req?.files?.files;
-
-	if (typeof files !== "object") {
-		return res.status(400).end();
-	} else if (!Array.isArray(files)) {
-        files = [files];
+    if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).json({
+            error: true,
+            message: "Missing files",
+            code: 103
+        });
     }
 
-    var data = await saveFiles(files, req.user.id);
+	let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
+    let data = await saveFiles(files, req.user.id);
 
     res.json(data);
 });
@@ -41,19 +40,19 @@ router.use("/attachments", (req, res) => {
 
 function saveFiles(files, uid) {
     return new Promise((resolve) => {
-        var uploaded = [];
+        let uploaded = [];
 
         files.forEach(file => {
             const rng = seedrandom(`${file.md5}/${file.name}/${process.env.FILE_SALT}`);
             const idChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
             let fileid = "";
-            for (var i = 0; i < 24; i++) {
+            for (let i = 0; i < 24; i++) {
                 fileid += idChars.charAt(Math.floor(rng() * idChars.length));
             }
 
-			var fileloc = `attachments/${uid}/${fileid}/${file.name}`;
-            var filepath = path.join(process.cwd(), "storage", fileloc);
+			let fileloc = `attachments/${uid}/${fileid}/${file.name}`;
+            let filepath = path.join(process.cwd(), "storage", fileloc);
 
             file.mv(filepath, (err) => {
                 if (err) {

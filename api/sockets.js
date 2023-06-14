@@ -35,7 +35,8 @@ function initRouter(router) {
         
         res.status(400).json({
             error: true,
-            message: "Failed to link receiver"
+            message: "Failed to link receiver",
+            code: 601
         });
     });
 }

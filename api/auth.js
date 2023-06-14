@@ -129,7 +129,8 @@ export function authRoute(req, res) {
 	if (typeof username !== "string" || typeof password !== "string" || typeof isGuest !== "boolean") {
 		res.status(400).json({
 			error: true,
-			message: "Invalid body"
+			message: "Invalid body",
+			code: 101
 		});
 		return;
 	}
@@ -142,7 +143,8 @@ export function authRoute(req, res) {
 		) { // Credentials are invalid
 			res.status(400).json({
 				error: true,
-				message: "Invalid credentials"
+				message: "Invalid credentials",
+				code: 501
 			});
 		} else { // Generate session token
 			res.status(200).json({
@@ -158,7 +160,8 @@ export function authRoute(req, res) {
 		) { // Credentials are invalid
 			res.status(400).json({
 				error: true,
-				message: "Invalid credentials"
+				message: "Invalid credentials",
+				code: 501
 			});
 		} else { // Generate session token
 			res.status(200).json({
