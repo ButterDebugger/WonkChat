@@ -33,6 +33,13 @@ window.addEventListener("resize", () => {
 
 function join() {
     let roomname = navbarJoinRoomInput.value;
+
+    if (
+        roomname.length < 3 ||
+        roomname.length > 16 ||
+        roomname.replace(/[a-z0-9_]*/g, '').length !== 0
+    ) return;
+
     navbarJoinRoomInput.value = "";
 
     joinRoom(roomname);

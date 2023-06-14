@@ -37,27 +37,6 @@ export function lockChat() {
     messageInput.disabled = true;
 }
 
-/*
-socket.on("leftRoom", (data) => {
-    console.log("leftRoom", data);
-
-    client.rooms.delete(data.room);
-
-    navbarChannels.querySelector(`.navbar-channel[room="${data.room}"]`).remove();
-    getMessagesContainer(data.room).remove();
-    getMembersContainer(data.room).remove();
-
-    if (client.rooms.size == 0) {
-        chatnameEle.innerText = "";
-        chatdescEle.innerText = "";
-        messageInput.placeholder = `Message no one`;
-        messageInput.disabled = true;
-    } else {
-        switchRooms(client.rooms.entries().next().value[1].name);
-    }
-});
-*/
-
 export async function joinRoom(roomname) {
     // socket.emit("joinRoom", room);
 
@@ -66,9 +45,21 @@ export async function joinRoom(roomname) {
         url: `${gatewayUrl}/rooms/${roomname}/join`
     });
 
-    // TODO: add reject handler
     if (joinRes.status === 200) {
         joinedRoomHandler(joinRes.data);
+    } else if (joinRes.status === 400) {
+        if (joinRes.data.code === 303) { // Room doesn't exist
+            console.log("creating room");
+
+            let createRes = await makeRequest({
+                method: "post",
+                url: `${gatewayUrl}/rooms/${roomname}/create`
+            });
+
+            if (!(createRes.status === 200 && createRes.data.success)) return; // TODO: handle this error
+
+            joinRoom(roomname);
+        }
     }
 }
 
@@ -81,20 +72,20 @@ export async function joinedRoomHandler(data) {
     });
 
     // Add navbar channel button
-    var chanEle = document.createElement("div");
+    let chanEle = document.createElement("div");
     chanEle.setAttribute("room", data.name);
     chanEle.classList.add("navbar-channel");
 
-    var nameEle = document.createElement("span");
+    let nameEle = document.createElement("span");
     nameEle.classList.add("room-name");
     nameEle.innerText = `#${data.name}`;
     chanEle.appendChild(nameEle);
 
-    var closeEle = document.createElement("img");
+    let closeEle = document.createElement("img");
     closeEle.classList.add("no-select", "no-drag", "room-close");
     closeEle.src = "/icons/xmark-solid.svg";
     closeEle.addEventListener("click", () => {
-        socket.emit("leaveRoom", data.name);
+        leaveRoom(data.name);
     });
     chanEle.appendChild(closeEle);
 
@@ -106,12 +97,12 @@ export async function joinedRoomHandler(data) {
     navbarChannels.appendChild(chanEle);
 
     // Add chatroom containers
-    var msgCont = document.createElement("div");
+    let msgCont = document.createElement("div");
     msgCont.classList.add("messages-container");
     msgCont.setAttribute("room", data.name);
     messagesWrapper.appendChild(msgCont);
     
-    var memCont = document.createElement("div");
+    let memCont = document.createElement("div");
     memCont.classList.add("members-container");
     memCont.setAttribute("room", data.name);
     membersWrapper.appendChild(memCont);
@@ -126,8 +117,32 @@ export async function joinedRoomHandler(data) {
     switchRooms(data.name);
 }
 
+async function leaveRoom(roomname) {
+    let leaveRes = await makeRequest({
+        method: "post",
+        url: `${gatewayUrl}/rooms/${roomname}/leave`
+    });
+
+    if (!(leaveRes.status === 200 && leaveRes.data.success)) return; // TODO: handle this error
+
+    client.rooms.delete(roomname);
+
+    navbarChannels.querySelector(`.navbar-channel[room="${roomname}"]`).remove();
+    getMessagesContainer(roomname).remove();
+    getMembersContainer(roomname).remove();
+
+    if (client.rooms.size == 0) {
+        chatnameEle.innerText = "";
+        chatdescEle.innerText = "";
+        messageInput.placeholder = `Message no one`;
+        messageInput.disabled = true;
+    } else {
+        switchRooms(client.rooms.entries().next().value[1].name);
+    }
+}
+
 function addChatElement(ele, roomname = null) {
-    var scroll = isAtBottomOfMessages();
+    let scroll = isAtBottomOfMessages();
 
     getMessagesContainer(roomname).appendChild(ele);
 

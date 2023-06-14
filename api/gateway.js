@@ -54,10 +54,44 @@ router.post("/rooms/:roomname/join", async (req, res) => {
     });
 });
 
-router.post("/rooms/:roomname/leave", (req, res) => {
+router.post("/rooms/:roomname/leave", async (req, res) => {
     let { roomname } = req.params;
 
-    // ...
+    let userSession = await getUserSession(req.user.id);
+
+    if (!userSession.rooms.has(roomname)) return res.status(400).json({
+        error: true,
+        message: "Cannot leave a room that you are already not in",
+        code: 306
+    });
+
+    let room = await getRoom(roomname);
+
+    if (room === null) return res.status(400).json({
+        error: true,
+        message: "Room doesn't exist",
+        code: 303
+    });
+
+    await userSession.leaveRoom(roomname);
+
+    for (let id of room.members) {
+        if (id === req.user.id) continue;
+
+        let socket = getSocket(id);
+        if (socket === null) continue;
+
+        socket.json({
+            event: "updateMember",
+            room: roomname,
+            id: req.user.id,
+            state: "leave"
+        });
+    }
+
+    res.status(200).json({
+        success: true
+    });
 });
 
 router.get("/rooms/:roomname/members", async (req, res) => {
@@ -78,10 +112,26 @@ router.get("/rooms/:roomname/members", async (req, res) => {
     });
 });
 
-router.post("/rooms/:roomname/create", (req, res) => {
+router.post("/rooms/:roomname/create", async (req, res) => {
     let { roomname } = req.params;
 
-    // ...
+    if (!isValidRoomname(roomname)) return res.status(400).json({
+        error: true,
+        message: "Invalid room name",
+        code: 301
+    });
+
+    let room = await createRoom(roomname);
+
+    if (room === false) return res.status(400).json({
+        error: true,
+        message: "Room already exist",
+        code: 305
+    });
+    
+    res.status(200).json({
+        success: true
+    });
 });
 
 router.post("/rooms/:roomname/message", async (req, res) => {
