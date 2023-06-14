@@ -13,31 +13,29 @@ import {
     messageInput
 } from "./chat.js";
 
-export function init() {
-    attachBtn.addEventListener("click", () => {
-        var scroll = isAtBottomOfMessages();
-        var messages = getMessagesContainer();
+attachBtn.addEventListener("click", () => {
+    let scroll = isAtBottomOfMessages();
+    let messages = getMessagesContainer();
 
-        if (scroll) {
-            messages.style["scroll-behavior"] = "unset";
-            messages.lastChild.scrollIntoView();
-            messages.style["scroll-behavior"] = "";
-        }
-        
-        if (!attachBtn.classList.contains("loading")) {
-            attachmentform.querySelector("input[name='files']").click();
-        }
-    });
+    if (scroll) {
+        messages.style["scroll-behavior"] = "unset";
+        messages?.lastChild?.scrollIntoView();
+        messages.style["scroll-behavior"] = "";
+    }
     
-    attachmentform.addEventListener("submit", (e) => {
-        e.preventDefault();
-        uploadAttachments();
-    });
+    if (!attachBtn.classList.contains("loading")) {
+        attachmentform.querySelector("input[name='files']").click();
+    }
+});
 
-    attachmentform.querySelector("input[name='files']").addEventListener("change", () => {
-        uploadAttachments();
-    });
-}
+attachmentform.addEventListener("submit", (event) => {
+    event.preventDefault();
+    uploadAttachments();
+});
+
+attachmentform.querySelector("input[name='files']").addEventListener("change", () => {
+    uploadAttachments();
+});
 
 function uploadAttachments() {
     if (messageInput.disabled) return;
@@ -53,21 +51,21 @@ function uploadAttachments() {
     })
     .then(response => response.json())
     .then(attachments => {
-        var scroll = isAtBottomOfMessages();
-        var messages = getMessagesContainer();
+        let scroll = isAtBottomOfMessages();
+        let messages = getMessagesContainer();
 
         attachments.filter(attachment => attachment.success && !client.attachments.includes(attachment.path)).forEach(attachment => {
             client.attachments.push(attachment.path);
 
-            var test = document.createElement("div");
-            test.classList.add("attachment");
-            test.innerText = attachment.filename;
-            attachmentsContainer.appendChild(test);
+            let attachmentEle = document.createElement("div");
+            attachmentEle.classList.add("attachment");
+            attachmentEle.innerText = attachment.filename;
+            attachmentsContainer.appendChild(attachmentEle);
         });
         
         if (scroll) {
             messages.style["scroll-behavior"] = "unset";
-            messages.lastChild.scrollIntoView();
+            messages?.lastChild?.scrollIntoView();
             messages.style["scroll-behavior"] = "";
         }
     })
@@ -78,4 +76,4 @@ function uploadAttachments() {
         messageInput.disabled = false;
         attachBtn.classList.remove("loading");
     });
-};
+}

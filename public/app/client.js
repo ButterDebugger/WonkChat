@@ -6,13 +6,9 @@ const chatdescEle = document.getElementById("chat-description");
 const messageBox = document.getElementById("messagebox");
 const messageInput = document.getElementById("message-input");
 
-import {
-    init as initAttachments
-} from "./attachments.js";
+import "./attachments.js";
 
-import {
-    init as initNavbar
-} from "./navbar.js";
+import "./navbar.js";
 
 import {
     lockChat,
@@ -20,9 +16,6 @@ import {
     joinRoom,
     joinedRoomHandler
 } from "./chat.js";
-
-initAttachments();
-initNavbar();
 
 import { receiver, makeRequest, gatewayUrl } from "./comms.js";
 
