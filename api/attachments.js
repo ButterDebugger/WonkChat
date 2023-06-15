@@ -3,11 +3,10 @@ import fileUpload from "express-fileupload";
 import path from "node:path";
 import fs from "node:fs";
 import seedrandom from "seedrandom";
-import { authenticate } from "./auth.js";
+import { authenticate } from "../api/auth.js";
 
-const attachmentsPath = path.join(process.cwd(), "attachments");
-if (!fs.existsSync(attachmentsPath)) {
-    fs.mkdirSync(attachmentsPath);
+if (!fs.existsSync(path.join(process.cwd(), "storage/attachments"))) {
+    fs.mkdirSync(path.join(process.cwd(), "storage/attachments"));
 }
 
 const router = new express.Router();
@@ -17,17 +16,16 @@ router.use(fileUpload({
 }));
 
 router.post("/upload", authenticate, async (req, res) => {
-    if (!req.files) return res.status(400).end();
-
-	let files = req?.files?.files;
-
-	if (typeof files !== "object") {
-		return res.status(400).end();
-	} else if (!Array.isArray(files)) {
-        files = [files];
+    if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).json({
+            error: true,
+            message: "Missing files",
+            code: 103
+        });
     }
 
-    var data = await saveFiles(files, req.user.id);
+	let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
+    let data = await saveFiles(files, req.user.id);
 
     res.json(data);
 });
@@ -35,26 +33,26 @@ router.get("/upload", (req, res) => {
 	res.redirect("/app");
 });
 router.use("/attachments", (req, res) => {
-    express.static(path.join(process.cwd(), "attachments"))(req, res, () => {
+    express.static(path.join(process.cwd(), "storage/attachments"))(req, res, () => {
         res.status(404).end();
     });
 });
 
 function saveFiles(files, uid) {
     return new Promise((resolve) => {
-        var uploaded = [];
+        let uploaded = [];
 
         files.forEach(file => {
             const rng = seedrandom(`${file.md5}/${file.name}/${process.env.FILE_SALT}`);
             const idChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
             let fileid = "";
-            for (var i = 0; i < 24; i++) {
+            for (let i = 0; i < 24; i++) {
                 fileid += idChars.charAt(Math.floor(rng() * idChars.length));
             }
 
-			var fileloc = `attachments/${uid}/${fileid}/${file.name}`;
-            var filepath = path.join(process.cwd(), fileloc);
+			let fileloc = `attachments/${uid}/${fileid}/${file.name}`;
+            let filepath = path.join(process.cwd(), "storage", fileloc);
 
             file.mv(filepath, (err) => {
                 if (err) {
@@ -84,8 +82,8 @@ function saveFiles(files, uid) {
 }
 
 function clean() { // Clear attachments folder
-	fs.readdirSync(path.join(process.cwd(), "attachments")).forEach(f => {
-		fs.rmSync(path.join(process.cwd(), "attachments", f), {
+	fs.readdirSync(path.join(process.cwd(), "storage/attachments")).forEach(f => {
+		fs.rmSync(path.join(process.cwd(), "storage/attachments", f), {
 			recursive: true,
 			force: true
 		});

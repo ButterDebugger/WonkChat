@@ -57,18 +57,15 @@
     background-color: rgba(0, 0, 0, 0.2);
 }
 
-#navbar-buttons {
-    display: flex;
-    flex-direction: column;
-    padding: 12px;
-}
-.navbar-button {
+.navbar-controls {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    padding: 12px;
+    gap: 12px;
 }
 #navbar-join-room {
-    width: 120px;
+    width: 100%;
     padding: 1px 4px;
     border-radius: 8px;
 }
