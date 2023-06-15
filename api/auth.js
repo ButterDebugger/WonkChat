@@ -1,68 +1,73 @@
 import jwt from "jsonwebtoken";
 import { createUserSession } from "../storage/data.js";
 
-const randomInt = (min = 0, max = 1) => Math.floor(Math.random() * (max - min + 1) + min);
+let guestsNames = new Map();
 
+/**
+ * Router middleware for authenticating a user's token stored in the cookies
+ */
 export async function authenticate(req, res, next) {
-	var result = await verifyToken(req.cookies["token"]);
+	let result = await verifyToken(req.cookies["token"]);
 
 	if (result.success) {
 		req.user = result.user;
 		next();
 	} else {
-		if (result.clearToken) {
+		if (result.reset) {
 			res.clearCookie("token");
 		}
 
-		res.redirect("/login")
+		res.redirect("/login");
 	}
 }
 
-export function verifyToken(token) {
+export function verifyToken(token = null) {
 	return new Promise((resolve) => {
-		if (!token) { // Token cookie is not set
-			resolve({
-				success: false,
-				reason: "Please sign in before continuing.",
-				clearToken: false,
-				user: null
-			});
-			return;
-		}
+		// Token cookie was not set
+		if (typeof token !== "string") return resolve({
+			success: false,
+			reset: false,
+			user: null
+		});
 	
 		jwt.verify(token, process.env.TOKEN_SECRET, async (err, user) => {
-			if (err) { // Token is not valid
-				resolve({
-					success: false,
-					reason: "Your previous token does not work anymore.",
-					clearToken: false,
-					user: null
-				});
-				return;
-			}
-	
-			// Check if token is stale ( not "good" )
-			if (Date.now() - user.iat > 1000 * 60 * 60 * 24 * 14) {
-				resolve({
-					success: false,
-					reason: "Your previous session has been timed out.",
-					clearToken: true,
-					user: null
-				});
-				return;
-			}
+			// Token is not valid
+			if (err) return resolve({
+				success: false,
+				reset: false,
+				user: null
+			});
 
+			// Check if guest name is still available
+			let name = `${user.username}#${user.discriminator}`;
+
+			if (user.guest && !guestsNames.has(name)) {
+				guestsNames.set(name, user.id)
+			} else if (user.guest && guestsNames.has(name) && guestsNames.get(name) !== user.id) return resolve({
+				success: false,
+				reset: true,
+				user: null
+			});
+
+			// Check if token is too old
+			if (Date.now() - user.iat > 1000 * 60 * 60 * 24 * 14) return resolve({
+				success: false,
+				reset: true,
+				user: null
+			});
+
+			// Create the default session user
 			createUserSession(user.id, {
 				username: user.username,
 				guest: user.guest,
 				discriminator: user.discriminator,
 				color: user.color
-			}); // Create a session user
+			});
 			
+			// Return the user
 			resolve({
 				success: true,
-				reason: null,
-				clearToken: false,
+				reset: false,
 				user: user
 			});
 		});
@@ -72,13 +77,15 @@ export function verifyToken(token) {
 function generateSnowflake() { // TODO: make more unique
 	const hexChars = "0123456789abcdef";
 	let id = "";
-	for (var i = 0; i < 24; i++) {
+	for (let i = 0; i < 24; i++) {
 		id += hexChars.charAt(Math.floor(Math.random() * hexChars.length));
 	}
 	return id;
 }
 
 function generateColor(pastel = false) {
+	const randomInt = (min = 0, max = 1) => Math.floor(Math.random() * (max - min + 1) + min);
+
 	let color = pastel ? [
 		255, randomInt(162, 255), 162 // Pastel color
 	] : [
@@ -108,15 +115,32 @@ export function sessionToken(username, password = null) {
 		username: username,
 		guest: isGuest,
 		password: password,
-		discriminator: isGuest ? Math.floor(Math.random() * 100) : null,
+		discriminator: null,
+		color: generateColor(isGuest),
 		iat: Date.now()
 	}
 
 	if (isGuest) {
-		user.color = generateColor(isGuest, false);
+		let unique = false;
+
+		for (let i = 0; i < 3; i++) {
+			user.discriminator = Math.floor(Math.random() * 3);
+
+			let name = `${user.username}#${user.discriminator}`;
+
+			if (!guestsNames.has(name)) {
+				unique = true;
+				guestsNames.set(name, user.id);
+				break;
+			}
+		}
+
+		if (!unique) return false;
 	} else {
-		// let account = checkAccount(username, password); // TODO: finish this
-		user.color = generateColor(isGuest, true);
+		let account = checkAccount(username, password);
+		if (typeof account !== "object") return false;
+
+		user = Object.assign(user, account);
 	}
 
 	// Create token
@@ -126,47 +150,58 @@ export function sessionToken(username, password = null) {
 export function authRoute(req, res) {
 	let { username, password, isGuest } = req.body;
 
-	if (typeof username !== "string" || typeof password !== "string" || typeof isGuest !== "boolean") {
-		res.status(400).json({
-			error: true,
-			message: "Invalid body",
-			code: 101
-		});
-		return;
-	}
+	if (typeof username !== "string" || typeof password !== "string" || typeof isGuest !== "boolean") return res.status(400).json({
+		error: true,
+		message: "Invalid body",
+		code: 101
+	});
 	
 	if (isGuest) { // User is a guest
-		if ( // Check if username is valid
+		if ( // Check if credentials are invalid
 			username.length < 3 ||
 			username.length > 16 ||
 			username.replace(/[a-zA-Z0-9_]*/g, '').length > 0
-		) { // Credentials are invalid
-			res.status(400).json({
-				error: true,
-				message: "Invalid credentials",
-				code: 501
-			});
-		} else { // Generate session token
-			res.status(200).json({
-				token: sessionToken(username)
-			});
-		}
+		) return res.status(400).json({
+			error: true,
+			message: "Invalid credentials",
+			code: 501
+		});
+
+		// Generate session token
+		let token = sessionToken(username);
+
+		if (token === false) return res.status(400).json({
+			error: true,
+			message: "Invalid credentials",
+			code: 501
+		});
+		
+		res.status(200).json({
+			token: token
+		});
 	} else { // User has an account
-		if ( // Check if username and password is valid
+		if ( // Check if credentials are invalid
 			username.length < 3 ||
 			username.length > 16 ||
 			password.length < 8 ||
 			username.replace(/[a-zA-Z0-9_]*/g, '').length > 0
-		) { // Credentials are invalid
-			res.status(400).json({
-				error: true,
-				message: "Invalid credentials",
-				code: 501
-			});
-		} else { // Generate session token
-			res.status(200).json({
-				token: sessionToken(username, password)
-			});
-		}
+		) return res.status(400).json({
+			error: true,
+			message: "Invalid credentials",
+			code: 501
+		});
+
+		// Generate session token
+		let token = sessionToken(username, password);
+
+		if (token === false) return res.status(400).json({
+			error: true,
+			message: "Invalid credentials",
+			code: 501
+		});
+		
+		res.status(200).json({
+			token: token
+		});
 	}
 }
