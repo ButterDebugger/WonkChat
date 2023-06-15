@@ -1,3 +1,5 @@
+import { debugMode } from "./client.js";
+
 export const receiver = new EventTarget();
 export let socket;
 
@@ -18,7 +20,7 @@ function init() {
         let obj;
         try { obj = JSON.parse(data); } catch (error) { return; }
 
-        console.log("received " + JSON.stringify(obj)); // TODO: remove this
+        if (debugMode) console.log("received " + JSON.stringify(obj)); // TODO: remove this
 
         receiver.dispatchEvent(new CustomEvent(obj.event, {
             detail: (() => {
@@ -29,7 +31,7 @@ function init() {
     });
 
     socket.addEventListener("open", () => {
-        console.log("Websocket opened");
+        if (debugMode) console.log("Websocket opened");
         
         receiver.dispatchEvent(new CustomEvent("open", {
             detail: {}
@@ -37,14 +39,14 @@ function init() {
     });
     
     socket.addEventListener("close", () => {
-        console.log("Websocket closed");
+        if (debugMode) console.log("Websocket closed");
         
         receiver.dispatchEvent(new CustomEvent("close", {
             detail: {}
         }));
 
         setTimeout(() => {
-            console.log("Reconnecting websocket");
+            if (debugMode) console.log("Reconnecting websocket");
             init();
         }, 5000);
     });

@@ -79,17 +79,20 @@ body {
     align-items: baseline;
     gap: .35rem;
 }
-.message span[name="username"]:not(:hover) ~ span[name="discriminator"] {
+span.username:not(:hover) ~ span.discriminator:not(.stay-visible, :hover) {
     display: none;
 }
-.message span[name="timestamp"] {
+span.discriminator, span.timestamp {
     font-style: italic;
-}
-.message span[name="discriminator"], .message span[name="timestamp"] {
-    color: #a7a9aa;
     font-size: 0.8em;
 }
-.name-container .message span[name="discriminator"], .message span[name="timestamp"], .message span[name="username"] {
+span.timestamp, span.notification {
+    color: #a7a9aa;
+}
+span.discriminator {
+    color: #6b6d72;
+}
+span.discriminator, span.timestamp, span.username {
     white-space: nowrap;
 }
 

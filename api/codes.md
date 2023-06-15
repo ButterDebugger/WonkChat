@@ -22,6 +22,7 @@
 | 304  | Cannot send a message in a room that you are not in |
 | 305  | Room already exist                                  |
 | 306  | Cannot leave a room that you are already not in     |
+| 307  | Cannot query info about a room that you are not in  |
 
 ## Authorization error codes
 

@@ -44,6 +44,7 @@ router.post("/rooms/:roomname/join", async (req, res) => {
             event: "updateMember",
             room: roomname,
             id: req.user.id,
+            timestamp: Date.now(), // TODO: make more accurate somehow
             state: "join"
         });
     }
@@ -85,6 +86,7 @@ router.post("/rooms/:roomname/leave", async (req, res) => {
             event: "updateMember",
             room: roomname,
             id: req.user.id,
+            timestamp: Date.now(), // TODO: make more accurate somehow
             state: "leave"
         });
     }
@@ -97,7 +99,13 @@ router.post("/rooms/:roomname/leave", async (req, res) => {
 router.get("/rooms/:roomname/members", async (req, res) => {
     let { roomname } = req.params;
 
-    // TODO: make sure the user is in the room
+    let userSession = await getUserSession(req.user.id);
+
+    if (!userSession.rooms.has(roomname)) return res.status(400).json({
+        error: true,
+        message: "Cannot query info about a room that you are not in",
+        code: 307
+    });
 
     let room = await getRoom(roomname);
 
@@ -144,7 +152,7 @@ router.post("/rooms/:roomname/message", async (req, res) => {
         code: 101
     });
 
-    if (content.length > 1000) return res.status(400).json({
+    if (content.length > 1000 || content.replace(/\s/g, '').length == 0) return res.status(400).json({
         error: true,
         message: "Invalid message content",
         code: 201
@@ -184,13 +192,15 @@ router.post("/rooms/:roomname/message", async (req, res) => {
         })
     }
 
-    res.status(200).end();
+    res.status(200).json({
+        success: true
+    });
 });
 
 router.post("/rooms/:roomname/typing", (req, res) => {
     let { roomname } = req.params;
 
-    // ...
+    // TODO: finish this
 });
 
 router.get("/users", async (req, res) => {

@@ -20,6 +20,7 @@ import {
 import { receiver, makeRequest, gatewayUrl } from "./comms.js";
 
 export let userCache = new Map();
+export let debugMode = false;
 export let client = {
     linked: false,
     currentRoom: null,
@@ -50,7 +51,7 @@ async function syncClient() {
 
     if (res.status !== 200) return; // TODO: handle this impossibility
 
-    console.log("sync", res.data);
+    if (debugMode) console.log("sync", res.data);
 
     for (let roomname in res.data.rooms) {
         let roomInfo = res.data.rooms[roomname];

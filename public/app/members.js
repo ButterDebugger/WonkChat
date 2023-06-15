@@ -3,31 +3,85 @@ const membersWrapper = document.getElementById("members-wrapper");
 
 import {
     client,
-    getUsers
+    getUsers,
+    debugMode
 } from "./client.js";
 
 import {
-    userDisplay
+    userDisplay,
+    timestampComponent
 } from "./components.js"
+
+import {
+    addChatElement
+} from "./chat.js"
 
 import { receiver } from "./comms.js";
 
+let roomMembersCache = new Map();
+
 tippy(membersShow, {
-    content: 'Toggle Member List'
+    content: "Toggle Member List"
 });
 
 membersShow.addEventListener("click", () => {
     membersWrapper.classList.toggle("hidden");
 });
 
-receiver.addEventListener("updateMember", ({ detail }) => {
-    console.log("updateMember", detail);
+receiver.addEventListener("updateMember", async ({ detail }) => {
+    if (debugMode) console.log("updateMember", detail);
 
-    // TODO: update member on member list
+    let membersCache = roomMembersCache.get(detail.room) ?? new Set();
+
+    if (detail.state === "join") {
+        let user = await getUsers(detail.id);
+        user = user.find(u => u.id === detail.id) ?? null;
+        
+        if (user !== null) {
+            let newEle = document.createElement("div");
+            newEle.classList.add("message");
+
+            newEle.appendChild(timestampComponent(Date.now()));
+            newEle.appendChild(userDisplay(user.username, user.color, user.discriminator));
+
+            let contEle = document.createElement("span");
+            contEle.classList.add("notification");
+            contEle.innerText = " has joined the chat";
+            newEle.appendChild(contEle);
+        
+            addChatElement(newEle, detail.room);
+        }
+
+        membersCache.add(detail.id);
+        setMembers(detail.room, Array.from(membersCache));
+    } else if (detail.state === "leave") {
+        let user = await getUsers(detail.id);
+        user = user.find(u => u.id === detail.id) ?? null;
+        
+        if (user !== null) {
+            let leftEle = document.createElement("div");
+            leftEle.classList.add("message");
+
+            leftEle.appendChild(timestampComponent(Date.now()));
+            leftEle.appendChild(userDisplay(user.username, user.color, user.discriminator));
+        
+            let contEle = document.createElement("span");
+            contEle.classList.add("notification");
+            contEle.innerText = " has left the chat";
+            leftEle.appendChild(contEle);
+
+            addChatElement(leftEle, detail.room);
+        }
+
+        membersCache.delete(detail.id);
+        setMembers(detail.room, Array.from(membersCache));
+    }
 });
 
 export async function setMembers(roomname, ids) {
-    console.log("setMembers", ids);
+    if (debugMode) console.log("setting member list", ids);
+
+    roomMembersCache.set(roomname, new Set(ids));
     
     let members = await getUsers(ids);
     let membersContainer = getMembersContainer(roomname);
@@ -37,38 +91,7 @@ export async function setMembers(roomname, ids) {
     }
 
     members.forEach(user => {
-        /*if (user.new) {
-            var newEle = document.createElement("div");
-
-            var nameEle = document.createElement("span");
-            nameEle.innerText = `${user.username}`;
-            nameEle.style.color = user.color;
-            newEle.appendChild(nameEle);
-        
-            var contEle = document.createElement("span");
-            contEle.innerText = " has joined the chat";
-            contEle.style.color = "rgba(255, 255, 255, 0.6)";
-            newEle.appendChild(contEle);
-        
-            addChatElement(newEle, roomname);
-        } else if (user.left) {
-            var leftEle = document.createElement("div");
-
-            var nameEle = document.createElement("span");
-            nameEle.innerText = `${user.username}`;
-            nameEle.style.color = user.color;
-            leftEle.appendChild(nameEle);
-        
-            var contEle = document.createElement("span");
-            contEle.innerText = " has left the chat";
-            contEle.style.color = "rgba(255, 255, 255, 0.6)";
-            leftEle.appendChild(contEle);
-
-            addChatElement(leftEle, roomname);
-            return; // Cancel adding member to member list
-        }*/
-
-        membersContainer.appendChild(userDisplay(user.username, user.color, user.discriminator));
+        membersContainer.appendChild(userDisplay(user.username, user.color, user.discriminator, true));
     });
 };
 

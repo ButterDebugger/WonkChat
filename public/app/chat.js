@@ -24,7 +24,8 @@ import {
 } from "./members.js";
 
 import {
-    client
+    client,
+    debugMode
 } from "./client.js";
 
 import { socket, receiver, makeRequest, gatewayUrl } from "./comms.js";
@@ -49,7 +50,7 @@ export async function joinRoom(roomname) {
         joinedRoomHandler(joinRes.data);
     } else if (joinRes.status === 400) {
         if (joinRes.data.code === 303) { // Room doesn't exist
-            console.log("creating room");
+            if (debugMode) console.log("creating room", roomname);
 
             let createRes = await makeRequest({
                 method: "post",
@@ -64,7 +65,7 @@ export async function joinRoom(roomname) {
 }
 
 export async function joinedRoomHandler(data) {
-    console.log("joinedRoom", data);
+    if (debugMode) console.log("joinedRoom", data);
 
     client.rooms.set(data.name, {
         name: data.name,
@@ -141,7 +142,7 @@ async function leaveRoom(roomname) {
     }
 }
 
-function addChatElement(ele, roomname = null) {
+export function addChatElement(ele, roomname = null) {
     let scroll = isAtBottomOfMessages();
 
     getMessagesContainer(roomname).appendChild(ele);
@@ -200,13 +201,17 @@ async function sendMessage() {
     if (messageInput.disabled) return;
 
     let content = messageInput.value;
+
+    if (content.length > 1000 || content.replace(/\s/g, '').length == 0) return;
+ 
     messageInput.value = "";
 
     while (attachmentsContainer.firstChild) {
         attachmentsContainer.removeChild(attachmentsContainer.firstChild);
     }
 
-    let res = await makeRequest({
+    // TODO: handle bad requests
+    let messageRes = await makeRequest({
         method: "post",
         url: `${gatewayUrl}/rooms/${client.currentRoom}/message`,
         data: {
@@ -215,13 +220,11 @@ async function sendMessage() {
         }
     });
 
-    // TODO: handle bad requests
-
     client.attachments = [];
 }
 
 receiver.addEventListener("message", ({ detail }) => {
-    console.log("message", detail);
+    if (debugMode) console.log("message", detail);
 
     let ele = chatMessage(
         detail.author.username,
