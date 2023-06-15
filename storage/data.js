@@ -69,10 +69,10 @@ export async function getUserSession(id) {
     return sessions.get(id);
 }
 
-export async function createRoom(roomname, options = {}) {
+export async function createRoom(roomname, description = null) {
     if (rooms.has(roomname)) return false;
 
-    let room = new Room(roomname);
+    let room = new Room(roomname, description);
     rooms.set(roomname, room);
     return room;
 }

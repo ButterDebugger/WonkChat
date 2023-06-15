@@ -29,7 +29,7 @@ membersShow.addEventListener("click", () => {
 });
 
 receiver.addEventListener("updateMember", async ({ detail }) => {
-    if (debugMode) console.log("updateMember", detail);
+    if (debugMode) console.log("update member", detail);
 
     let membersCache = roomMembersCache.get(detail.room) ?? new Set();
 

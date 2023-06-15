@@ -29,6 +29,9 @@ body {
 
 #chat-description {
     flex: 1;
+
+    font-size: 0.8em;
+    color: #e3e4e9;
 }
 
 #chatroom {
