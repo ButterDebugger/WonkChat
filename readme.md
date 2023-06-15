@@ -1,3 +1,7 @@
+# ircChat
+
+Just another chat room to chat in
+
 ## Environment Variables
 PORT = <0 - 65535>
 
