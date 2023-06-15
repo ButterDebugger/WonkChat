@@ -31,7 +31,7 @@ export function userDisplay(username, color, discriminator = null, stayVisible =
         let discEle = document.createElement("span");
         discEle.classList.add("discriminator");
         if (stayVisible) discEle.classList.add("stay-visible");
-        discEle.innerText = "#" + `00${discriminator}`.slice(2);
+        discEle.innerText = "#" + `00${discriminator}`.slice(-2);
         userEle.appendChild(discEle);
     }
 

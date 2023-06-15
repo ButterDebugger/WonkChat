@@ -123,8 +123,8 @@ export function sessionToken(username, password = null) {
 	if (isGuest) {
 		let unique = false;
 
-		for (let i = 0; i < 3; i++) {
-			user.discriminator = Math.floor(Math.random() * 3);
+		for (let i = 0; i < 100; i++) {
+			user.discriminator = Math.floor(Math.random() * 100);
 
 			let name = `${user.username}#${user.discriminator}`;
 
