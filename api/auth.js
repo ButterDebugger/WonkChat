@@ -74,11 +74,11 @@ export function verifyToken(token = null) {
 	});
 }
 
-function generateSnowflake() { // TODO: make more unique
-	const hexChars = "0123456789abcdef";
+function generateId() {
+	const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
 	let id = "";
-	for (let i = 0; i < 24; i++) {
-		id += hexChars.charAt(Math.floor(Math.random() * hexChars.length));
+	while (id.length < 24) {
+		id += chars.charAt(Math.floor(Math.random() * chars.length));
 	}
 	return id;
 }
@@ -111,7 +111,7 @@ function checkAccount(username, password) { // TODO: check for an account
 export function sessionToken(username, password = null) {
 	let isGuest = password === null;
 	let user = {
-		id: generateSnowflake(),
+		id: generateId(),
 		username: username,
 		guest: isGuest,
 		password: password,

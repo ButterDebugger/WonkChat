@@ -6,7 +6,7 @@ let wss, router;
 let clientSockets = new Map();
 
 function generateId() {
-	let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
 	let id = "";
 	while (id.length < 20) {
 		id += chars.charAt(Math.floor(Math.random() * chars.length));

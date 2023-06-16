@@ -43,24 +43,17 @@ function saveFiles(files, uid) {
         let uploaded = [];
 
         files.forEach(file => {
-            const rng = seedrandom(`${file.md5}/${file.name}/${process.env.FILE_SALT}`);
-            const idChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+            let fileId = generateId();
+			let fileLoc = `attachments/${uid}/${fileId}/${file.name}`;
+            let filePath = path.join(process.cwd(), "storage", fileLoc);
 
-            let fileid = "";
-            for (let i = 0; i < 24; i++) {
-                fileid += idChars.charAt(Math.floor(rng() * idChars.length));
-            }
-
-			let fileloc = `attachments/${uid}/${fileid}/${file.name}`;
-            let filepath = path.join(process.cwd(), "storage", fileloc);
-
-            file.mv(filepath, (err) => {
+            file.mv(filePath, (err) => {
                 if (err) {
                     uploaded.push({
                         filename: file.name,
                         size: file.size,
                         hash: file.md5,
-						path: fileloc,
+						path: fileLoc,
                         success: false
                     });
                 } else {
@@ -68,7 +61,7 @@ function saveFiles(files, uid) {
                         filename: file.name,
                         size: file.size,
                         hash: file.md5,
-						path: fileloc,
+						path: fileLoc,
                         success: true
                     });
                 }
@@ -88,6 +81,15 @@ function clean() { // Clear attachments folder
 			force: true
 		});
 	});
+}
+
+function generateId() {
+	const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+	let id = "";
+	while (id.length < 32) {
+		id += chars.charAt(Math.floor(Math.random() * chars.length));
+	}
+	return id;
 }
 
 export default {
