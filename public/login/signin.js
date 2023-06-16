@@ -62,6 +62,5 @@ async function submitAuth() {
 
 signinForm.addEventListener("submit", (event) => {
     event.preventDefault();
-
     submitAuth();
 });

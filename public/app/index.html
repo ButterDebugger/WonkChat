@@ -12,15 +12,18 @@
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
   </head>
-  <body class="full-page">
-    <nav id="navbar">
-      <div id="navbar-channels"></div>
-      <div class="navbar-spacer"></div>
-      <div class="navbar-controls">
-        <input type="text" id="navbar-join-room" placeholder="Room Name" pattern="[a-z0-9_]*" minlength=3 maxlength=16>
-        <img id="navbar-join-room-button" class="no-select no-drag" src="../icons/right-to-bracket-solid.svg">
-      </div>
-    </nav>
+  
+  <nav id="navbar">
+    <div id="navbar-channels"></div>
+    <div class="navbar-spacer"></div>
+    <div class="navbar-controls">
+      <input type="text" id="navbar-join-room" placeholder="Room Name" pattern="[a-z0-9_]*" minlength="3" maxlength="16">
+      <img id="navbar-join-room-button" class="no-select no-drag" src="../icons/right-to-bracket-solid.svg">
+      <img id="navbar-logout-button" class="no-select no-drag" src="../icons/logout.png" alt="Logout" width="28" height="28">
+    </div>
+  </nav>
+  
+    
 
     <div id="app">
       <div id="chatroom">
@@ -57,6 +60,12 @@
       <div id="members-wrapper" class="chatroom-tab"></div>
     </div>
     <script src="https://unpkg.com/axios@1.3.4/dist/axios.min.js"></script>
+    <script type="module">
+      const logoutButton = document.getElementById('navbar-logout-button');
+      logoutButton.addEventListener('click', () => {
+        window.location.href = '/logout';
+      });
+    </script>
     <script type="module" src="./main.js"></script>
   </body>
 </html>

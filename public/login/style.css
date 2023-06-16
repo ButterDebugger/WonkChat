@@ -1,78 +1,109 @@
-html, body {
+/* style.css */
+:root {
+    --container-color: #1c1c1e;
+    --input-field-color: #1c1c1e;
+  }
+  
+  html, body {
     height: 100%;
     margin: 0px;
-}
-
-.signin-container {
+  }
+  
+  .signin-container {
     padding: 48px 36px;
     border: 1px solid rgba(0, 0, 0, 0.2);
     min-width: 260px;
     border-radius: 8px;
     background-color: var(--container-color);
     box-shadow: rgb(0 0 0 / 25%) -1px 1px 14px 1px;
-}
-
-.input-field {
+  }
+  
+  .input-field {
     margin: 8px 0px;
     padding: 2px 8px 8px 8px;
     border-radius: 8px;
     border: 2px solid rgba(0, 0, 0, 0.2);
-}
-
-.blank-field {
-    margin: 8px 0px;
-}
-
-#signin-form {
+    background-color: var(--input-field-color);
+  }
+  
+  .blank-field {
+    margin: 10px 0px;
+  }
+  
+  #signin-form {
     display: flex;
     flex-direction: column;
-}
-
-#username, #password {
+  }
+  
+  #username,
+  #password {
     padding: 6px;
     border-radius: 8px;
-    border: 2px solid rgba(0, 0, 0, 0.2);
-    width: -webkit-fill-available;
-}
-#username:invalid, #password:invalid {
+    width: calc(100% - 20px); /* Adjust the value to make it slightly shorter on the right side */
+    background-color: var(--input-field-color);
+    color: #ffffff;
+    margin-top: 10px; /* Adjust the value to position it lower down */
+  }
+  
+    
+  #username:invalid,
+  #password:invalid {
     border-color: #d93025;
     border-style: dashed;
-}
-input:required + legend::after {
+  }
+  
+  input:required + legend::after {
     content: ' *';
     color: #d93025;
-}
-
-#password::-ms-reveal, #password::-ms-clear {
+  }
+  
+  #password::-ms-reveal,
+  #password::-ms-clear {
     display: none;
-}
-
-#show-password {
+  }
+  
+  #show-password {
     margin-top: 8px;
     cursor: pointer;
-}
-label[for=show-password] {
+    color: #ffffff;
+  }
+  
+  label[for=show-password] {
     cursor: pointer;
-}
-
-#logout-reason {
+    color: #ffffff;
+  }
+  
+  #logout-reason {
     margin: 0px 0px 10px;
     font-size: 12px;
     text-align: center;
     color: #d93025;
-}
-#logout-reason:empty {
+  }
+  
+  #logout-reason:empty {
     display: none;
-}
-
-.signin-header {
+  }
+  
+  .signin-header {
     font-size: 30px;
     margin: 0px 0px 16px;
     text-align: center;
-}
-
-#submit-button {
+    color: #ffffff;
+  }
+  
+  #submit-button {
     margin: 12px 0px 0px;
     align-self: center;
     width: fit-content;
-}
+    padding: 8px 16px;
+    background-color: #0078d7;
+    color: #ffffff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  #submit-button:hover {
+    background-color: #005a9e;
+  }
+  

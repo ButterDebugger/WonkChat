@@ -4,28 +4,130 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Wonk Chat • Sign in</title>
+    <title>Wonk Chat - Sign In</title>
+    <style>
+      /* CSS for the Login page */
+      body {
+        background-color: #1c1c1e;
+        color: #ffffff;
+        font-family: Arial, sans-serif;
+      }
+      
+      .signin-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 300px;
+        padding: 16px;
+        background-color: #1c1c1e;
+        border: 1px solid #363638;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+      }
+      
+      .signin-header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      
+      #logout-reason {
+        text-align: center;
+      }
+      
+      #signin-form {
+        margin-top: 20px;
+      }
+      
+      .input-field {
+        position: relative;
+        margin-bottom: 16px;
+      }
+      
+      .input-field input[type="text"],
+      .input-field input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        background-color: #1c1c1e;
+        color: #ffffff;
+        border: none;
+        border-radius: 3px;
+        outline: none;
+        transition: border-color 0.3s ease;
+      }
+      
+      .input-field input[type="text"]:focus,
+      .input-field input[type="password"]:focus {
+        border-color: #0078d7;
+      }
+      
+      .input-field legend {
+        position: absolute;
+        top: -12px;
+        left: 8px;
+        background-color: #1c1c1e;
+        padding: 0 4px;
+        font-size: 12px;
+      }
+      
+      .input-field input[type="text"]:invalid {
+        border-color: #d93025;
+        border-style: dashed;
+      }
+      
+      .input-field input[type="text"]:invalid + legend::after {
+        content: '*';
+        color: #d93025;
+        margin-left: 2px;
+      }
+      
+      #password-field {
+        display: none;
+      }
+      
+      #show-password {
+        margin-left: 8px;
+      }
+      
+      #submit-button {
+        width: 100%;
+        padding: 10px;
+        background-color: #0078d7;
+        color: #ffffff;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      
+      #submit-button:hover {
+        background-color: #005a9e;
+      }
+      
+      .blank-field {
+        display: none;
+      }
+    </style>
     <link rel="stylesheet" href="../main.css" />
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <div class="signin-container absolute-center">
-      <h1 class="signin-header">Sign in</h1>
+    <div class="signin-container">
+      <h1 class="signin-header">Login</h1>
       <h5 id="logout-reason"></h5>
 
       <form id="signin-form">
-        <fieldset class="input-field">
-          <input type="text" name="username" id="username" minlength=3 maxlength=16 pattern="[a-zA-Z0-9_]*" required/>
+        <div class="input-field">
+          <input type="text" name="username" id="username" minlength="3" maxlength="16" pattern="[a-zA-Z0-9_]*" required/>
           <legend>Username</legend>
-        </fieldset>
+        </div>
 
         <div class="blank-field">
           <input type="checkbox" name="haspassword" id="haspassword">
-          <label for="haspassword">I have a password</label>
+          <label for="haspassword">Checkbox</label>
         </div>
 
-        <fieldset class="input-field hidden" id="password-field">
-          <input type="password" name="password" id="password" spellcheck=false minlength=8 />
+        <fieldset class="input-field" id="password-field">
+          <input type="password" name="password" id="password" spellcheck="false" minlength="8" />
           <legend>Password</legend>
           <br>
           <input type="checkbox" id="show-password">

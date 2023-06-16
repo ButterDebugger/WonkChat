@@ -78,6 +78,11 @@
     cursor: pointer;
 }
 
+#navbar-logout-button {
+    height: 28px;
+    cursor: pointer;
+}
+
 .room-name {
     font-weight: 600;
     word-break: break-all;
