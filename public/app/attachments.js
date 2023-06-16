@@ -1,7 +1,5 @@
 const attachBtn = document.getElementById("attach-button");
 const attachmentBox = document.getElementById("attachment-box");
-const attachmentform = attachmentBox.querySelector("form");
-export const attachmentsContainer = document.getElementById("attachments-container");
 
 import {
     client
@@ -13,6 +11,8 @@ import {
     messageInput
 } from "./chat.js";
 
+let fileData = new FormData();
+
 attachBtn.addEventListener("click", () => {
     let scroll = isAtBottomOfMessages();
     let messages = getMessagesContainer();
@@ -22,58 +22,70 @@ attachBtn.addEventListener("click", () => {
         messages?.lastChild?.scrollIntoView();
         messages.style["scroll-behavior"] = "";
     }
-    
-    if (!attachBtn.classList.contains("loading")) {
-        attachmentform.querySelector("input[name='files']").click();
-    }
+
+    let filesInput = document.createElement("input");
+    filesInput.type = "file";
+    filesInput.name = "files";
+    filesInput.multiple = true;
+
+    filesInput.click();
+
+    filesInput.addEventListener("change", () => {
+        for (let i = 0; i < filesInput.files.length; i++) {
+            fileData.append("files", filesInput.files.item(i));
+        }
+        filesInput.remove();
+        uploadAttachments();
+    });
 });
 
-attachmentform.addEventListener("submit", (event) => {
-    event.preventDefault();
-    uploadAttachments();
-});
-
-attachmentform.querySelector("input[name='files']").addEventListener("change", () => {
-    uploadAttachments();
-});
-
-function uploadAttachments() {
+async function uploadAttachments() {
     if (messageInput.disabled) return;
+
     messageInput.disabled = true;
     attachBtn.classList.add("loading");
 
-    fetch(attachmentform.action, {
-        method: attachmentform.method,
-        body: new FormData(attachmentform),
+    let uploadRes = await axios({
+        method: "post",
+        url: "/upload",
+        data: fileData,
         headers: {
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(attachments => {
-        let scroll = isAtBottomOfMessages();
-        let messages = getMessagesContainer();
+            "Content-Type": "multipart/form-data",
+            "Accept": "application/json"
+        },
+    });
 
-        attachments.filter(attachment => attachment.success && !client.attachments.includes(attachment.path)).forEach(attachment => {
-            client.attachments.push(attachment.path);
-
-            let attachmentEle = document.createElement("div");
-            attachmentEle.classList.add("attachment");
-            attachmentEle.innerText = attachment.filename;
-            attachmentsContainer.appendChild(attachmentEle);
-        });
-        
-        if (scroll) {
-            messages.style["scroll-behavior"] = "unset";
-            messages?.lastChild?.scrollIntoView();
-            messages.style["scroll-behavior"] = "";
-        }
-    })
-    .catch(error => {
-        console.error(error.message);
-    })
-    .finally(() => {
+    if (uploadRes.status !== 200) { // TODO: do more to handle this error
         messageInput.disabled = false;
         attachBtn.classList.remove("loading");
+        return;
+    }
+
+    let attachments = uploadRes.data;
+    let scroll = isAtBottomOfMessages();
+    let messages = getMessagesContainer();
+
+    attachments.filter(attachment => attachment.success && !client.attachments.includes(attachment.path)).forEach(attachment => {
+        client.attachments.push(attachment.path);
+
+        let attachmentEle = document.createElement("div");
+        attachmentEle.classList.add("attachment");
+        attachmentEle.innerText = attachment.filename;
+        attachmentBox.appendChild(attachmentEle);
     });
+    
+    if (scroll) {
+        messages.style["scroll-behavior"] = "unset";
+        messages?.lastChild?.scrollIntoView();
+        messages.style["scroll-behavior"] = "";
+    }
+    
+    messageInput.disabled = false;
+    attachBtn.classList.remove("loading");
+}
+
+export function clearAttachmentsBox() {
+    while (attachmentBox.firstChild) {
+        attachmentBox.removeChild(attachmentBox.firstChild);
+    }
 }

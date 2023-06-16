@@ -40,6 +40,8 @@
     padding: 6px;
     border-radius: 8px;
     width: calc(100% - 20px); /* Adjust the value to make it slightly shorter on the right side */
+    width: -moz-available;
+    width: fill-available;
     background-color: var(--input-field-color);
     color: #ffffff;
     margin-top: 10px; /* Adjust the value to position it lower down */

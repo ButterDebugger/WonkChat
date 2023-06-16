@@ -6,7 +6,7 @@ const messageBox = document.getElementById("message-box");
 export const messageInput = document.getElementById("message-input");
 
 import {
-    attachmentsContainer
+    clearAttachmentsBox
 } from "./attachments.js";
 
 import {
@@ -30,7 +30,7 @@ import {
     debugMode
 } from "./client.js";
 
-import { socket, receiver, makeRequest, gatewayUrl } from "./comms.js";
+import { receiver, makeRequest, gatewayUrl } from "./comms.js";
 
 export function unlockChat() {
     messageInput.disabled = false;
@@ -41,8 +41,6 @@ export function lockChat() {
 }
 
 export async function joinRoom(roomname) {
-    // socket.emit("joinRoom", room);
-
     let joinRes = await makeRequest({
         method: "post",
         url: `${gatewayUrl}/rooms/${roomname}/join`
@@ -183,9 +181,7 @@ async function sendMessage() {
  
     messageInput.value = "";
 
-    while (attachmentsContainer.firstChild) {
-        attachmentsContainer.removeChild(attachmentsContainer.firstChild);
-    }
+    clearAttachmentsBox();
 
     // TODO: handle bad requests
     let messageRes = await makeRequest({

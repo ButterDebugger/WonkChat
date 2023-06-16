@@ -1,4 +1,4 @@
-import { setCookie } from "https://butterycode.com/static/js/utils.js@1.2?min";
+import { setCookie } from "https://butterycode.com/static/js/utils.js@1.2";
 
 const passwordEle = document.getElementById("password");
 const hasPasswordBox = document.getElementById("haspassword");
