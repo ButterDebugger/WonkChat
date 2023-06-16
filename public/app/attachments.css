@@ -40,3 +40,6 @@
     text-overflow: ellipsis;
     cursor: default;
 }
+.attachment.clickable {
+    cursor: pointer;
+}

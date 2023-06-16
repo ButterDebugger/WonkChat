@@ -10,6 +10,7 @@ import {
     getMessagesContainer,
     messageInput
 } from "./chat.js";
+import { attachmentComponent } from "./components.js";
 
 let fileData = new FormData();
 
@@ -71,11 +72,8 @@ async function uploadAttachments() {
 
     attachments.filter(attachment => attachment.success && !client.attachments.includes(attachment.path)).forEach(attachment => {
         client.attachments.push(attachment.path);
-
-        let attachmentEle = document.createElement("div");
-        attachmentEle.classList.add("attachment");
-        attachmentEle.innerText = attachment.filename;
-        attachmentBox.appendChild(attachmentEle);
+        
+        attachmentBox.appendChild(attachmentComponent(attachment.filename));
     });
     
     if (scroll) {

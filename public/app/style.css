@@ -71,7 +71,7 @@ body {
     overflow: hidden scroll;
     scroll-behavior: smooth;
 }
-.messages-container {
+.messages-container, .message-container {
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -81,6 +81,11 @@ body {
     flex-direction: row;
     align-items: baseline;
     gap: .35rem;
+}
+.message-attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 span.username:not(:hover) ~ span.discriminator:not(.stay-visible, :hover) {
     display: none;

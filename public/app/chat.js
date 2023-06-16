@@ -204,7 +204,8 @@ receiver.addEventListener("message", ({ detail }) => {
         detail.author.color,
         detail.author.discriminator,
         detail.content,
-        detail.timestamp
+        detail.timestamp,
+        detail.attachments
     );
 
     addChatElement(ele, detail.room);
