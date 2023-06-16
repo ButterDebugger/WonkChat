@@ -28,7 +28,7 @@ receiver.addEventListener("link", async ({ detail }) => {
     await syncClient();
 
     unlockChat();
-    if (!client.rooms.has("wonk")) joinRoom("wonk");
+    if (!client.rooms.has("irc")) joinRoom("irc");
 });
 
 receiver.addEventListener("close", () => {

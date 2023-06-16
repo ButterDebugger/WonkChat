@@ -281,7 +281,7 @@ export default function(app, wss) {
     app.use("/api", authenticate, router);
 
     // Create starting room
-    createRoom("wonk", "Welcome to Wonk Chat!");
+    createRoom("irc", "Welcome to ircChat!");
     
     // Handle attachments
     app.use(attachments.router); // TODO: move this under the api router
