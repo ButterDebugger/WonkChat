@@ -1,11 +1,13 @@
 import express from "express";
-import sockets, { getSocketIds, getSocket } from "./sockets.js";
+import sockets, { getSocket } from "./sockets.js";
 import attachments from "./attachments.js";
 import { authenticate } from "./auth.js";
 import { getUserSession, createRoom, getRoom } from "../storage/data.js";
 
 const router = new express.Router();
 const roomRegex = /[a-z0-9_]*/g;
+
+let userSubscriptions = new Map();
 
 router.post("/rooms/:roomname/join", async (req, res) => {
     let { roomname } = req.params;
@@ -204,7 +206,7 @@ router.post("/rooms/:roomname/typing", (req, res) => {
 });
 
 router.get("/users", async (req, res) => {
-    let { ids } = req.query;
+    let { ids, subscribe } = req.query;
 
     if (typeof ids !== "string") return res.status(400).json({
         error: true,
@@ -212,8 +214,31 @@ router.get("/users", async (req, res) => {
         code: 102
     });
 
-    let userSessions = await Promise.all(ids.split(",").map((value) => {
-        return getUserSession(value);
+    let sessionIds = ids.split(",");
+
+    if (typeof subscribe == "string") {
+        switch (subscribe) {
+            case "yes":
+                sessionIds.forEach(id => {
+                    let subscribers = userSubscriptions.get(id) ?? new Set();
+                    subscribers.add(req.user.id);
+                    userSubscriptions.set(id, subscribers);
+                });
+                break;
+            case "no":
+                sessionIds.forEach(id => {
+                    let subscribers = userSubscriptions.get(id) ?? new Set();
+                    subscribers.delete(req.user.id);
+                    userSubscriptions.set(id, subscribers);
+                });
+                break;
+            default:
+                break;
+        }
+    }
+
+    let userSessions = await Promise.all(sessionIds.map((id) => {
+        return getUserSession(id);
     }));
 
     let users = userSessions.reduce((arr, user) => {
@@ -221,7 +246,8 @@ router.get("/users", async (req, res) => {
             id: user.id,
             username: user.username,
             discriminator: user.discriminator,
-            color: user.color
+            color: user.color,
+            offline: user.offline
         });
         return arr;
     }, []);
@@ -270,4 +296,8 @@ function isValidRoomname(roomname) {
         roomname.replace(roomRegex, '').length !== 0
     ) return false;
     return true;
+}
+
+export function getSubscribers(id) {
+    return Array.from(userSubscriptions.get(id) ?? new Set());
 }

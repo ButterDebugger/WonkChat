@@ -1,7 +1,9 @@
 import { WebSocket } from "ws";
+import { getUserSession } from "../storage/data.js";
+import { getSubscribers } from "./gateway.js";
 
 let wss, router;
-let clientSockets = {};
+let clientSockets = new Map();
 
 function generateId() {
 	let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -19,8 +21,9 @@ function initRouter(router) {
         for (let socket of wss.clients) {
             if (socket.id == session && socket.isOpen()) {
                 socket.session = req.user.id;
-                clientSockets[req.user.id] = socket;
+                clientSockets.set(req.user.id, socket);
                 
+                setSessionStatus(socket.session, false);
                 socket.json({
                     event: "link",
                     success: true,
@@ -55,7 +58,7 @@ function initWebsocket(wss) {
 
         ping(socket);
 
-        socket.on("message", (message) => {
+        socket.on("message", async (message) => {
             let data;
             try {
                 message = message.toString();
@@ -65,11 +68,13 @@ function initWebsocket(wss) {
 
             if (data?.event === "pong") {
                 socket.alive = true;
+                setSessionStatus(socket?.session, false);
             }
         });
 
         socket.on("close", () => {
-            delete clientSockets[socket.session];
+            setSessionStatus(socket?.session, true);
+            delete clientSockets.delete(socket?.session);
         });
     });
 
@@ -84,7 +89,11 @@ function initWebsocket(wss) {
 
     setInterval(() => {
         wss.clients.forEach((socket) => {
-            if (socket.alive === false) return socket.terminate();
+            if (socket.alive === false) {
+                setSessionStatus(socket?.session, true);
+                socket.terminate();
+                return;
+            }
         
             socket.alive = false;
             ping(socket);
@@ -92,12 +101,41 @@ function initWebsocket(wss) {
     }, 30_000);
 }
 
+export async function setSessionStatus(id, offline) {
+    let userSession = await getUserSession(id);
+    if (userSession !== null) {
+        let changed = userSession.offline !== offline;
+
+        userSession.offline = offline;
+
+        if (changed) {
+            getSubscribers(id).forEach(subscriber => {
+                let socket = clientSockets.get(subscriber) ?? null;
+
+                if (socket !== null) {
+                    socket.json({
+                        event: "updateUser",
+                        id: id,
+                        data: {
+                            id: userSession.id,
+                            username: userSession.username,
+                            discriminator: userSession.discriminator,
+                            color: userSession.color,
+                            offline: userSession.offline
+                        }
+                    });
+                }
+            })
+        }
+    }
+}
+
 export function getSocketIds() {
-    return Object.keys(clientSockets);
+    return Array.from(clientSockets.keys());
 }
 
 export function getSocket(id) {
-    let socket = clientSockets[id];
+    let socket = clientSockets.get(id);
     if (!(socket instanceof WebSocket)) return null;
     if (socket?.isOpen() === false) return null;
     return socket;

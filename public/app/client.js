@@ -1,11 +1,3 @@
-const messagesWrapper = document.getElementById("messages-wrapper");
-const membersWrapper = document.getElementById("members-wrapper");
-const sendButton = document.getElementById("send-button");
-const chatnameEle = document.getElementById("chat-name");
-const chatdescEle = document.getElementById("chat-description");
-const messageBox = document.getElementById("messagebox");
-const messageInput = document.getElementById("message-input");
-
 import "./attachments.js";
 
 import "./navbar.js";
@@ -20,7 +12,7 @@ import {
 import { receiver, makeRequest, gatewayUrl } from "./comms.js";
 
 export let userCache = new Map();
-export let debugMode = false;
+export let debugMode = true;
 export let client = {
     linked: false,
     currentRoom: null,
@@ -60,6 +52,10 @@ async function syncClient() {
     }
 }
 
+receiver.addEventListener("updateUser", ({ detail }) => {
+    userCache.set(detail.id, detail.data);
+});
+
 export async function getUsers(...ids) {
     let users = [];
     let unknowns = [];
@@ -75,7 +71,7 @@ export async function getUsers(...ids) {
     if (unknowns.length > 0) {
         let usersRes = await makeRequest({
             method: "get",
-            url: `${gatewayUrl}/users/?ids=${unknowns.join(",")}`
+            url: `${gatewayUrl}/users/?subscribe=yes&ids=${unknowns.join(",")}`
         });
 
         if (usersRes.status == 200) {

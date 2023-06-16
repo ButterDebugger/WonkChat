@@ -7,6 +7,7 @@ class User {
     constructor(id) {
         this.id = id;
         this.rooms = new Set();
+        this.offline = true;
     }
 
     async joinRoom(roomname) {

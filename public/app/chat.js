@@ -1,9 +1,8 @@
 const messagesWrapper = document.getElementById("messages-wrapper");
-const membersWrapper = document.getElementById("members-wrapper");
 const sendButton = document.getElementById("send-button");
 const chatnameEle = document.getElementById("chat-name");
 const chatdescEle = document.getElementById("chat-description");
-const messageBox = document.getElementById("messagebox");
+const messageBox = document.getElementById("message-box");
 export const messageInput = document.getElementById("message-input");
 
 import {
@@ -11,7 +10,8 @@ import {
 } from "./attachments.js";
 
 import {
-    navbarChannels
+    addNavbarChannel,
+    getNavbarChannel
 } from "./navbar.js";
 
 import {
@@ -19,6 +19,8 @@ import {
 } from "./components.js";
 
 import {
+    addMembersContainer,
+    getAllMembersContainers,
     getMembersContainer,
     setMembers
 } from "./members.js";
@@ -73,29 +75,7 @@ export async function joinedRoomHandler(data) {
     });
 
     // Add navbar channel button
-    let chanEle = document.createElement("div");
-    chanEle.setAttribute("room", data.name);
-    chanEle.classList.add("navbar-channel");
-
-    let nameEle = document.createElement("span");
-    nameEle.classList.add("room-name");
-    nameEle.innerText = `#${data.name}`;
-    chanEle.appendChild(nameEle);
-
-    let closeEle = document.createElement("img");
-    closeEle.classList.add("no-select", "no-drag", "room-close");
-    closeEle.src = "/icons/xmark-solid.svg";
-    closeEle.addEventListener("click", () => {
-        leaveRoom(data.name);
-    });
-    chanEle.appendChild(closeEle);
-
-    chanEle.addEventListener("click", ({ target }) => {
-        if (target === closeEle) return;
-        switchRooms(data.name);
-    });
-
-    navbarChannels.appendChild(chanEle);
+    addNavbarChannel(data.name);
 
     // Add chatroom containers
     let msgCont = document.createElement("div");
@@ -103,10 +83,7 @@ export async function joinedRoomHandler(data) {
     msgCont.setAttribute("room", data.name);
     messagesWrapper.appendChild(msgCont);
     
-    let memCont = document.createElement("div");
-    memCont.classList.add("members-container");
-    memCont.setAttribute("room", data.name);
-    membersWrapper.appendChild(memCont);
+    addMembersContainer(data.name);
     
     let membersRes = await makeRequest({
         method: "get",
@@ -118,7 +95,7 @@ export async function joinedRoomHandler(data) {
     switchRooms(data.name);
 }
 
-async function leaveRoom(roomname) {
+export async function leaveRoom(roomname) {
     let leaveRes = await makeRequest({
         method: "post",
         url: `${gatewayUrl}/rooms/${roomname}/leave`
@@ -128,7 +105,7 @@ async function leaveRoom(roomname) {
 
     client.rooms.delete(roomname);
 
-    navbarChannels.querySelector(`.navbar-channel[room="${roomname}"]`).remove();
+    getNavbarChannel(roomname).remove();
     getMessagesContainer(roomname).remove();
     getMembersContainer(roomname).remove();
 
@@ -158,11 +135,11 @@ export function getMessagesContainer(roomname = null) {
     return messagesWrapper.querySelector(`.messages-container[room="${roomname === null ? client.currentRoom : roomname}"]`);
 }
 
-function switchRooms(roomname) {
+export function switchRooms(roomname) {
     messagesWrapper.querySelectorAll(".messages-container").forEach(ele => {
         ele.classList.add("hidden");
     });
-    membersWrapper.querySelectorAll(".members-container").forEach(ele => {
+    getAllMembersContainers().forEach(ele => {
         ele.classList.add("hidden");
     });
 

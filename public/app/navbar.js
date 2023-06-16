@@ -2,10 +2,10 @@ const navbarJoinRoomInput = document.getElementById("navbar-join-room");
 const navbarJoinRoomButton = document.getElementById("navbar-join-room-button");
 const navbarBars = document.getElementById("navbar-bars");
 const navbarEle = document.getElementById("navbar");
-export const navbarChannels = document.getElementById("navbar-channels");
+const navbarChannels = document.getElementById("navbar-channels");
 
 import { isChildOf } from "https://butterycode.com/static/js/utils.js@1.2";
-import { joinRoom } from "./chat.js";
+import { joinRoom, leaveRoom, switchRooms } from "./chat.js";
 
 navbarJoinRoomInput.addEventListener("keypress", ({ code }) => {
     if (code == "Enter") {
@@ -45,3 +45,32 @@ function join() {
     joinRoom(roomname);
 }
 
+export function addNavbarChannel(roomname) {
+    let chanEle = document.createElement("div");
+    chanEle.setAttribute("room", roomname);
+    chanEle.classList.add("navbar-channel");
+
+    let nameEle = document.createElement("span");
+    nameEle.classList.add("room-name");
+    nameEle.innerText = `#${roomname}`;
+    chanEle.appendChild(nameEle);
+
+    let closeEle = document.createElement("img");
+    closeEle.classList.add("no-select", "no-drag", "room-close");
+    closeEle.src = "/icons/xmark-solid.svg";
+    closeEle.addEventListener("click", () => {
+        leaveRoom(roomname);
+    });
+    chanEle.appendChild(closeEle);
+
+    chanEle.addEventListener("click", ({ target }) => {
+        if (target === closeEle) return;
+        switchRooms(roomname);
+    });
+
+    navbarChannels.appendChild(chanEle);
+}
+
+export function getNavbarChannel(roomname) {
+    return navbarChannels.querySelector(`.navbar-channel[room="${roomname}"]`);
+}

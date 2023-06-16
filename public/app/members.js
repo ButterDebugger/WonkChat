@@ -28,6 +28,16 @@ membersShow.addEventListener("click", () => {
     membersWrapper.classList.toggle("hidden");
 });
 
+receiver.addEventListener("updateUser", ({ detail }) => {
+    for (let roomname of Array.from(roomMembersCache.keys())) {
+        let membersCache = roomMembersCache.get(roomname);
+        
+        if (!membersCache.has(detail.id)) continue;
+
+        setMembers(roomname, Array.from(membersCache));
+    }
+});
+
 receiver.addEventListener("updateMember", async ({ detail }) => {
     if (debugMode) console.log("update member", detail);
 
@@ -91,10 +101,23 @@ export async function setMembers(roomname, ids) {
     }
 
     members.forEach(user => {
-        membersContainer.appendChild(userDisplay(user.username, user.color, user.discriminator, true));
+        let userEle = userDisplay(user.username, user.color, user.discriminator, true);
+        if (user.offline) userEle.classList.add("member-offline");
+        membersContainer.appendChild(userEle);
     });
 };
 
+export function addMembersContainer(roomname) {
+    let memCont = document.createElement("div");
+    memCont.classList.add("members-container");
+    memCont.setAttribute("room", roomname);
+    membersWrapper.appendChild(memCont);
+}
+
 export function getMembersContainer(roomname = null) {
     return membersWrapper.querySelector(`.members-container[room="${roomname === null ? client.currentRoom : roomname}"]`);
+}
+
+export function getAllMembersContainers() {
+    return membersWrapper.querySelectorAll(".members-container");
 }

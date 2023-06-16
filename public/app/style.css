@@ -103,14 +103,14 @@ span.discriminator, span.timestamp, span.username {
  *  Message box styles
  */
 
-#messagebox-wrapper {
+#message-box-wrapper {
     background-color: var(--dark-container-color);
     border-radius: 8px;
     
     display: flex;
     flex-direction: column;
 }
-#messagebox {
+#message-box {
     padding: 8px 12px;
 
     display: flex;
@@ -150,4 +150,7 @@ span.discriminator, span.timestamp, span.username {
     display: flex;
     flex-direction: column;
     gap: 4px;
+}
+.member-offline {
+    opacity: 0.5;
 }
