@@ -39,7 +39,7 @@ export function verifyToken(token = null) {
 			});
 
 			// Check if guest name is still available
-			let name = `${user.username}#${user.discriminator}`;
+			let name = `${user.username.toLowerCase()}#${user.discriminator}`;
 
 			if (user.guest && !guestsNames.has(name)) {
 				guestsNames.set(name, user.id)
@@ -126,7 +126,7 @@ export function sessionToken(username, password = null) {
 		for (let i = 0; i < 100; i++) {
 			user.discriminator = Math.floor(Math.random() * 100);
 
-			let name = `${user.username}#${user.discriminator}`;
+			let name = `${user.username.toLowerCase()}#${user.discriminator}`;
 
 			if (!guestsNames.has(name)) {
 				unique = true;
