@@ -2,8 +2,7 @@
   <img src="https://media.discordapp.net/attachments/588083425496399892/1119272186243465287/IRC3.png?width=250&height=250" alt="ircChat Logo">
 </div>
 
-ircChat is a simplistic and purely anonymous chat app developed by [ButterDebugger](https://github.com/ButterDebugger). It provides a seamless and secure platform for anonymous communication.
-
+ircChat is a simplistic and purely anonymous chat app developed by [ButterDebugger](https://github.com/ButterDebugger).
 ## Features
 
 - **Anonymity**: Chat with others without revealing your identity.
