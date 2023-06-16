@@ -23,11 +23,11 @@ To get started with ircChat, follow these steps:
  -   CLOUD_TOKEN = <cloud.butterycode.com database token>
 
 
-4. Start the server: `npm start`
+4. Start the server: `node server.js`
 
 ## Usage
 
-Once the server is running, open your web browser and navigate to `http://localhost:3000` to access ircChat. Start chatting anonymously with other users instantly!
+Once the server is running, open your web browser and navigate to `http://localhost:8080` to access ircChat. Start chatting anonymously with other users instantly!
 
 ## Contributing
 
