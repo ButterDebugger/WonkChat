@@ -55,6 +55,10 @@ async function uploadAttachments() {
         },
     });
 
+    for (let key of fileData.keys()) { // Clear form data
+        fileData.delete(key);
+    }
+
     if (uploadRes.status !== 200) { // TODO: do more to handle this error
         messageInput.disabled = false;
         attachBtn.classList.remove("loading");
