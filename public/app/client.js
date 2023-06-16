@@ -12,7 +12,7 @@ import {
 import { receiver, makeRequest, gatewayUrl } from "./comms.js";
 
 export let userCache = new Map();
-export let debugMode = false;
+export let debugMode = true;
 export let client = {
     linked: false,
     currentRoom: null,
