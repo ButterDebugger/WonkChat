@@ -30,7 +30,7 @@ function updateForm(isUser) {
     } else {
         passwordField.classList.add("hidden");
         passwordEle.removeAttribute("required");
-        submitButton.innerText = "Join as Guest";
+        submitButton.innerText = "Join Chat";
     }
 }
 
