@@ -18,7 +18,9 @@
     <div id="navbar-channels"></div>
     <div class="navbar-spacer"></div>
     <div class="navbar-controls">
-      <input type="text" id="navbar-join-room" placeholder="Room Name" pattern="[a-z0-9_]*" minlength="3" maxlength="16">
+      <input type="text" id="navbar-join-room" placeholder="Room Name" pattern="[a-z0-9_]*" minlength="3" maxlength="16"
+      onfocus="if(this.placeholder === 'Room Name') this.placeholder='Lowercase only'"
+      onblur="if(this.placeholder === 'Lowercase only') this.placeholder='Room Name'">
       <img id="navbar-join-room-button" class="no-select no-drag" src="../icons/right-to-bracket-solid.svg">
       <img id="navbar-logout-button" class="no-select no-drag" src="../icons/logout.png" alt="Logout" width="28" height="28">
     </div>
