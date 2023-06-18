@@ -2,7 +2,6 @@ import express from "express";
 import fileUpload from "express-fileupload";
 import path from "node:path";
 import fs from "node:fs";
-import seedrandom from "seedrandom";
 import { authenticate } from "../api/auth.js";
 
 if (!fs.existsSync(path.join(process.cwd(), "storage/attachments"))) {
