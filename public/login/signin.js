@@ -39,7 +39,7 @@ async function submitAuth() {
     let hasPassword = document.getElementById("haspassword")?.checked;
     let password = document.getElementById("password")?.value;
 
-    await axios.post(`${location.origin}/auth`, {
+    await axios.post(`${location.origin}/api/auth`, {
         username: username,
         password: password,
         isGuest: !hasPassword

@@ -30,7 +30,7 @@ app.get("/logout", (req, res) => {
 });
 
 // Auth routes
-app.post("/auth", authRoute);
+app.post("/api/auth", authRoute);
 
 // App routes
 app.get("/", (req, res) => {
