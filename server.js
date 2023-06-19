@@ -4,7 +4,6 @@ import cookieParser from "cookie-parser";
 import path from "node:path";
 import http from "node:http";
 import dotenv from "dotenv";
-import { WebSocketServer } from "ws";
 import { authRoute, authenticate } from "./api/auth.js";
 import gateway from "./api/gateway.js";
 
@@ -13,7 +12,6 @@ const port = process.env.PORT ?? 8080;
 
 const app = express();
 const server = http.Server(app);
-const wss = new WebSocketServer({ server });
 
 // Add middleware
 app.use(cookieParser());
@@ -42,7 +40,7 @@ app.use(express.static(path.join(process.cwd(), "public"), {
 }));
 
 // Handle api gateway
-gateway(app, wss);
+gateway(app);
 
 // Start the server
 server.listen(port, () => {

@@ -1,5 +1,5 @@
 import express from "express";
-import sockets, { getSocket } from "./sockets.js";
+import streams, { getStream } from "./streams.js";
 import attachments from "./attachments.js";
 import { authenticate } from "./auth.js";
 import { getUserSession, createRoom, getRoom } from "../storage/data.js";
@@ -39,10 +39,10 @@ router.post("/rooms/:roomname/join", async (req, res) => {
     for (let id of room.members) {
         if (id === req.user.id) continue;
 
-        let socket = getSocket(id);
-        if (socket === null) continue;
+        let stream = getStream(id);
+        if (stream === null) continue;
 
-        socket.json({
+        stream.json({
             event: "updateMember",
             room: roomname,
             id: req.user.id,
@@ -81,10 +81,10 @@ router.post("/rooms/:roomname/leave", async (req, res) => {
     for (let id of room.members) {
         if (id === req.user.id) continue;
 
-        let socket = getSocket(id);
-        if (socket === null) continue;
+        let stream = getStream(id);
+        if (stream === null) continue;
 
-        socket.json({
+        stream.json({
             event: "updateMember",
             room: roomname,
             id: req.user.id,
@@ -177,10 +177,10 @@ router.post("/rooms/:roomname/message", async (req, res) => {
     });
 
     for (let id of room.members) {
-        let socket = getSocket(id);
-        if (socket === null) continue;
+        let stream = getStream(id);
+        if (stream === null) continue;
 
-        socket.json({
+        stream.json({
             event: "message",
             author: {
                 username: req.user.username,
@@ -276,8 +276,8 @@ router.get("/sync/me", async (req, res) => {
     });
 });
 
-export default function(app, wss) {
-    sockets(wss, router);
+export default function(app) {
+    streams(router);
     app.use("/api", authenticate, router);
 
     // Create starting room

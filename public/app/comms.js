@@ -1,26 +1,46 @@
 import { debugMode } from "./client.js";
 
 export const receiver = new EventTarget();
-export let socket;
+export let stream;
 
-export const websocketUrl = `${location.protocol == "https:" ? "wss" : "ws"}://${location.host}/`;
 export const baseUrl = location.origin;
 export const gatewayUrl = `${baseUrl}/api`;
 
 init();
 
 function init() {
-    socket = new WebSocket(websocketUrl);
+    stream = new EventSource(`${gatewayUrl}/stream`);
 
-    socket.isOpen = function() {
-        return socket?.readyState === 1;
-    }
-    
-    socket.addEventListener("message", ({ data }) => {
+    stream.addEventListener("open", () => {
+        if (debugMode) console.log("Event stream opened");
+        
+        receiver.dispatchEvent(new CustomEvent("open", {
+            detail: {}
+        }));
+    });
+
+    stream.addEventListener("error", (event) => {
+        if (debugMode) console.error("An error has occurred with the event stream", event)
+    });
+
+    stream.addEventListener("close", () => {
+        if (debugMode) console.log("Event stream closed");
+        
+        receiver.dispatchEvent(new CustomEvent("close", {
+            detail: {}
+        }));
+
+        setTimeout(() => {
+            if (debugMode) console.log("Reconnecting event stream");
+            init();
+        }, 5000);
+    });
+
+    stream.addEventListener("message", ({ data }) => {
         let obj;
         try { obj = JSON.parse(data); } catch (error) { return; }
 
-        if (debugMode) console.log("received " + JSON.stringify(obj)); // TODO: remove this
+        if (debugMode) console.log("received", JSON.stringify(obj));
 
         receiver.dispatchEvent(new CustomEvent(obj.event, {
             detail: (() => {
@@ -29,30 +49,9 @@ function init() {
             })()
         }));
     });
-
-    socket.addEventListener("open", () => {
-        if (debugMode) console.log("Websocket opened");
-        
-        receiver.dispatchEvent(new CustomEvent("open", {
-            detail: {}
-        }));
-    });
-    
-    socket.addEventListener("close", () => {
-        if (debugMode) console.log("Websocket closed");
-        
-        receiver.dispatchEvent(new CustomEvent("close", {
-            detail: {}
-        }));
-
-        setTimeout(() => {
-            if (debugMode) console.log("Reconnecting websocket");
-            init();
-        }, 5000);
-    });
 }
 
-export function makeRequest(options) { // TODO: finish and test
+export function makeRequest(options) {
     return new Promise((resolve, reject) => {
         axios(options).then((res) => {
             resolve(res);
@@ -65,15 +64,3 @@ export function makeRequest(options) { // TODO: finish and test
         });
     });
 }
-
-receiver.addEventListener("ping", ({ detail }) => {
-    if (detail.session === null) {
-        axios.post(`${baseUrl}/api/receiver`, {
-            session: detail.id
-        }).catch(() => {});
-    }
-
-    socket.send(JSON.stringify({
-        event: "pong"
-    }));
-});
