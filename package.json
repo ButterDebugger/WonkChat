@@ -1,13 +1,13 @@
 {
-  "name": "etst-ape",
+  "name": "irc-chat",
   "version": "1.0.0",
-  "description": "Website Thing",
+  "description": "A simple irc chat",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon"
   },
-  "author": "ButterBoyJulian",
+  "author": "ButterDebugger",
   "license": "MIT",
   "type": "module",
   "dependencies": {
