@@ -61,30 +61,15 @@ export function userDisplay(username, color, discriminator = null, stayVisible =
 }
 
 export function timestampComponent(timestamp) {
-    let date = timestamp instanceof Date ? timestamp : new Date(timestamp);
-
-    let time = date.toLocaleTimeString("en-us", {
-        hour: "numeric",
-        minute: "numeric"
-    });
-
-    let dateTime = `${date.toLocaleDateString("en-us", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric"
-    })}, ${date.toLocaleTimeString("en-us", {
-        hour: "numeric",
-        minute: "numeric",
-        second: "numeric"
-    })}`;
+    let time = moment(timestamp).format("h:mm A");
+    let fullDate = moment(timestamp).format("dddd, MMMM Do, YYYY h:mm:ss A");
 
     let timeEle = document.createElement("span");
     timeEle.classList.add("timestamp");
     timeEle.innerText = time;
 
     tippy(timeEle, {
-        content: dateTime
+        content: fullDate
     });
 
     return timeEle;
