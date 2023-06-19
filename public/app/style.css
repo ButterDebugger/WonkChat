@@ -87,6 +87,9 @@ body {
     flex-wrap: wrap;
     gap: 6px;
 }
+.message-attachments:empty {
+    display: none;
+}
 span.username:not(:hover) ~ span.discriminator:not(.stay-visible, :hover) {
     display: none;
 }
