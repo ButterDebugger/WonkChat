@@ -3,7 +3,7 @@
 Just another chat room to chat in
 
 ## Environment Variables
-PORT = <0 - 65535>
+PORT = <0 - 65535> (defaults to 8080)
 
 TOKEN_SECRET = <128 characters>
 
