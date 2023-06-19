@@ -17,10 +17,22 @@ function init() {
         receiver.dispatchEvent(new CustomEvent("open", {
             detail: {}
         }));
+
+        // Check every 500ms if the stream state is closed
+        let stateInterval = setInterval(() => {
+            if (stream.readyState == 2) {
+                stream.dispatchEvent(new CustomEvent("close", {
+                    detail: {}
+                }));
+                clearInterval(stateInterval);
+            }
+        }, 500);
     });
 
     stream.addEventListener("error", (event) => {
-        if (debugMode) console.error("An error has occurred with the event stream", event)
+        if (debugMode) console.error("An error has occurred with the event stream", event);
+
+        stream.close();
     });
 
     stream.addEventListener("close", () => {
@@ -30,10 +42,11 @@ function init() {
             detail: {}
         }));
 
+        // Redirect after 2.5sec
         setTimeout(() => {
             if (debugMode) console.log("Reconnecting event stream");
             init();
-        }, 5000);
+        }, 2500);
     });
 
     stream.addEventListener("message", ({ data }) => {
