@@ -31,6 +31,10 @@ function initRouter(router) {
 
         let stream = new Stream(req, res);
         
+        stream.json({
+            opened: true
+        });
+        
         setOnlineStatus(req.user.id, true);
         clientStreams.set(req.user.id, stream);
         

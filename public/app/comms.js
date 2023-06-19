@@ -42,6 +42,8 @@ function init() {
 
         if (debugMode) console.log("received", JSON.stringify(obj));
 
+        if (typeof obj.event !== "string") return;
+
         receiver.dispatchEvent(new CustomEvent(obj.event, {
             detail: (() => {
                 delete obj.event;
