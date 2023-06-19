@@ -29,9 +29,3 @@
 | Code | Message             |
 |:----:|---------------------|
 | 501  | Invalid credentials |
-
-## Websocket error codes
-
-| Code | Message                 |
-|:----:|-------------------------|
-| 601  | Failed to link receiver |
