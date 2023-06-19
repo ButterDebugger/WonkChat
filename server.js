@@ -1,7 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
-import compression from "compression";
 import path from "node:path";
 import http from "node:http";
 import dotenv from "dotenv";
@@ -15,7 +14,6 @@ const app = express();
 const server = http.Server(app);
 
 // Add middleware
-app.use(compression());
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use((req, res, next) => {
