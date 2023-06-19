@@ -73,15 +73,11 @@ export async function joinedRoomHandler(data) {
     });
 
     // Add navbar channel button
-    addNavbarChannel(data.name);
+    if (getNavbarChannel(data.name) === null) addNavbarChannel(data.name);
 
     // Add chatroom containers
-    let msgCont = document.createElement("div");
-    msgCont.classList.add("messages-container");
-    msgCont.setAttribute("room", data.name);
-    messagesWrapper.appendChild(msgCont);
-    
-    addMembersContainer(data.name);
+    if (getMessagesContainer(data.name) === null) addMessagesContainer(data.name);
+    if (getMembersContainer(data.name) === null) addMembersContainer(data.name);
     
     let membersRes = await makeRequest({
         method: "get",
@@ -129,12 +125,23 @@ export function addChatElement(ele, roomname = null) {
     }
 }
 
+export function addMessagesContainer(roomname) {
+    let msgCont = document.createElement("div");
+    msgCont.classList.add("messages-container");
+    msgCont.setAttribute("room", roomname);
+    messagesWrapper.appendChild(msgCont);
+}
+
 export function getMessagesContainer(roomname = null) {
     return messagesWrapper.querySelector(`.messages-container[room="${roomname === null ? client.currentRoom : roomname}"]`);
 }
 
+export function getAllMessagesContainers() {
+    return messagesWrapper.querySelectorAll(".messages-container");
+}
+
 export function switchRooms(roomname) {
-    messagesWrapper.querySelectorAll(".messages-container").forEach(ele => {
+    getAllMessagesContainers().forEach(ele => {
         ele.classList.add("hidden");
     });
     getAllMembersContainers().forEach(ele => {
