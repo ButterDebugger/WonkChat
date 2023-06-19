@@ -274,7 +274,7 @@ router.get("/sync/me", async (req, res) => {
     res.status(200).json({
         rooms: rooms
     });
-})
+});
 
 export default function(app, wss) {
     sockets(wss, router);

@@ -23,13 +23,13 @@ router.post("/upload", authenticate, async (req, res) => {
         });
     }
 
-	let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
+    let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
     let data = await saveFiles(files, req.user.id);
 
     res.json(data);
 });
 router.get("/upload", (req, res) => {
-	res.redirect("/app");
+    res.redirect("/app");
 });
 router.use("/attachments", (req, res) => {
     express.static(path.join(process.cwd(), "storage/attachments"))(req, res, () => {
@@ -43,7 +43,7 @@ function saveFiles(files, uid) {
 
         files.forEach(file => {
             let fileId = generateId();
-			let fileLoc = `attachments/${uid}/${fileId}/${file.name}`;
+            let fileLoc = `attachments/${uid}/${fileId}/${file.name}`;
             let filePath = path.join(process.cwd(), "storage", fileLoc);
 
             file.mv(filePath, (err) => {
@@ -52,7 +52,7 @@ function saveFiles(files, uid) {
                         filename: file.name,
                         size: file.size,
                         hash: file.md5,
-						path: fileLoc,
+                        path: fileLoc,
                         success: false
                     });
                 } else {
@@ -60,7 +60,7 @@ function saveFiles(files, uid) {
                         filename: file.name,
                         size: file.size,
                         hash: file.md5,
-						path: fileLoc,
+                        path: fileLoc,
                         success: true
                     });
                 }
@@ -74,21 +74,21 @@ function saveFiles(files, uid) {
 }
 
 function clean() { // Clear attachments folder
-	fs.readdirSync(path.join(process.cwd(), "storage/attachments")).forEach(f => {
-		fs.rmSync(path.join(process.cwd(), "storage/attachments", f), {
-			recursive: true,
-			force: true
-		});
-	});
+    fs.readdirSync(path.join(process.cwd(), "storage/attachments")).forEach(f => {
+        fs.rmSync(path.join(process.cwd(), "storage/attachments", f), {
+            recursive: true,
+            force: true
+        });
+    });
 }
 
 function generateId() {
-	const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-	let id = "";
-	while (id.length < 32) {
-		id += chars.charAt(Math.floor(Math.random() * chars.length));
-	}
-	return id;
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let id = "";
+    while (id.length < 32) {
+        id += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return id;
 }
 
 export default {

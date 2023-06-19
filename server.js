@@ -13,20 +13,20 @@ const port = process.env.PORT ?? 8080;
 
 const app = express();
 const server = http.Server(app);
-const wss = new WebSocketServer({ server }); // TODO: add this https://github.com/websockets/ws#multiple-servers-sharing-a-single-https-server
+const wss = new WebSocketServer({ server });
 
 // Add middleware
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use((req, res, next) => {
-	res.set("allow", "*");
-	next();
+    res.set("allow", "*");
+    next();
 });
 
 // Login routes
 app.get("/logout", (req, res) => {
-	res.clearCookie("token");
-	res.redirect("/login");
+    res.clearCookie("token");
+    res.redirect("/login");
 });
 
 // Auth routes
@@ -34,11 +34,11 @@ app.post("/auth", authRoute);
 
 // App routes
 app.get("/", (req, res) => {
-	res.redirect("/app");
+    res.redirect("/app");
 });
 app.use("/app", authenticate);
 app.use(express.static(path.join(process.cwd(), "public"), {
-	extensions: ['html', 'htm']
+    extensions: ['html', 'htm']
 }));
 
 // Handle api gateway
@@ -46,5 +46,5 @@ gateway(app, wss);
 
 // Start the server
 server.listen(port, () => {
-	console.log(`Server is running on port ${port}`)
+    console.log(`Server is running on port ${port}`);
 });

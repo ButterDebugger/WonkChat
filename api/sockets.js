@@ -6,12 +6,12 @@ let wss, router;
 let clientSockets = new Map();
 
 function generateId() {
-	const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-	let id = "";
-	while (id.length < 20) {
-		id += chars.charAt(Math.floor(Math.random() * chars.length));
-	}
-	return id;
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let id = "";
+    while (id.length < 20) {
+        id += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return id;
 }
 
 function initRouter(router) {
