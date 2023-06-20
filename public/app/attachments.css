@@ -22,6 +22,10 @@
     cursor: pointer;
 }
 
+#attach-button.disabled {
+    cursor: not-allowed;
+}
+
 #attach-button.loading {
     cursor: progress;
     animation: spin 3s linear infinite;

@@ -4,6 +4,7 @@ const chatnameEle = document.getElementById("chat-name");
 const chatdescEle = document.getElementById("chat-description");
 const messageBox = document.getElementById("message-box");
 const messageInput = document.getElementById("message-input");
+const attachBtn = document.getElementById("attach-button");
 
 import {
     clearAttachmentsBox
@@ -33,12 +34,22 @@ import {
 import { receiver, makeRequest, gatewayUrl } from "./comms.js";
 import showAlert from "./alert.js";
 
+let isLocked = false;
+
 export function unlockChat() {
     messageInput.disabled = false;
+    attachBtn.classList.remove("disabled");
+    isLocked = false;
 }
 
 export function lockChat() {
     messageInput.disabled = true;
+    attachBtn.classList.add("disabled");
+    isLocked = true;
+}
+
+export function isChatLocked() {
+    return isLocked;
 }
 
 export async function joinRoom(roomname) {
@@ -110,7 +121,7 @@ export async function leaveRoom(roomname) {
         chatnameEle.innerText = "";
         chatdescEle.innerText = "";
         messageInput.placeholder = `Message no one`;
-        messageInput.disabled = true;
+        lockChat();
     } else {
         switchRooms(client.rooms.entries().next().value[1].name);
     }
@@ -157,7 +168,6 @@ export function switchRooms(roomname) {
     chatnameEle.innerText = `#${roomInfo.name}`;
     chatdescEle.innerText = roomInfo.description;
     messageInput.placeholder = `Message #${roomInfo.name}`;
-    messageInput.disabled = false;
 
     getMessagesContainer(roomname).classList.remove("hidden");
     getMembersContainer(roomname).classList.remove("hidden");
