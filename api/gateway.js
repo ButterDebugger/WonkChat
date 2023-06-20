@@ -46,7 +46,7 @@ router.post("/rooms/:roomname/join", async (req, res) => {
             event: "updateMember",
             room: roomname,
             id: req.user.id,
-            timestamp: Date.now(), // TODO: make more accurate somehow
+            timestamp: Date.now(),
             state: "join"
         });
     }
@@ -88,7 +88,7 @@ router.post("/rooms/:roomname/leave", async (req, res) => {
             event: "updateMember",
             room: roomname,
             id: req.user.id,
-            timestamp: Date.now(), // TODO: make more accurate somehow
+            timestamp: Date.now(),
             state: "leave"
         });
     }
@@ -190,7 +190,7 @@ router.post("/rooms/:roomname/message", async (req, res) => {
             room: roomname,
             content: content,
             attachments: attachments,
-            timestamp: Date.now() // TODO: make more accurate
+            timestamp: Date.now()
         })
     }
 
@@ -284,7 +284,7 @@ export default function(app) {
     createRoom("wonk", "Welcome to Wonk Chat!");
     
     // Handle attachments
-    app.use(attachments.router); // TODO: move this under the api router
+    app.use(attachments.router);
     attachments.clean();
 }
 

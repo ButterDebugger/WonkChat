@@ -79,5 +79,3 @@ export async function getUsers(...ids) {
 
     return users;
 }
-
-// TODO: add "destroy" event for when the client cant reconnect after 5 tries and will be redirected to a something went wrong page
