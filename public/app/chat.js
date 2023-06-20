@@ -153,7 +153,7 @@ export function switchRooms(roomname) {
 
     chatnameEle.innerText = `#${roomInfo.name}`;
     chatdescEle.innerText = roomInfo.description;
-    messageInput.placeholder = `Message ${roomInfo.name}`;
+    messageInput.placeholder = `Message #${roomInfo.name}`;
     messageInput.disabled = false;
 
     getMessagesContainer(roomname).classList.remove("hidden");
