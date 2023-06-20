@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { createUserSession } from "../storage/data.js";
+import { generateId } from "../storage/snowflake.js";
 
 let guestsNames = new Map();
 
@@ -74,15 +75,6 @@ export function verifyToken(token = null) {
     });
 }
 
-function generateId() {
-    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-    let id = "";
-    while (id.length < 24) {
-        id += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return id;
-}
-
 function generateColor(pastel = false) {
     const randomInt = (min = 0, max = 1) => Math.floor(Math.random() * (max - min + 1) + min);
 
@@ -111,7 +103,7 @@ function checkAccount(username, password) { // TODO: check for an account
 export function sessionToken(username, password = null) {
     let isGuest = password === null;
     let user = {
-        id: generateId(),
+        id: generateId(0n),
         username: username,
         guest: isGuest,
         password: password,
