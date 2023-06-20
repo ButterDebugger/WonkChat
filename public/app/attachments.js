@@ -1,5 +1,6 @@
 const attachBtn = document.getElementById("attach-button");
 const attachmentBox = document.getElementById("attachment-box");
+const messageInput = document.getElementById("message-input");
 
 import {
     client
@@ -7,8 +8,7 @@ import {
 
 import {
     isAtBottomOfMessages,
-    getMessagesContainer,
-    messageInput
+    getMessagesContainer
 } from "./chat.js";
 import { attachmentComponent } from "./components.js";
 import showAlert from "./alert.js";

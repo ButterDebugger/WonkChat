@@ -3,7 +3,7 @@ const sendButton = document.getElementById("send-button");
 const chatnameEle = document.getElementById("chat-name");
 const chatdescEle = document.getElementById("chat-description");
 const messageBox = document.getElementById("message-box");
-export const messageInput = document.getElementById("message-input");
+const messageInput = document.getElementById("message-input");
 
 import {
     clearAttachmentsBox
