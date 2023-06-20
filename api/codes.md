@@ -29,3 +29,4 @@
 | Code | Message             |
 |:----:|---------------------|
 | 501  | Invalid credentials |
+| 502  | Too many requests   |
