@@ -31,6 +31,7 @@ import {
 } from "./client.js";
 
 import { receiver, makeRequest, gatewayUrl } from "./comms.js";
+import showAlert from "./alert.js";
 
 export function unlockChat() {
     messageInput.disabled = false;
@@ -57,9 +58,11 @@ export async function joinRoom(roomname) {
                 url: `${gatewayUrl}/rooms/${roomname}/create`
             });
 
-            if (!(createRes.status === 200 && createRes.data.success)) return; // TODO: handle this error
+            if (!(createRes.status === 200 && createRes.data.success)) return showAlert("Failed to create new room", 2500);
 
             joinRoom(roomname);
+        } else {
+            showAlert("Failed to join room", 2500);
         }
     }
 }
@@ -95,7 +98,7 @@ export async function leaveRoom(roomname) {
         url: `${gatewayUrl}/rooms/${roomname}/leave`
     });
 
-    if (!(leaveRes.status === 200 && leaveRes.data.success)) return; // TODO: handle this error
+    if (!(leaveRes.status === 200 && leaveRes.data.success)) return showAlert("Failed to leave room", 2500);
 
     client.rooms.delete(roomname);
 
@@ -190,7 +193,6 @@ async function sendMessage() {
 
     clearAttachmentsBox();
 
-    // TODO: handle bad requests
     let messageRes = await makeRequest({
         method: "post",
         url: `${gatewayUrl}/rooms/${client.currentRoom}/message`,
@@ -199,6 +201,8 @@ async function sendMessage() {
             attachments: client.attachments
         }
     });
+
+    if (messageRes.status !== 200) return showAlert("Failed to send message", 2500);
 
     client.attachments = [];
 }

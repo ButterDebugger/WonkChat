@@ -11,6 +11,7 @@ import {
     messageInput
 } from "./chat.js";
 import { attachmentComponent } from "./components.js";
+import showAlert from "./alert.js";
 
 let fileData = new FormData();
 
@@ -60,9 +61,10 @@ async function uploadAttachments() {
         fileData.delete(key);
     }
 
-    if (uploadRes.status !== 200) { // TODO: do more to handle this error
+    if (uploadRes.status !== 200) {
         messageInput.disabled = false;
         attachBtn.classList.remove("loading");
+        showAlert("Failed to upload attachments", 2500);
         return;
     }
 

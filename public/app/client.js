@@ -11,6 +11,8 @@ import {
 
 import { receiver, makeRequest, gatewayUrl } from "./comms.js";
 
+import showAlert from "./alert.js";
+
 export let userCache = new Map();
 export let debugMode = false;
 export let client = {
@@ -31,17 +33,17 @@ receiver.addEventListener("close", () => {
 });
 
 async function syncClient() {
-    let res = await makeRequest({
+    let syncRes = await makeRequest({
         method: "get",
         url: `${gatewayUrl}/sync/me`
     });
 
-    if (res.status !== 200) return; // TODO: handle this impossibility
+    if (syncRes.status !== 200) return showAlert("Failed to sync client", 2500);
 
-    if (debugMode) console.log("sync", res.data);
+    if (debugMode) console.log("sync", syncRes.data);
 
-    for (let roomname in res.data.rooms) {
-        let roomInfo = res.data.rooms[roomname];
+    for (let roomname in syncRes.data.rooms) {
+        let roomInfo = syncRes.data.rooms[roomname];
         client.rooms.set(roomname, roomInfo);
         joinedRoomHandler(roomInfo);
     }
