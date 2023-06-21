@@ -7,10 +7,26 @@ class Stream {
     constructor(req, res) {
         this.req = req;
         this.res = res;
+        this.pings = 0;
     }
 
     json(data) {
         this.res.write(`data: ${JSON.stringify(data)}\n\n`);
+    }
+    initPings() {
+        if (this.pings !== 0) return;
+
+        const pingInterval = setInterval(() => {
+            if (!this.isAlive()) {
+                clearInterval(pingInterval);
+                return;
+            }
+
+            this.pings++;
+            this.json({
+                ping: this.pings
+            });
+        }, 40_000);
     }
     isAlive() {
         return !this.res.finished;
@@ -43,6 +59,8 @@ function initRouter(router) {
             clientStreams.delete(req.user.id);
             res.end();
         });
+
+        stream.initPings();
     });
 }
 
