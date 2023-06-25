@@ -5,8 +5,8 @@ let clientStreams = new Map();
 
 class Stream {
     constructor(req, res) {
-        this.req = req;
-        this.res = res;
+        this.clients = [];
+        this.remix(req, res);
         this.pings = 0;
         this.pingInterval = null;
         this.memory = [];
@@ -16,7 +16,9 @@ class Stream {
         let message = `event:${event}\ndata:${data}\n\n`;
 
         if (this.isAlive()) {
-            this.res.write(message);
+            for (let client of this.clients) {
+                client.res.write(message);
+            }
         } else {
             this.memory.push(message);
         }
@@ -25,8 +27,6 @@ class Stream {
         this.send(JSON.stringify(data), event);
     }
     initPings() {
-        if (this.pings !== 0) return;
-
         if (this.pingInterval !== null) clearInterval(this.pingInterval);
 
         this.pingInterval = setInterval(() => {
@@ -41,25 +41,39 @@ class Stream {
         }, 40_000);
     }
     isAlive() {
-        return !this.res.finished;
+        for (let client of this.clients) {
+            if (!client.res.finished) return true;
+        }
+        return false;
     }
     getSession() {
-        return this.req.user;
+        return this.clients?.[this.clients.length - 1]?.req?.user;
     }
     flushMemory() {
         if (!this.isAlive()) return false;
 
         this.memory.forEach(msg => {
-            this.res.write(msg);
+            for (let client of this.clients) {
+                client.res.write(msg);
+            }
         });
         this.memory = [];
         return true;
     }
-    reassign(req, res) {
-        this.res.end();
-        
-        this.req = req;
-        this.res = res;
+    remix(req, res) {
+        this.clients.push({
+            req: req,
+            res: res
+        });
+
+        setOnlineStatus(this.getSession().id, true);
+
+        res.on("close", () => {
+            res.end();
+            setOnlineStatus(this.getSession().id, this.isAlive());
+            this.clients = this.clients.filter(client => !client.res.finished);
+            console.log(this.clients.length)
+        });
     }
 }
 
@@ -75,7 +89,7 @@ function initRouter(router) {
         let stream;
         if (clientStreams.has(req.user.id)) {
             stream = clientStreams.get(req.user.id);
-            stream.reassign(req, res);
+            stream.remix(req, res);
         } else {
             stream = new Stream(req, res);
             clientStreams.set(req.user.id, stream);
@@ -84,13 +98,6 @@ function initRouter(router) {
         stream.json({
             opened: true
         }, "connect");
-        
-        setOnlineStatus(req.user.id, true);
-        
-        res.on("close", () => {
-            setOnlineStatus(req.user.id, false);
-            res.end();
-        });
 
         stream.initPings();
     });
@@ -127,7 +134,6 @@ export async function setOnlineStatus(id, online) {
 export function getStream(id) {
     let stream = clientStreams.get(id);
     if (!(stream instanceof Stream)) return null;
-    // if (!stream.isAlive()) return null;
     return stream;
 }
 
