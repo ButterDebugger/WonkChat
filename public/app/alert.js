@@ -1,5 +1,4 @@
 let alertQueue = [];
-
 let revealTimeout = null;
 let persistTimeout = null;
 let removeTimeout = null;

@@ -6,17 +6,14 @@ import {
     getUsers,
     debugMode
 } from "./client.js";
-
 import {
     userDisplay,
     timestampComponent
 } from "./components.js"
-
 import {
     addChatElement
 } from "./chat.js"
-
-import { receiver } from "./comms.js";
+import { parseData, registerEvent } from "./comms.js";
 
 let roomMembersCache = new Map();
 
@@ -28,24 +25,30 @@ membersShow.addEventListener("click", () => {
     membersWrapper.classList.toggle("hidden");
 });
 
-receiver.addEventListener("updateUser", ({ detail }) => {
+registerEvent("updateUser", ({ data }) => {
+    data = parseData(data);
+    if (typeof data == "undefined") return;
+
     for (let roomname of Array.from(roomMembersCache.keys())) {
         let membersCache = roomMembersCache.get(roomname);
         
-        if (!membersCache.has(detail.id)) continue;
+        if (!membersCache.has(data.id)) continue;
 
         setMembers(roomname, Array.from(membersCache));
     }
 });
 
-receiver.addEventListener("updateMember", async ({ detail }) => {
-    if (debugMode) console.log("update member", detail);
+registerEvent("updateMember", async ({ data }) => {
+    data = parseData(data);
+    if (typeof data == "undefined") return;
 
-    let membersCache = roomMembersCache.get(detail.room) ?? new Set();
+    if (debugMode) console.log("update member", data);
 
-    if (detail.state === "join") {
-        let user = await getUsers(detail.id);
-        user = user.find(u => u.id === detail.id) ?? null;
+    let membersCache = roomMembersCache.get(data.room) ?? new Set();
+
+    if (data.state === "join") {
+        let user = await getUsers(data.id);
+        user = user.find(u => u.id === data.id) ?? null;
         
         if (user !== null) {
             let newEle = document.createElement("div");
@@ -59,14 +62,14 @@ receiver.addEventListener("updateMember", async ({ detail }) => {
             contEle.innerText = " has joined the chat";
             newEle.appendChild(contEle);
         
-            addChatElement(newEle, detail.room);
+            addChatElement(newEle, data.room);
         }
 
-        membersCache.add(detail.id);
-        setMembers(detail.room, Array.from(membersCache));
-    } else if (detail.state === "leave") {
-        let user = await getUsers(detail.id);
-        user = user.find(u => u.id === detail.id) ?? null;
+        membersCache.add(data.id);
+        setMembers(data.room, Array.from(membersCache));
+    } else if (data.state === "leave") {
+        let user = await getUsers(data.id);
+        user = user.find(u => u.id === data.id) ?? null;
         
         if (user !== null) {
             let leftEle = document.createElement("div");
@@ -80,11 +83,11 @@ receiver.addEventListener("updateMember", async ({ detail }) => {
             contEle.innerText = " has left the chat";
             leftEle.appendChild(contEle);
 
-            addChatElement(leftEle, detail.room);
+            addChatElement(leftEle, data.room);
         }
 
-        membersCache.delete(detail.id);
-        setMembers(detail.room, Array.from(membersCache));
+        membersCache.delete(data.id);
+        setMembers(data.room, Array.from(membersCache));
     }
 });
 

@@ -1,16 +1,11 @@
 import "./attachments.js";
-
 import "./navbar.js";
-
 import {
-    lockChat,
-    unlockChat,
     joinRoom,
-    joinedRoomHandler
+    joinedRoomHandler,
+    updateChatLock
 } from "./chat.js";
-
-import { receiver, makeRequest, gatewayUrl } from "./comms.js";
-
+import { makeRequest, gatewayUrl, parseData, registerEvent } from "./comms.js";
 import showAlert from "./alert.js";
 
 export let userCache = new Map();
@@ -21,26 +16,31 @@ export let client = {
     attachments: []
 };
 
-receiver.addEventListener("open", async () => {
+registerEvent("open", async () => {
     await syncClient();
 
-    unlockChat();
     if (!client.rooms.has("wonk")) joinRoom("wonk");
+
+    await syncMemory();
+
+    updateChatLock();
 });
 
-receiver.addEventListener("close", () => {
-    lockChat();
+registerEvent("close", () => {
+    updateChatLock();
 });
 
 async function syncClient() {
     let syncRes = await makeRequest({
         method: "get",
-        url: `${gatewayUrl}/sync/me`
+        url: `${gatewayUrl}/sync/client`
     });
 
     if (syncRes.status !== 200) return showAlert("Failed to sync client", 2500);
 
-    if (debugMode) console.log("sync", syncRes.data);
+    if (debugMode) console.log("sync client", syncRes.data);
+
+    client.rooms.clear();
 
     for (let roomname in syncRes.data.rooms) {
         let roomInfo = syncRes.data.rooms[roomname];
@@ -49,8 +49,22 @@ async function syncClient() {
     }
 }
 
-receiver.addEventListener("updateUser", ({ detail }) => {
-    userCache.set(detail.id, detail.data);
+async function syncMemory() {
+    let syncRes = await makeRequest({
+        method: "get",
+        url: `${gatewayUrl}/sync/memory`
+    });
+
+    if (syncRes.status !== 200) return showAlert("Failed to sync memory", 2500);
+
+    if (debugMode) console.log("sync memory");
+}
+
+registerEvent("updateUser", ({ data }) => {
+    data = parseData(data);
+    if (typeof data == "undefined") return;
+
+    userCache.set(data.id, data.data);
 });
 
 export async function getUsers(...ids) {

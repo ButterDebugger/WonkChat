@@ -7,45 +7,49 @@ const messageInput = document.getElementById("message-input");
 const attachBtn = document.getElementById("attach-button");
 
 import {
-    clearAttachmentsBox
+    clearAttachmentsBox,
+    isUploadingAttachments
 } from "./attachments.js";
-
 import {
     addNavbarChannel,
     getNavbarChannel
 } from "./navbar.js";
-
 import {
     chatMessage
 } from "./components.js";
-
 import {
     addMembersContainer,
     getAllMembersContainers,
     getMembersContainer,
     setMembers
 } from "./members.js";
-
 import {
     client,
     debugMode
 } from "./client.js";
-
-import { receiver, makeRequest, gatewayUrl } from "./comms.js";
+import { makeRequest, gatewayUrl, parseData, registerEvent, isStreamOpen } from "./comms.js";
 import showAlert from "./alert.js";
 
 let isLocked = false;
 
-export function unlockChat() {
+function unlockChat() {
     messageInput.disabled = false;
     attachBtn.classList.remove("disabled");
     isLocked = false;
 }
 
-export function lockChat() {
+function lockChat() {
     messageInput.disabled = true;
     attachBtn.classList.add("disabled");
     isLocked = true;
+}
+
+export function updateChatLock() {
+    if (isUploadingAttachments() || client.rooms.size == 0 || !isStreamOpen()) {
+        lockChat();
+    } else {
+        unlockChat();
+    }
 }
 
 export function isChatLocked() {
@@ -120,8 +124,8 @@ export async function leaveRoom(roomname) {
     if (client.rooms.size == 0) {
         chatnameEle.innerText = "";
         chatdescEle.innerText = "";
-        messageInput.placeholder = `Message no one`;
-        lockChat();
+        messageInput.placeholder = "Message no one";
+        updateChatLock();
     } else {
         switchRooms(client.rooms.entries().next().value[1].name);
     }
@@ -217,17 +221,20 @@ async function sendMessage() {
     client.attachments = [];
 }
 
-receiver.addEventListener("message", ({ detail }) => {
-    if (debugMode) console.log("message", detail);
+registerEvent("message", ({ data }) => {
+    data = parseData(data);
+    if (typeof data == "undefined") return;
+
+    if (debugMode) console.log("message", data);
 
     let ele = chatMessage(
-        detail.author.username,
-        detail.author.color,
-        detail.author.discriminator,
-        detail.content,
-        detail.timestamp,
-        detail.attachments
+        data.author.username,
+        data.author.color,
+        data.author.discriminator,
+        data.content,
+        data.timestamp,
+        data.attachments
     );
 
-    addChatElement(ele, detail.room);
+    addChatElement(ele, data.room);
 });

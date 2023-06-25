@@ -43,12 +43,11 @@ router.post("/rooms/:roomname/join", async (req, res) => {
         if (stream === null) continue;
 
         stream.json({
-            event: "updateMember",
             room: roomname,
             id: req.user.id,
             timestamp: Date.now(),
             state: "join"
-        });
+        }, "updateMember");
     }
 
     res.status(200).json({
@@ -85,12 +84,11 @@ router.post("/rooms/:roomname/leave", async (req, res) => {
         if (stream === null) continue;
 
         stream.json({
-            event: "updateMember",
             room: roomname,
             id: req.user.id,
             timestamp: Date.now(),
             state: "leave"
-        });
+        }, "updateMember");
     }
 
     res.status(200).json({
@@ -181,7 +179,6 @@ router.post("/rooms/:roomname/message", async (req, res) => {
         if (stream === null) continue;
 
         stream.json({
-            event: "message",
             author: {
                 username: req.user.username,
                 color: req.user.color,
@@ -191,7 +188,7 @@ router.post("/rooms/:roomname/message", async (req, res) => {
             content: content,
             attachments: attachments,
             timestamp: Date.now()
-        })
+        }, "message");
     }
 
     res.status(200).json({
@@ -257,7 +254,7 @@ router.get("/users", async (req, res) => {
     });
 });
 
-router.get("/sync/me", async (req, res) => {
+router.get("/sync/client", async (req, res) => {
     let userSession = await getUserSession(req.user.id);
 
     // Get rooms
@@ -273,6 +270,27 @@ router.get("/sync/me", async (req, res) => {
 
     res.status(200).json({
         rooms: rooms
+    });
+});
+
+router.get("/sync/memory", async (req, res) => {
+    let stream = getStream(req.user.id);
+    if (stream === null) return res.status(400).json({
+        error: true,
+        message: "Could not find an active stream",
+        code: 601
+    });
+
+    let result = stream.flushMemory();
+
+    if (!result) return res.status(400).json({
+        error: true,
+        message: "Stream is currently inactive",
+        code: 602
+    });
+
+    res.status(200).json({
+        success: true
     });
 });
 

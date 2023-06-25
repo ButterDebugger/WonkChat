@@ -30,3 +30,10 @@
 |:----:|---------------------|
 | 501  | Invalid credentials |
 | 502  | Too many requests   |
+
+## Stream error codes
+
+| Code | Message                         |
+|:----:|---------------------------------|
+| 601  | Could not find an active stream |
+| 602  | Stream is currently inactive    |

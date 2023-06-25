@@ -4,17 +4,16 @@ const attachmentBox = document.getElementById("attachment-box");
 import {
     client
 } from "./client.js";
-
 import {
     isAtBottomOfMessages,
     getMessagesContainer,
-    unlockChat,
-    lockChat,
-    isChatLocked
+    isChatLocked,
+    updateChatLock
 } from "./chat.js";
 import { attachmentComponent } from "./components.js";
 import showAlert from "./alert.js";
 
+let isUploading = false;
 let fileData = new FormData();
 
 attachBtn.addEventListener("click", () => {
@@ -48,8 +47,9 @@ attachBtn.addEventListener("click", () => {
 async function uploadAttachments() {
     if (isChatLocked()) return;
 
-    lockChat()
+    isUploading = true;
     attachBtn.classList.add("loading");
+    updateChatLock();
 
     let uploadRes = await axios({
         method: "post",
@@ -66,9 +66,10 @@ async function uploadAttachments() {
     }
 
     if (uploadRes.status !== 200) {
-        unlockChat();
+        isUploading = false;
         attachBtn.classList.remove("loading");
         showAlert("Failed to upload attachments", 2500);
+        updateChatLock();
         return;
     }
 
@@ -88,12 +89,17 @@ async function uploadAttachments() {
         messages.style["scroll-behavior"] = "";
     }
     
-    unlockChat();
+    isUploading = false;
     attachBtn.classList.remove("loading");
+    updateChatLock();
 }
 
 export function clearAttachmentsBox() {
     while (attachmentBox.firstChild) {
         attachmentBox.removeChild(attachmentBox.firstChild);
     }
+}
+
+export function isUploadingAttachments() {
+    return isUploading;
 }
