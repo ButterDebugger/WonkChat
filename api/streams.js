@@ -47,7 +47,8 @@ class Stream {
         return false;
     }
     getSession() {
-        return this.clients?.[this.clients.length - 1]?.req?.user;
+        if (this.clients.length === 0) return null;
+        return this.clients[this.clients.length - 1].req.user;
     }
     flushMemory() {
         if (!this.isAlive()) return false;
@@ -72,7 +73,6 @@ class Stream {
             res.end();
             setOnlineStatus(this.getSession().id, this.isAlive());
             this.clients = this.clients.filter(client => !client.res.finished);
-            console.log(this.clients.length)
         });
     }
 }
