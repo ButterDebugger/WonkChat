@@ -1,4 +1,4 @@
-import Cookies from "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm";
+import cookies from "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm";
 
 const passwordEle = document.getElementById("password");
 const hasPasswordBox = document.getElementById("haspassword");
@@ -46,7 +46,7 @@ async function submitAuth() {
     }).then((res) => {
         let token = res.data.token;
 
-        Cookies.set("token", token, { expires: 365 });
+        cookies.set("token", token, { expires: 365 });
 
         location.href = "/app/";
     }).catch(error => {
