@@ -1,6 +1,6 @@
-# ircChat
+# WonkChat
 
-Just another chat room to chat in
+Just another chat room for wonky fellows to chat in
 
 ## Environment Variables
 PORT = <0 - 65535> (defaults to 8080)
