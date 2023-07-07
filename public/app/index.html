@@ -7,6 +7,7 @@
     <title>Wonk Chat</title>
     <link rel="stylesheet" href="../main.css" />
     <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./chatroom.css">
     <link rel="stylesheet" href="./navbar.css" />
     <link rel="stylesheet" href="./attachments.css" />
     <link rel="stylesheet" href="./alert.css">
@@ -29,13 +30,12 @@
 
     <div id="app">
       <div id="chatroom">
-        <div class="header-container">
-          <div id="header">
-            <img id="navbar-bars" class="no-select no-drag" src="../icons/bars-solid.svg"></img>
-            <span id="chat-name"></span>
-            <span id="chat-description"></span>
-            <img id="members-show" class="no-select no-drag" src="../icons/user-group-solid.svg"></img>
-          </div>
+        <div id="header">
+          <img id="navbar-bars" class="no-select no-drag" src="../icons/bars-solid.svg"></img>
+          <img id="chat-tag">
+          <span id="chat-name"></span>
+          <span id="chat-description"></span>
+          <img id="members-show" class="no-select no-drag" src="../icons/user-group-solid.svg"></img>
         </div>
         
         <div id="chat" class="chatroom-tab">

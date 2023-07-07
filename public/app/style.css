@@ -16,50 +16,6 @@ body {
     gap: 20px;
 }
 
-#header {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-
-    background-color: var(--container-color);
-    border-radius: 8px;
-    padding: 20px;
-    min-height: 22px;
-}
-
-#chat-description {
-    flex: 1;
-
-    font-size: 0.8em;
-    color: #e3e4e9;
-}
-
-#chatroom {
-    flex: 1;
-    overflow: hidden;
-
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.chatroom-tab {
-    background-color: var(--container-color);
-    border-radius: 8px;
-    padding: 20px;
-}
-
-#chat {
-    min-width: 440px;
-    flex: 1;
-    padding: 0px;
-
-    display: flex;
-    flex-direction: column;
-
-    overflow-y: auto;
-}
-
 /*
  *  Message styles
  */

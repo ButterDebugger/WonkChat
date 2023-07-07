@@ -1,0 +1,52 @@
+
+#chatroom {
+    flex: 1;
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#header {
+    display: flex;
+    align-items: center;
+
+    background-color: var(--container-color);
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 22px;
+}
+
+#chat-tag {
+    height: 22px;
+    margin-right: 8px;
+}
+#chat-name {
+    margin-right: 12px;
+}
+#chat-description {
+    flex: 1;
+
+    color: var(--secondary-text-color);
+    font-size: 0.8em;
+    margin-top: 0.2em;
+    margin-right: 4px;
+}
+
+.chatroom-tab {
+    background-color: var(--container-color);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+#chat {
+    min-width: 440px;
+    flex: 1;
+    padding: 0px;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow-y: auto;
+}

@@ -33,10 +33,15 @@
 #navbar-channels {
     margin-top: 8px;
     overflow: hidden scroll;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
 }
 
 #navbar-bars {
     display: none;
+    margin-right: 20px;
 }
 
 @media screen and (max-width: 980px) {
@@ -61,7 +66,10 @@
     justify-content: space-between;
     align-items: center;
 }
-.navbar-channel:hover {
+.navbar-channel.active, .navbar-channel:hover {
+    background-color: rgba(0, 0, 0, 0.15);
+}
+.navbar-channel:active {
     background-color: rgba(0, 0, 0, 0.2);
 }
 
@@ -87,14 +95,22 @@
 }
 
 .room-name {
+    flex: 1;
     font-weight: 600;
     word-break: break-all;
 }
 
+.room-tag {
+    cursor: pointer;
+    height: 16px;
+}
+
 .room-close {
     filter: saturate(0);
+    transition: filter 0.1s ease-in-out;
     cursor: pointer;
     height: 22px;
+
 }
 .room-close:hover {
     filter: none;

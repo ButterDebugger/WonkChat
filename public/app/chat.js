@@ -1,5 +1,6 @@
 const messagesWrapper = document.getElementById("messages-wrapper");
 const sendButton = document.getElementById("send-button");
+const chattagEle = document.getElementById("chat-tag");
 const chatnameEle = document.getElementById("chat-name");
 const chatdescEle = document.getElementById("chat-description");
 const messageBox = document.getElementById("message-box");
@@ -12,6 +13,7 @@ import {
 } from "./attachments.js";
 import {
     addNavbarChannel,
+    getAllNavbarChannels,
     getNavbarChannel
 } from "./navbar.js";
 import {
@@ -122,6 +124,8 @@ export async function leaveRoom(roomname) {
     getMembersContainer(roomname).remove();
 
     if (client.rooms.size == 0) {
+        chattagEle.classList.add("hidden");
+        chattagEle.src = "";
         chatnameEle.innerText = "";
         chatdescEle.innerText = "";
         messageInput.placeholder = "Message no one";
@@ -159,6 +163,9 @@ export function getAllMessagesContainers() {
 }
 
 export function switchRooms(roomname) {
+    getAllNavbarChannels().forEach(ele => {
+        ele.classList.remove("active");
+    });
     getAllMessagesContainers().forEach(ele => {
         ele.classList.add("hidden");
     });
@@ -169,10 +176,13 @@ export function switchRooms(roomname) {
     client.currentRoom = roomname;
     let roomInfo = client.rooms.get(roomname);
 
-    chatnameEle.innerText = `#${roomInfo.name}`;
+    chattagEle.classList.remove("hidden");
+    chattagEle.src = "/icons/hashtag-solid.svg";
+    chatnameEle.innerText = `${roomInfo.name}`;
     chatdescEle.innerText = roomInfo.description;
     messageInput.placeholder = `Message #${roomInfo.name}`;
 
+    getNavbarChannel(roomname).classList.add("active");
     getMessagesContainer(roomname).classList.remove("hidden");
     getMembersContainer(roomname).classList.remove("hidden");
 }

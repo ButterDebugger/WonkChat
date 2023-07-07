@@ -50,9 +50,14 @@ export function addNavbarChannel(roomname) {
     chanEle.setAttribute("room", roomname);
     chanEle.classList.add("navbar-channel");
 
+    let tagEle = document.createElement("img");
+    tagEle.classList.add("no-select", "no-drag", "room-tag");
+    tagEle.src = "/icons/hashtag-solid.svg";
+    chanEle.appendChild(tagEle);
+
     let nameEle = document.createElement("span");
     nameEle.classList.add("room-name");
-    nameEle.innerText = `#${roomname}`;
+    nameEle.innerText = `${roomname}`;
     chanEle.appendChild(nameEle);
 
     let closeEle = document.createElement("img");
@@ -73,4 +78,8 @@ export function addNavbarChannel(roomname) {
 
 export function getNavbarChannel(roomname) {
     return navbarChannels.querySelector(`.navbar-channel[room="${roomname}"]`);
+}
+
+export function getAllNavbarChannels() {
+    return navbarChannels.querySelectorAll(".navbar-channel");
 }
