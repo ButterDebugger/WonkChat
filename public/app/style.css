@@ -15,11 +15,6 @@ body {
     flex-direction: row;
     gap: 20px;
 }
-#app.backdrop {
-    filter: brightness(0.5);
-    background-color: rgba(0,0,0,0.5);
-    transition: background-color 0.25s cubic-bezier(0.33, 1, 0.68, 1), filter 0.25s cubic-bezier(0.33, 1, 0.68, 1);
-}
 
 /*
  *  Message styles

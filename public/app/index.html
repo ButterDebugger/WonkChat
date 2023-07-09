@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="./chatroom.css">
     <link rel="stylesheet" href="./navbar.css" />
     <link rel="stylesheet" href="./attachments.css" />
+    <link rel="stylesheet" href="./modal.css">
     <link rel="stylesheet" href="./alert.css">
     <script src="https://cdn.polyfill.io/v3/polyfill.min.js"></script>
     <script src="https://unpkg.com/@popperjs/core@2"></script>
@@ -19,12 +20,28 @@
     <script defer type="module" src="./main.js"></script>
   </head>
   <body class="full-page">
+    <div class="modal" id="join-room-modal">
+      <h1 id="join-room-header"></h1>
+      <div class="join-room-container">
+        <input type="text" id="join-room-input" placeholder="Enter Room Name" pattern="[a-z0-9_]*" minlength=3 maxlength=16>
+        <img id="join-room-button" class="no-select no-drag">
+      </div>
+    </div>
+
+    <div id="modal-backdrop"></div>
+
     <nav id="navbar">
       <div id="navbar-channels"></div>
       <div class="navbar-spacer"></div>
       <div class="navbar-controls">
-        <input type="text" id="navbar-join-room" placeholder="Room Name" pattern="[a-z0-9_]*" minlength=3 maxlength=16>
-        <img id="navbar-join-room-button" class="no-select no-drag" src="../icons/right-to-bracket-solid.svg">
+        <div class="navbar-control" id="navbar-join-room">
+          <img class="no-select no-drag nav-tag" src="/icons/plus-solid.svg">
+          <span class="nav-control-text">Join a room</span>
+        </div>
+        <div class="navbar-control" id="navbar-log-out">
+          <img class="no-select no-drag nav-tag" src="/icons/power-off-solid.svg">
+          <span class="nav-control-text">Log out</span>
+        </div>
       </div>
     </nav>
 

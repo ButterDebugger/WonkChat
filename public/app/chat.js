@@ -58,7 +58,7 @@ export function isChatLocked() {
     return isLocked;
 }
 
-export async function joinRoom(roomname) {
+export async function joinRoom(roomname, suppressAlert = false) {
     let joinRes = await makeRequest({
         method: "post",
         url: `${gatewayUrl}/rooms/${roomname}/join`
@@ -66,22 +66,29 @@ export async function joinRoom(roomname) {
 
     if (joinRes.status === 200) {
         joinedRoomHandler(joinRes.data);
-    } else if (joinRes.status === 400) {
-        if (joinRes.data.code === 303) { // Room doesn't exist
-            if (debugMode) console.log("creating room", roomname);
-
-            let createRes = await makeRequest({
-                method: "post",
-                url: `${gatewayUrl}/rooms/${roomname}/create`
-            });
-
-            if (!(createRes.status === 200 && createRes.data.success)) return showAlert("Failed to create new room", 2500);
-
-            joinRoom(roomname);
-        } else {
-            showAlert("Failed to join room", 2500);
-        }
+    } else {
+        if (!suppressAlert) showAlert("Failed to join room", 2500);
     }
+
+    return joinRes.data;
+}
+
+export async function createRoom(roomname, suppressAlert = false) {
+    if (debugMode) console.log("creating room", roomname);
+
+    let createRes = await makeRequest({
+        method: "post",
+        url: `${gatewayUrl}/rooms/${roomname}/create`
+    });
+
+    if (!(createRes.status === 200 && createRes.data.success)) {
+        if (!suppressAlert) showAlert("Failed to create new room", 2500);
+        return false;
+    }
+
+    joinRoom(roomname);
+
+    return true;
 }
 
 export async function joinedRoomHandler(data) {

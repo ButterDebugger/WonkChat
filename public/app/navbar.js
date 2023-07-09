@@ -1,42 +1,49 @@
-const navbarJoinRoomInput = document.getElementById("navbar-join-room");
-const navbarJoinRoomButton = document.getElementById("navbar-join-room-button");
+const joinRoomModalEle = document.getElementById("join-room-modal");
+const joinRoomInput = document.getElementById("join-room-input");
+const joinRoomButton = document.getElementById("join-room-button");
+const joinRoomHeader = document.getElementById("join-room-header");
+const navbarJoinRoomEle = document.getElementById("navbar-join-room");
+const navbarSignOutButton = document.getElementById("navbar-log-out");
 const navbarBars = document.getElementById("navbar-bars");
 const navbarEle = document.getElementById("navbar");
 const navbarChannels = document.getElementById("navbar-channels");
-const appEle = document.getElementById("app");
 
-import { isChildOf } from "https://butterycode.com/static/js/utils.js@1.2";
-import { joinRoom, leaveRoom, switchRooms } from "./chat.js";
+import { createRoom, joinRoom, leaveRoom, switchRooms } from "./chat.js";
+import { closeModal, openModal } from "./modal.js";
 
-navbarJoinRoomInput.addEventListener("keypress", ({ code }) => {
+let joinRoomAction = "join";
+
+navbarSignOutButton.addEventListener("click", () => {
+    location.href = "/logout";
+});
+
+navbarJoinRoomEle.addEventListener("click", () => {
+    joinRoomHeader.innerText = "Join a Room";
+    joinRoomButton.src = "../icons/right-to-bracket-solid.svg";
+    joinRoomAction = "join";
+
+    openModal(joinRoomModalEle, 40);
+});
+
+joinRoomInput.addEventListener("keypress", ({ code }) => {
     if (code == "Enter") {
         join();
     }
 });
-
-navbarJoinRoomButton.addEventListener("click", () => {
+joinRoomButton.addEventListener("click", () => {
     join();
 });
 
-document.addEventListener("click", ({ target }) => {
-    if (!(target === navbarEle || target === navbarBars || isChildOf(target, navbarEle))) {
-        navbarEle.classList.remove("pulled-out");
-        appEle.classList.remove("backdrop");
-    }
-});
-
 navbarBars.addEventListener("click", () => {
-    navbarEle.classList.add("pulled-out");
-    appEle.classList.add("backdrop");
+    openModal(navbarEle, 20);
 });
 
 window.addEventListener("resize", () => {
-    navbarEle.classList.remove("pulled-out");
-    appEle.classList.remove("backdrop");
+    closeModal(navbarEle);
 });
 
-function join() {
-    let roomname = navbarJoinRoomInput.value;
+async function join() {
+    let roomname = joinRoomInput.value;
 
     if (
         roomname.length < 3 ||
@@ -44,9 +51,23 @@ function join() {
         roomname.replace(/[a-z0-9_]*/g, '').length !== 0
     ) return;
 
-    navbarJoinRoomInput.value = "";
+    if (joinRoomAction == "join") {
+        let result = await joinRoom(roomname, true);
 
-    joinRoom(roomname);
+        if (result.error && result.code === 303) {
+            joinRoomHeader.innerText = "Create a New Room";
+            joinRoomButton.src = "../icons/square-plus-solid.svg";
+            joinRoomAction = "create";
+        } else {
+            joinRoomInput.value = "";
+            closeModal(joinRoomModalEle);
+        }
+    } else if (joinRoomAction == "create") {
+        await createRoom(roomname);
+
+        joinRoomInput.value = "";
+        closeModal(joinRoomModalEle);
+    }
 }
 
 export function addNavbarChannel(roomname) {
@@ -55,7 +76,7 @@ export function addNavbarChannel(roomname) {
     chanEle.classList.add("navbar-channel");
 
     let tagEle = document.createElement("img");
-    tagEle.classList.add("no-select", "no-drag", "room-tag");
+    tagEle.classList.add("no-select", "no-drag", "nav-tag");
     tagEle.src = "/icons/hashtag-solid.svg";
     chanEle.appendChild(tagEle);
 
