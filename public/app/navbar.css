@@ -36,8 +36,8 @@
     align-items: stretch;
     gap: 3px;
     
-    padding: 8px 0px 4px 0px;
-    overflow: hidden scroll;
+    padding: 8px 8px 4px 0px;
+    overflow: hidden auto;
 }
 
 #navbar-bars {
@@ -79,8 +79,8 @@
     flex-direction: column;
     justify-content: space-between;
 
-    padding: 4px 0px 8px 0px;
-    overflow: hidden scroll;
+    padding: 4px 8px 8px 0px;
+    overflow: hidden auto;
     gap: 3px;
 }
 .navbar-control {
