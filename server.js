@@ -11,7 +11,7 @@ import start from "./lib/start.js";
 
 dotenv.config();
 const ssl = false;
-const port = process.env.PORT ?? ssl ? 443 : 8080;
+const port = process.env.PORT ?? (ssl ? 443 : 8080);
 
 const app = express();
 start(app, port, ssl ? {
