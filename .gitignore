@@ -1,4 +1,5 @@
 node_modules/
 .env
+ssl/
 storage/local/*
 storage/attachments/*
