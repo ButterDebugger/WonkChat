@@ -2,7 +2,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import path from "node:path";
-import http from "node:http";
+import fs from "node:fs/promises"
 import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 import { authRoute, authenticate } from "./api/auth.js";
@@ -10,10 +10,17 @@ import gateway from "./api/gateway.js";
 import start from "./lib/start.js";
 
 dotenv.config();
-const port = process.env.PORT ?? 8080;
+const ssl = false;
+const port = process.env.PORT ?? ssl ? 443 : 8080;
 
 const app = express();
-const server = start(app, port, {}); // Start the server
+start(app, port, ssl ? {
+    ssl: true,
+    config: {
+        cert: await fs.readFile("./ssl/cert.pem"),
+        key: await fs.readFile("./ssl/key.pem")
+    }
+} : {});
 
 const authLimiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutes
