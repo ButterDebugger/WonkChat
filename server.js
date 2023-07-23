@@ -7,12 +7,13 @@ import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 import { authRoute, authenticate } from "./api/auth.js";
 import gateway from "./api/gateway.js";
+import start from "./lib/start.js";
 
 dotenv.config();
 const port = process.env.PORT ?? 8080;
 
 const app = express();
-const server = http.Server(app);
+const server = start(app, port, {}); // Start the server
 
 const authLimiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutes
@@ -58,8 +59,3 @@ app.use(express.static(path.join(process.cwd(), "public"), {
 
 // Handle api gateway
 gateway(app);
-
-// Start the server
-server.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
