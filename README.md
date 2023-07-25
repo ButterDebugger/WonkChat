@@ -18,7 +18,7 @@ npm install
 npm start
 ```
 
-## Environment Variables
+### Environment Variables
 Declare the environment variables on your system or inside a file named `.env` in the root of the project's directory.
 - PORT = <0 - 65535> (defaults to 8080)
 - TOKEN_SECRET = <128 characters>
