@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { createUserSession } from "../storage/data.js";
-import { generateId } from "../storage/snowflake.js";
+import { TypedId } from "../storage/snowflake.js";
 
 let guestsNames = new Map();
 
@@ -103,7 +103,7 @@ function checkAccount(username, password) { // TODO: check for an account
 export function sessionToken(username, password = null) {
     let isGuest = password === null;
     let user = {
-        id: generateId(0n),
+        id: TypedId.generate(0n),
         username: username,
         guest: isGuest,
         password: password,
