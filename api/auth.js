@@ -1,11 +1,16 @@
 import jwt from "jsonwebtoken";
+import express from "express";
+import crypto from "node:crypto";
+import * as openpgp from "openpgp";
 import { createUserSession } from "../storage/data.js";
-import { TypedId } from "../storage/snowflake.js";
+import { Fingerprint } from "../storage/identifier.js";
+import { readSync } from "node:fs";
 
 let guestsNames = new Map();
+let loginExpiration = 60_000; // 1 minute
 
-/**
- * Router middleware for authenticating a user's token stored in the cookies
+/*
+ *  Router middleware for authenticating a user's token stored in the cookies
  */
 export async function authenticate(req, res, next) {
     let result = await verifyToken(req.cookies["token"]);
@@ -96,104 +101,132 @@ function generateColor(pastel = false) {
     return color;
 }
 
-function checkAccount(username, password) { // TODO: check for an account
-    return false;
-}
-
-export function sessionToken(username, password = null) {
-    let isGuest = password === null;
+export function sessionToken(username, publicKey) {
     let user = {
-        id: TypedId.generate(0n),
+        id: Fingerprint.generate(publicKey),
         username: username,
-        guest: isGuest,
-        password: password,
+        publicKey: publicKey,
         discriminator: null,
-        color: generateColor(isGuest),
+        color: generateColor(true),
         iat: Date.now()
     }
 
-    if (isGuest) {
-        let unique = false;
+    let unique = false;
 
-        for (let i = 0; i < 100; i++) {
-            user.discriminator = Math.floor(Math.random() * 100);
+    for (let i = 0; i < 100; i++) {
+        user.discriminator = Math.floor(Math.random() * 100);
 
-            let name = `${user.username.toLowerCase()}#${user.discriminator}`;
+        let name = `${user.username.toLowerCase()}#${user.discriminator}`;
 
-            if (!guestsNames.has(name)) {
-                unique = true;
-                guestsNames.set(name, user.id);
-                break;
-            }
+        if (!guestsNames.has(name)) {
+            unique = true;
+            guestsNames.set(name, user.id);
+            break;
         }
-
-        if (!unique) return false;
-    } else {
-        let account = checkAccount(username, password);
-        if (typeof account !== "object") return false;
-
-        user = Object.assign(user, account);
     }
+
+    if (!unique) return false;
 
     // Create token
     return jwt.sign(user, process.env.TOKEN_SECRET);
 }
 
-export function authRoute(req, res) {
-    let { username, password, isGuest } = req.body;
+/*
+ *  Account login route
+ */
+export const authRoute = express.Router();
+const logins = new Map();
 
-    if (typeof username !== "string" || typeof password !== "string" || typeof isGuest !== "boolean") return res.status(400).json({
+authRoute.post("/login", async (req, res) => {
+    let { username, publicKey } = req.body;
+
+    if (typeof username !== "string" || typeof publicKey !== "string") return res.status(400).json({
         error: true,
         message: "Invalid body",
         code: 101
     });
-    
-    if (isGuest) { // User is a guest
-        if ( // Check if credentials are invalid
-            username.length < 3 ||
-            username.length > 16 ||
-            username.replace(/[a-zA-Z0-9_]*/g, '').length > 0
-        ) return res.status(400).json({
-            error: true,
-            message: "Invalid credentials",
-            code: 501
-        });
 
-        // Generate session token
-        let token = sessionToken(username);
+    if ( // Check if credentials are invalid
+        username.length < 3 ||
+        username.length > 16 ||
+        username.replace(/[a-zA-Z0-9_]*/g, '').length > 0
+    ) return res.status(400).json({
+        error: true,
+        message: "Invalid credentials",
+        code: 501
+    });
 
-        if (token === false) return res.status(400).json({
-            error: true,
-            message: "Invalid credentials",
-            code: 501
-        });
-        
-        res.status(200).json({
-            token: token
-        });
-    } else { // User has an account
-        if ( // Check if credentials are invalid
-            username.length < 3 ||
-            username.length > 16 ||
-            password.length < 8 ||
-            username.replace(/[a-zA-Z0-9_]*/g, '').length > 0
-        ) return res.status(400).json({
-            error: true,
-            message: "Invalid credentials",
-            code: 501
-        });
+    // Generate session token
+    let token = sessionToken(username, publicKey);
 
-        // Generate session token
-        let token = sessionToken(username, password);
+    if (token === false) return res.status(400).json({
+        error: true,
+        message: "Username has already been taken",
+        code: 504
+    });
 
-        if (token === false) return res.status(400).json({
-            error: true,
-            message: "Invalid credentials",
-            code: 501
+    // Encrypt a random code for the user to verify
+    let loginId = crypto.randomUUID();
+    let code = crypto.randomBytes(256).toString("base64url");
+    let encrypted;
+
+    try {
+        encrypted = await openpgp.encrypt({
+            message: await openpgp.createMessage({ text: code }),
+            encryptionKeys: await openpgp.readKey({ armoredKey: publicKey })
         });
-        
-        res.status(200).json({
-            token: token
+    } catch (error) {
+        return res.status(400).json({
+            error: true,
+            message: "Invalid public key",
+            code: 503
         });
     }
-}
+
+    // Create temporary login code
+    logins.set(loginId, {
+        token: token,
+        code: code
+    });
+
+    setTimeout(() => {
+        logins.delete(loginId);
+    }, loginExpiration);
+    
+    res.status(200).json({
+        id: loginId,
+        message: encrypted
+    });
+});
+
+authRoute.post("/verify/:id", (req, res) => {
+    let { id } = req.params;
+    let { message } = req.body;
+
+    // Check if login id exists
+    if (!logins.has(id)) return res.status(400).json({
+        error: true,
+        message: "Login code has expired",
+        code: 505
+    });
+
+    let login = logins.get(id);
+
+    // Check if code is valid
+    if (message !== login.code) {
+        res.status(400).json({
+            error: true,
+            message: "Login code is invalid",
+            code: 506
+        });
+        logins.delete(id);
+        return;
+    }
+
+    logins.delete(id);
+
+    // Send user session token
+    res.status(200).json({
+        token: login.token
+    });
+});

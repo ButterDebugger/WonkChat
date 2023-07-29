@@ -26,10 +26,14 @@
 
 ## Authorization error codes
 
-| Code | Message             |
-|:----:|---------------------|
-| 501  | Invalid credentials |
-| 502  | Too many requests   |
+| Code | Message                          |
+|:----:|----------------------------------|
+| 501  | Invalid credentials              |
+| 502  | Too many requests                |
+| 503  | Invalid public key               |
+| 504  | Username has already been taken  |
+| 505  | Login code has expired           |
+| 506  | Login code is invalid            |
 
 ## Stream error codes
 

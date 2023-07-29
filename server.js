@@ -23,8 +23,8 @@ start(app, port, ssl ? {
 } : {});
 
 const authLimiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // 10 minutes
-    max: 10, // limit each IP to 1000 requests per windowMs
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 20, // limit each IP to 20 requests per windowMs
     message: "Too many requests",
     legacyHeaders: true,
     standardHeaders: true,
@@ -53,7 +53,7 @@ app.get("/logout", (req, res) => {
 });
 
 // Auth routes
-app.post("/api/auth", authLimiter, authRoute);
+app.use("/auth", authLimiter, authRoute);
 
 // App routes
 app.get("/", (req, res) => {

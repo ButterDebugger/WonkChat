@@ -1,67 +1,112 @@
 import cookies from "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm";
+import * as openpgp from "https://cdn.jsdelivr.net/npm/openpgp@5.9.0/+esm";
+import { delay } from "https://butterycode.com/static/js/utils.js@1.2";
+import * as binForage from "https://butterycode.com/static/js/binforage.js";
 
+const usernameEle = document.getElementById("username");
 const passwordEle = document.getElementById("password");
-const hasPasswordBox = document.getElementById("haspassword");
-const passwordField = document.getElementById("password-field");
-const submitButton = document.getElementById("submit-button");
-const signinForm = document.getElementById("signin-form");
+const submitBtn = document.getElementById("submit");
+const errorMessageEle = document.getElementById("error-message");
 
-document.getElementById("show-password").addEventListener("change", ({ target }) => {
-    let checked = target.checked;
-
-    passwordEle.type = checked ? "text" : "password";
+tippy(usernameEle, {
+    content: "<p style=\"text-align: center; margin: 0px;\">What you will go by</p>",
+    allowHTML: true,
+    delay: [500, 0]
 });
 
-hasPasswordBox.addEventListener("change", ({ target }) => {
-    let checked = target.checked;
-
-    updateForm(checked);
+tippy(passwordEle, {
+    content: "<p style=\"text-align: center; margin: 0px;\">Restore PGP key pair saved inside your browser</p>",
+    allowHTML: true,
+    delay: [500, 0]
 });
 
-window.addEventListener("load", () => {
-    updateForm(hasPasswordBox.checked);
-});
+usernameEle.addEventListener("input", updateSubmitButton);
+passwordEle.addEventListener("input", updateSubmitButton);
 
-function updateForm(isUser) {
-    if (isUser) {
-        passwordField.classList.remove("hidden");
-        passwordEle.setAttribute("required", true);
-        submitButton.innerText = "Sign in";
-    } else {
-        passwordField.classList.add("hidden");
-        passwordEle.removeAttribute("required");
-        submitButton.innerText = "Join as Guest";
-    }
+function updateSubmitButton() {
+    submitBtn.disabled = !(usernameEle.validity.valid && passwordEle.validity.valid);
 }
 
-async function submitAuth() {
-    let username = document.getElementById("username")?.value;
-    let hasPassword = document.getElementById("haspassword")?.checked;
-    let password = document.getElementById("password")?.value;
+submitBtn.addEventListener("click", async () => {
+    let ogText = submitBtn.innerText;
+    let storageKey = `keyPair[${passwordEle.value}]`;
 
-    await axios.post(`${location.origin}/api/auth`, {
-        username: username,
-        password: password,
-        isGuest: !hasPassword
-    }).then((res) => {
-        let token = res.data.token;
+    submitBtn.disabled = true;
+    usernameEle.disabled = true;
+    passwordEle.disabled = true;
+    errorMessageEle.innerText = "";
 
-        cookies.set("token", token, { expires: 365 });
+    submitBtn.innerText = "Getting Key Pair";
+    await delay(500);
 
-        location.href = "/app/";
-    }).catch(error => {
-        if (typeof error?.response?.data == "object") {
-            document.getElementById("logout-reason").innerText = error?.response?.data?.message;
-        } else {
-            document.getElementById("logout-reason").innerText = "Something went wrong";
+    let keyPair = await binForage.get(storageKey);
+
+    if (keyPair === null) {
+        submitBtn.innerText = "Generating New Key Pair";
+        await delay(500);
+
+        let { publicKey, privateKey } = await openpgp.generateKey({
+            type: 'rsa',
+            rsaBits: 2048,
+            userIDs: [{
+                name: usernameEle.value
+            }]
+        });
+
+        keyPair = {
+            publicKey,
+            privateKey
         }
 
-        signinForm.reset();
+        submitBtn.innerText = "Saving New Key Pair";
+        await delay(500);
+
+        await binForage.set(storageKey, keyPair);
+    }
+
+    submitBtn.innerText = "Authorizing";
+    await delay(500);
+
+    axios.post(`${location.origin}/auth/login`, {
+        username: usernameEle.value,
+        publicKey: keyPair.publicKey
+    }).then(async (res) => {
+        let { id, message } = res.data;
+        
+        submitBtn.innerText = "Verifying";
+        await delay(500);
+
+        let { data: decrypted } = await openpgp.decrypt({
+            message: await openpgp.readMessage({ armoredMessage: message }),
+            decryptionKeys: await openpgp.readKey({ armoredKey: keyPair.privateKey })
+        });
+
+        axios.post(`${location.origin}/auth/verify/${id}`, {
+            message: decrypted
+        }).then((res) => {
+            let token = res.data.token;
+            
+            cookies.set("token", token, { expires: 365 });
+            
+            location.href = "/app/";
+        }).catch(err => {
+            if (typeof err?.response?.data == "object") {
+                errorMessageEle.innerText = err?.response?.data?.message;
+            } else {
+                errorMessageEle.innerText = "Something went wrong while verifying";
+            }
+        });
+    }).catch(err => {
+        if (typeof err?.response?.data == "object") {
+            errorMessageEle.innerText = err?.response?.data?.message;
+        } else {
+            errorMessageEle.innerText = "Something went wrong while authorizing";
+        }
+
+        submitBtn.disabled = false;
+        usernameEle.disabled = false;
+        passwordEle.disabled = false;
+
+        submitBtn.innerText = ogText;
     });
-}
-
-signinForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-
-    submitAuth();
 });
