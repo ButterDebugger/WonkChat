@@ -1,10 +1,10 @@
 import jwt from "jsonwebtoken";
 import express from "express";
+import rateLimit from "express-rate-limit";
 import crypto from "node:crypto";
 import * as openpgp from "openpgp";
-import { createUserSession } from "../storage/data.js";
+import { createUserSession, getPublicKey, setPublicKey } from "../storage/data.js";
 import { Fingerprint } from "../storage/identifier.js";
-import { readSync } from "node:fs";
 
 let guestsNames = new Map();
 let loginExpiration = 60_000; // 1 minute
@@ -23,7 +23,7 @@ export async function authenticate(req, res, next) {
             res.clearCookie("token");
         }
 
-        res.redirect("/login");
+        res.redirect(`/login/${result.refresh ? "?refresh" : ""}`);
     }
 }
 
@@ -33,6 +33,7 @@ export function verifyToken(token = null) {
         if (typeof token !== "string") return resolve({
             success: false,
             reset: false,
+            refresh: false,
             user: null
         });
     
@@ -41,6 +42,7 @@ export function verifyToken(token = null) {
             if (err) return resolve({
                 success: false,
                 reset: false,
+                refresh: false,
                 user: null
             });
 
@@ -52,6 +54,7 @@ export function verifyToken(token = null) {
             } else if (user.guest && guestsNames.has(name) && guestsNames.get(name) !== user.id) return resolve({
                 success: false,
                 reset: true,
+                refresh: false,
                 user: null
             });
 
@@ -59,6 +62,15 @@ export function verifyToken(token = null) {
             if (Date.now() - user.iat > 1000 * 60 * 60 * 24 * 14) return resolve({
                 success: false,
                 reset: true,
+                refresh: false,
+                user: null
+            });
+
+            // Check if public key is still available on the server
+            if (await getPublicKey(user.id) === null) return resolve({
+                success: false,
+                reset: false,
+                refresh: true,
                 user: null
             });
 
@@ -74,6 +86,7 @@ export function verifyToken(token = null) {
             resolve({
                 success: true,
                 reset: false,
+                refresh: false,
                 user: user
             });
         });
@@ -101,11 +114,10 @@ function generateColor(pastel = false) {
     return color;
 }
 
-export function sessionToken(username, publicKey) {
+function sessionToken(username, id) {
     let user = {
-        id: Fingerprint.generate(publicKey),
+        id: id,
         username: username,
-        publicKey: publicKey,
         discriminator: null,
         color: generateColor(true),
         iat: Date.now()
@@ -125,7 +137,7 @@ export function sessionToken(username, publicKey) {
         }
     }
 
-    if (!unique) return false;
+    if (!unique) return null;
 
     // Create token
     return jwt.sign(user, process.env.TOKEN_SECRET);
@@ -134,8 +146,26 @@ export function sessionToken(username, publicKey) {
 /*
  *  Account login route
  */
+const authLimiter = rateLimit({
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 20, // limit each IP to 20 requests per windowMs
+    message: "Too many requests",
+    legacyHeaders: true,
+    standardHeaders: true,
+    handler: (req, res, next, options) => {
+        res.status(options.statusCode);
+        res.json({
+            error: true,
+            message: options.message,
+            code: 502
+        });
+    }
+});
+
 export const authRoute = express.Router();
 const logins = new Map();
+
+authRoute.use(authLimiter);
 
 authRoute.post("/login", async (req, res) => {
     let { username, publicKey } = req.body;
@@ -146,7 +176,8 @@ authRoute.post("/login", async (req, res) => {
         code: 101
     });
 
-    if ( // Check if credentials are invalid
+    // Check if credentials are invalid
+    if (
         username.length < 3 ||
         username.length > 16 ||
         username.replace(/[a-zA-Z0-9_]*/g, '').length > 0
@@ -156,17 +187,7 @@ authRoute.post("/login", async (req, res) => {
         code: 501
     });
 
-    // Generate session token
-    let token = sessionToken(username, publicKey);
-
-    if (token === false) return res.status(400).json({
-        error: true,
-        message: "Username has already been taken",
-        code: 504
-    });
-
     // Encrypt a random code for the user to verify
-    let loginId = crypto.randomUUID();
     let code = crypto.randomBytes(256).toString("base64url");
     let encrypted;
 
@@ -183,9 +204,23 @@ authRoute.post("/login", async (req, res) => {
         });
     }
 
+    // Generate session token
+    let id = Fingerprint.generate(publicKey);
+    let token = sessionToken(username, id);
+
+    if (token === null) return res.status(400).json({
+        error: true,
+        message: "Username has already been taken",
+        code: 504
+    });
+
     // Create temporary login code
+    let loginId = crypto.randomUUID();
+    
     logins.set(loginId, {
         token: token,
+        id: id,
+        publicKey: publicKey,
         code: code
     });
 
@@ -199,7 +234,7 @@ authRoute.post("/login", async (req, res) => {
     });
 });
 
-authRoute.post("/verify/:id", (req, res) => {
+authRoute.post("/verify/:id", async (req, res) => {
     let { id } = req.params;
     let { message } = req.body;
 
@@ -224,9 +259,13 @@ authRoute.post("/verify/:id", (req, res) => {
     }
 
     logins.delete(id);
+    
+    // Save public key
+    await setPublicKey(login.id, login.publicKey);
 
     // Send user session token
     res.status(200).json({
+        id: login.id,
         token: login.token
     });
 });

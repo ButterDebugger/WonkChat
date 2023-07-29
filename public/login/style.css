@@ -33,7 +33,7 @@ body {
     border: 2px solid rgba(0, 0, 0, 0.2);
 }
 
-#username, #password {
+#username, #public-key, #private-key {
     padding: 6px;
     border-radius: 8px;
     border: 2px solid rgba(0, 0, 0, 0.2);
@@ -41,13 +41,18 @@ body {
     width: -moz-available;
     width: fill-available;
 }
-#username:invalid, #password:invalid {
+#username:invalid, #public-key:invalid, #private-key:invalid {
     border-color: #d93025;
     border-style: dashed;
 }
 legend.required::after {
     content: ' *';
     color: #d93025;
+}
+
+#public-key, #private-key {
+    border-radius: 8px;
+    resize: none;
 }
 
 #error-message {

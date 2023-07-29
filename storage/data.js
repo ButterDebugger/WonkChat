@@ -2,6 +2,7 @@ import db from "./database.js";
 
 let sessions = new Map();
 let rooms = new Map();
+let publicKeys = new Map();
 
 class User {
     constructor(id) {
@@ -82,4 +83,14 @@ export async function getRoom(roomname) {
     if (!rooms.has(roomname)) return null;
 
     return rooms.get(roomname);
+}
+
+export async function setPublicKey(fingerprint, publicKey) {
+    publicKeys.set(fingerprint, publicKey);
+}
+
+export async function getPublicKey(fingerprint) {
+    if (!publicKeys.has(fingerprint)) return null;
+
+    return publicKeys.get(fingerprint);
 }

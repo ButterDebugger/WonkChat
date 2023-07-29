@@ -36,10 +36,10 @@ function init() {
             detail: {}
         }));
 
-        // Redirect after 2.5sec
+        // Reload window after 2.5sec
         setTimeout(() => {
-            if (debugMode) console.log("Reconnecting event stream");
-            init();
+            if (debugMode) console.log("Reloading webpage");
+            location.reload();
         }, 2500);
     };
 

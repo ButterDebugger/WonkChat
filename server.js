@@ -4,7 +4,6 @@ import cookieParser from "cookie-parser";
 import path from "node:path";
 import fs from "node:fs/promises"
 import dotenv from "dotenv";
-import rateLimit from "express-rate-limit";
 import { authRoute, authenticate } from "./api/auth.js";
 import gateway from "./api/gateway.js";
 import start from "./lib/start.js";
@@ -22,22 +21,6 @@ start(app, port, ssl ? {
     }
 } : {});
 
-const authLimiter = rateLimit({
-    windowMs: 5 * 60 * 1000, // 5 minutes
-    max: 20, // limit each IP to 20 requests per windowMs
-    message: "Too many requests",
-    legacyHeaders: true,
-    standardHeaders: true,
-    handler: (req, res, next, options) => {
-        res.status(options.statusCode);
-        res.json({
-            error: true,
-            message: options.message,
-            code: 502
-        });
-    }
-});
-
 // Add middleware
 app.use(cookieParser());
 app.use(bodyParser.json());
@@ -53,7 +36,7 @@ app.get("/logout", (req, res) => {
 });
 
 // Auth routes
-app.use("/auth", authLimiter, authRoute);
+app.use("/auth", authRoute);
 
 // App routes
 app.get("/", (req, res) => {

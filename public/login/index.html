@@ -27,21 +27,40 @@
           maxlength="16"
           pattern="[a-zA-Z0-9_]*"
           autocomplete="username"
+          spellcheck="false"
           required
         />
         <legend class="required">Username</legend>
       </fieldset>
 
-      <fieldset class="input-field">
-        <input
-          type="password"
-          name="password"
-          id="password"
-          minlength="8"
-          autocomplete="current-password"
+      <fieldset id="key-pair-field" class="input-field">
+        <button id="restore-key-pair" class="hidden">Restore last used</button>
+        <button id="generate-key-pair">Generate one for me</button>
+        <button id="has-key-pair">I have my own</button>
+
+        <legend class="required">Key Pair</legend>
+      </fieldset>
+
+      <fieldset id="public-key-field" class="input-field hidden">
+        <textarea
+          name="public-key"
+          id="public-key"
+          rows="4"
+          spellcheck="false"
           required
-        />
-        <legend class="required">Key Pair Code</legend>
+        ></textarea>
+        <legend class="required">Public Key</legend>
+      </fieldset>
+
+      <fieldset id="private-key-field" class="input-field hidden">
+        <textarea
+          name="private-key"
+          id="private-key"
+          rows="4"
+          spellcheck="false"
+          required
+        ></textarea>
+        <legend class="required">Private Key</legend>
       </fieldset>
       
       <button id="submit" disabled>Submit</button>
