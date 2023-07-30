@@ -67,8 +67,6 @@ registerEvent("updateUser", ({ data }) => {
 
     userCache.set(data.id, data.data);
     
-    console.log(data.data)
-
     // Dynamically update all elements
     document.querySelectorAll(`.username[data-id="${data.id}"]`).forEach((ele) => {
         ele.replaceWith(userDisplay(data.data.username, data.data.color, data.data.id, data.data.offline));
