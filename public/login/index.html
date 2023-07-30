@@ -24,7 +24,7 @@
           id="username"
           minlength="3"
           maxlength="16"
-          pattern="[a-zA-Z0-9_]*"
+          pattern="^(?! )[\x20-\x7E]{3,16}(?<! )$"
           autocomplete="username"
           spellcheck="false"
           required

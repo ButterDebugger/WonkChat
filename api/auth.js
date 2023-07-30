@@ -153,7 +153,7 @@ authRoute.post("/login", async (req, res) => {
     if (
         username.length < 3 ||
         username.length > 16 ||
-        username.replace(/[a-zA-Z0-9_]*/g, '').length > 0
+        !/^(?! )[\x20-\x7E]{3,16}(?<! )$/g.test(username)
     ) return res.status(400).json({
         error: true,
         message: "Invalid credentials",
