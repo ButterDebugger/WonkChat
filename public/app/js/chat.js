@@ -247,7 +247,8 @@ registerEvent("message", ({ data }) => {
     let ele = chatMessage(
         data.author.username,
         data.author.color,
-        data.author.discriminator,
+        data.author.id,
+        data.author.offline,
         data.content,
         data.timestamp,
         data.attachments

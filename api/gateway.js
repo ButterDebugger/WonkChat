@@ -182,9 +182,10 @@ router.post("/rooms/:roomname/message", async (req, res) => {
 
         stream.json({
             author: {
-                username: req.user.username,
-                color: req.user.color,
-                discriminator: req.user.discriminator
+                username: userSession.username,
+                color: userSession.color,
+                id: userSession.id,
+                offline: userSession.offline
             },
             room: roomname,
             content: content,
@@ -244,7 +245,6 @@ router.get("/users", async (req, res) => {
         if (user !== null) arr.push({
             id: user.id,
             username: user.username,
-            discriminator: user.discriminator,
             color: user.color,
             offline: user.offline
         });

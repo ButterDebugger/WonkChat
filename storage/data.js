@@ -54,7 +54,7 @@ class Attachment {
 // TODO: add optional database handing into functions
 
 export async function createUserSession(id, extra = {}) {
-    if (sessions.has(id)) return;
+    if (sessions.has(id)) return sessions.get(id);
 
     let user = new User(id);
 
@@ -63,12 +63,26 @@ export async function createUserSession(id, extra = {}) {
     }
 
     sessions.set(id, user);
+    return user;
 }
 
 export async function getUserSession(id) {
     if (!sessions.has(id)) return null;
 
     return sessions.get(id);
+}
+
+export async function updateUserSession(id, extra = {}) {
+    if (!sessions.has(id)) return false;
+
+    let user = sessions.get(id);
+
+    for (let key in extra) {
+        user[key] = extra[key];
+    }
+
+    sessions.set(id, user);
+    return true;
 }
 
 export async function createRoom(roomname, description = null) {

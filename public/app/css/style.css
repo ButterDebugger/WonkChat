@@ -46,21 +46,19 @@ body {
 .message-attachments:empty {
     display: none;
 }
-span.username:not(:hover) ~ span.discriminator:not(.stay-visible, :hover) {
-    display: none;
-}
-span.discriminator, span.timestamp {
+span.timestamp {
     font-style: italic;
     font-size: 0.8em;
 }
 span.timestamp, span.notification {
     color: #a7a9aa;
 }
-span.discriminator {
-    color: #6b6d72;
-}
-span.discriminator, span.timestamp, span.username {
+span.timestamp, span.username {
     white-space: nowrap;
+}
+
+span.username.offline {
+    opacity: 0.5;
 }
 
 /*
@@ -114,7 +112,4 @@ span.discriminator, span.timestamp, span.username {
     display: flex;
     flex-direction: column;
     gap: 4px;
-}
-.member-offline {
-    opacity: 0.5;
 }

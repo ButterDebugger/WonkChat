@@ -25,69 +25,63 @@ membersShow.addEventListener("click", () => {
     membersWrapper.classList.toggle("hidden");
 });
 
-registerEvent("updateUser", ({ data }) => {
-    data = parseData(data);
-    if (typeof data == "undefined") return;
-
-    for (let roomname of Array.from(roomMembersCache.keys())) {
-        let membersCache = roomMembersCache.get(roomname);
-        
-        if (!membersCache.has(data.id)) continue;
-
-        setMembers(roomname, Array.from(membersCache));
-    }
-});
-
 registerEvent("updateMember", async ({ data }) => {
     data = parseData(data);
-    if (typeof data == "undefined") return;
 
+    if (typeof data == "undefined") return;
     if (debugMode) console.log("update member", data);
 
     let membersCache = roomMembersCache.get(data.room) ?? new Set();
 
-    if (data.state === "join") {
-        let user = await getUsers(data.id);
-        user = user.find(u => u.id === data.id) ?? null;
-        
-        if (user !== null) {
-            let newEle = document.createElement("div");
-            newEle.classList.add("message");
+    switch (data.state) {
+        case "join": {
+            let user = await getUsers(data.id);
+            user = user.find(u => u.id === data.id) ?? null;
 
-            newEle.appendChild(timestampComponent(Date.now()));
-            newEle.appendChild(userDisplay(user.username, user.color, user.discriminator));
-
-            let contEle = document.createElement("span");
-            contEle.classList.add("notification");
-            contEle.innerText = " has joined the chat";
-            newEle.appendChild(contEle);
-        
-            addChatElement(newEle, data.room);
+            if (user !== null) {
+                let newEle = document.createElement("div");
+                newEle.classList.add("message");
+    
+                newEle.appendChild(timestampComponent(Date.now()));
+                newEle.appendChild(userDisplay(user.username, user.color, user.id, user.offline));
+    
+                let contEle = document.createElement("span");
+                contEle.classList.add("notification");
+                contEle.innerText = " has joined the chat";
+                newEle.appendChild(contEle);
+            
+                addChatElement(newEle, data.room);
+            }
+    
+            membersCache.add(data.id);
+            setMembers(data.room, Array.from(membersCache));
+            break;
         }
-
-        membersCache.add(data.id);
-        setMembers(data.room, Array.from(membersCache));
-    } else if (data.state === "leave") {
-        let user = await getUsers(data.id);
-        user = user.find(u => u.id === data.id) ?? null;
-        
-        if (user !== null) {
-            let leftEle = document.createElement("div");
-            leftEle.classList.add("message");
-
-            leftEle.appendChild(timestampComponent(Date.now()));
-            leftEle.appendChild(userDisplay(user.username, user.color, user.discriminator));
-        
-            let contEle = document.createElement("span");
-            contEle.classList.add("notification");
-            contEle.innerText = " has left the chat";
-            leftEle.appendChild(contEle);
-
-            addChatElement(leftEle, data.room);
+        case "leave": {
+            let user = await getUsers(data.id);
+            user = user.find(u => u.id === data.id) ?? null;
+            
+            if (user !== null) {
+                let leftEle = document.createElement("div");
+                leftEle.classList.add("message");
+    
+                leftEle.appendChild(timestampComponent(Date.now()));
+                leftEle.appendChild(userDisplay(user.username, user.color, user.id, user.offline));
+            
+                let contEle = document.createElement("span");
+                contEle.classList.add("notification");
+                contEle.innerText = " has left the chat";
+                leftEle.appendChild(contEle);
+    
+                addChatElement(leftEle, data.room);
+            }
+    
+            membersCache.delete(data.id);
+            setMembers(data.room, Array.from(membersCache));
+            break;
         }
-
-        membersCache.delete(data.id);
-        setMembers(data.room, Array.from(membersCache));
+        default:
+            break;
     }
 });
 
@@ -104,8 +98,7 @@ export async function setMembers(roomname, ids) {
     }
 
     members.forEach(user => {
-        let userEle = userDisplay(user.username, user.color, user.discriminator, true);
-        if (user.offline) userEle.classList.add("member-offline");
+        let userEle = userDisplay(user.username, user.color, user.id, user.offline);
         membersContainer.appendChild(userEle);
     });
 };

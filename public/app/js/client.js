@@ -7,6 +7,7 @@ import {
 } from "./chat.js";
 import { makeRequest, gatewayUrl, parseData, registerEvent } from "./comms.js";
 import showAlert from "./alert.js";
+import { userDisplay } from "./components.js";
 
 export let userCache = new Map();
 export let debugMode = false;
@@ -65,6 +66,13 @@ registerEvent("updateUser", ({ data }) => {
     if (typeof data == "undefined") return;
 
     userCache.set(data.id, data.data);
+    
+    console.log(data.data)
+
+    // Dynamically update all elements
+    document.querySelectorAll(`.username[data-id="${data.id}"]`).forEach((ele) => {
+        ele.replaceWith(userDisplay(data.data.username, data.data.color, data.data.id, data.data.offline));
+    });
 });
 
 export async function getUsers(...ids) {

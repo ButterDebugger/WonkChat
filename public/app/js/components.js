@@ -1,6 +1,6 @@
 import { isNil, dom, domParser } from "https://butterycode.com/static/js/utils.js@1.2";
 
-export function chatMessage(username, color, discriminator, content, timestamp, attachments = []) {
+export function chatMessage(username, color, id, offline, content, timestamp, attachments = []) {
     let msgContainer = document.createElement("div");
     msgContainer.classList.add("message-container");
     
@@ -11,7 +11,7 @@ export function chatMessage(username, color, discriminator, content, timestamp, 
         msgEle.appendChild(timestampComponent(timestamp));
     }
 
-    msgEle.appendChild(userDisplay(username, color, discriminator));
+    msgEle.appendChild(userDisplay(username, color, id, offline));
 
     let contEle = document.createElement("span");
     contEle.classList.add("content");
@@ -40,24 +40,15 @@ export function chatMessage(username, color, discriminator, content, timestamp, 
     return msgContainer;
 }
 
-export function userDisplay(username, color, discriminator = null, stayVisible = false) {
-    let userEle = document.createElement("div");
-
+export function userDisplay(username, color, id, offline = false) {
     let nameEle = document.createElement("span");
     nameEle.classList.add("username");
+    if (offline) nameEle.classList.add("offline");
+    nameEle.setAttribute("data-id", id);
     nameEle.innerText = `${username}`;
     nameEle.style.color = color;
-    userEle.appendChild(nameEle);
 
-    if (!isNil(discriminator)) {
-        let discEle = document.createElement("span");
-        discEle.classList.add("discriminator");
-        if (stayVisible) discEle.classList.add("stay-visible");
-        discEle.innerText = "#" + `00${discriminator}`.slice(-2);
-        userEle.appendChild(discEle);
-    }
-
-    return userEle;
+    return nameEle;
 }
 
 export function timestampComponent(timestamp) {

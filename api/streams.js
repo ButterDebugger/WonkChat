@@ -68,7 +68,7 @@ class Stream {
         });
 
         setOnlineStatus(this.getSession().id, true);
-
+        
         res.on("close", () => {
             res.end();
             setOnlineStatus(this.getSession().id, this.isAlive());
@@ -111,24 +111,27 @@ export async function setOnlineStatus(id, online) {
         userSession.offline = !online;
 
         if (changed) {
-            getSubscribers(id).forEach(subscriber => {
-                let stream = getStream(subscriber);
-
-                if (stream !== null) {
-                    stream.json({
-                        id: id,
-                        data: {
-                            id: userSession.id,
-                            username: userSession.username,
-                            discriminator: userSession.discriminator,
-                            color: userSession.color,
-                            offline: userSession.offline
-                        }
-                    }, "updateUser");
-                }
-            })
+            updateUserSubscribers(id, userSession);
         }
     }
+}
+
+export function updateUserSubscribers(id, userSession) {
+    getSubscribers(id).forEach(subscriber => {
+        let stream = getStream(subscriber);
+
+        if (stream !== null) {
+            stream.json({
+                id: id,
+                data: {
+                    id: userSession.id,
+                    username: userSession.username,
+                    color: userSession.color,
+                    offline: userSession.offline
+                }
+            }, "updateUser");
+        }
+    })
 }
 
 export function getStream(id) {

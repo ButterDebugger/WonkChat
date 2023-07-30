@@ -3,10 +3,10 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import crypto from "node:crypto";
 import * as openpgp from "openpgp";
-import { createUserSession, getPublicKey, setPublicKey } from "../storage/data.js";
+import { createUserSession, getPublicKey, getUserSession, setPublicKey, updateUserSession } from "../storage/data.js";
 import { Fingerprint } from "../storage/identifier.js";
+import { updateUserSubscribers } from "./streams.js";
 
-let guestsNames = new Map();
 let loginExpiration = 60_000; // 1 minute
 
 /*
@@ -46,18 +46,6 @@ export function verifyToken(token = null) {
                 user: null
             });
 
-            // Check if guest name is still available
-            let name = `${user.username.toLowerCase()}#${user.discriminator}`;
-
-            if (user.guest && !guestsNames.has(name)) {
-                guestsNames.set(name, user.id)
-            } else if (user.guest && guestsNames.has(name) && guestsNames.get(name) !== user.id) return resolve({
-                success: false,
-                reset: true,
-                refresh: false,
-                user: null
-            });
-
             // Check if token is too old
             if (Date.now() - user.iat > 1000 * 60 * 60 * 24 * 14) return resolve({
                 success: false,
@@ -72,14 +60,6 @@ export function verifyToken(token = null) {
                 reset: false,
                 refresh: true,
                 user: null
-            });
-
-            // Create the default session user
-            createUserSession(user.id, {
-                username: user.username,
-                guest: user.guest,
-                discriminator: user.discriminator,
-                color: user.color
             });
             
             // Return the user
@@ -114,33 +94,26 @@ function generateColor(pastel = false) {
     return color;
 }
 
-function sessionToken(username, id) {
+async function sessionToken(username, id) {
+    let userSession = await getUserSession(id);
     let user = {
         id: id,
         username: username,
-        discriminator: null,
-        color: generateColor(true),
+        color: userSession?.color ?? generateColor(true),
         iat: Date.now()
+    };
+    
+    if (userSession !== null) {
+        await updateUserSession(id, {
+            username: user.username,
+            color: user.color
+        });
     }
 
-    let unique = false;
-
-    for (let i = 0; i < 100; i++) {
-        user.discriminator = Math.floor(Math.random() * 100);
-
-        let name = `${user.username.toLowerCase()}#${user.discriminator}`;
-
-        if (!guestsNames.has(name)) {
-            unique = true;
-            guestsNames.set(name, user.id);
-            break;
-        }
-    }
-
-    if (!unique) return null;
-
-    // Create token
-    return jwt.sign(user, process.env.TOKEN_SECRET);
+    return {
+        user: user,
+        token: jwt.sign(user, process.env.TOKEN_SECRET) // Create token
+    };
 }
 
 /*
@@ -204,21 +177,12 @@ authRoute.post("/login", async (req, res) => {
         });
     }
 
-    // Generate session token
-    let id = Fingerprint.generate(publicKey);
-    let token = sessionToken(username, id);
-
-    if (token === null) return res.status(400).json({
-        error: true,
-        message: "Username has already been taken",
-        code: 504
-    });
-
     // Create temporary login code
+    let id = Fingerprint.generate(publicKey);
     let loginId = crypto.randomUUID();
     
     logins.set(loginId, {
-        token: token,
+        username: username,
         id: id,
         publicKey: publicKey,
         code: code
@@ -262,10 +226,21 @@ authRoute.post("/verify/:id", async (req, res) => {
     
     // Save public key
     await setPublicKey(login.id, login.publicKey);
+    
+    // Generate session token
+    let { user, token } = await sessionToken(login.username, login.id);
+
+    // Create the default session user and update subscribers 
+    let userSession = await createUserSession(login.id, {
+        username: user.username,
+        color: user.color
+    });
+
+    updateUserSubscribers(login.id, userSession);
 
     // Send user session token
     res.status(200).json({
         id: login.id,
-        token: login.token
+        token: token
     });
 });
