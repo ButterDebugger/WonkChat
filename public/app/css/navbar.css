@@ -128,7 +128,7 @@
     border-radius: 8px;
 }
 #join-room-input:invalid {
-    border-color: #d93025;
+    border-color: var(--warning-color);
     border-style: dashed;
 }
 #join-room-button {

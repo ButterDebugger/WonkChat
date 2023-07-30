@@ -10,6 +10,8 @@
     --container-color: #24272b;
     --dark-container-color: #191c1f;
     --primary-color: #5841f7;
+    --secondary-color: #f74185;
+    --warning-color: #d93025;
 }
 
 body {

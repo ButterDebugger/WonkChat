@@ -29,6 +29,7 @@ let initialUsername = await binForage.get("login[username]");
 
 if (initialKeyPair !== null) {
     restoreKeyPairBtn.classList.remove("hidden");
+    restoreKeyPairBtn.classList.add("highlight");
 
     function restore() {
         publicKeyField.classList.remove("hidden");
@@ -55,6 +56,8 @@ if (initialKeyPair !== null) {
             authenticate(100);
         }
     }
+} else {
+    generateKeyPairBtn.classList.add("highlight");
 }
 
 generateKeyPairBtn.addEventListener("click", async () => {
