@@ -73,14 +73,10 @@ export function verifyToken(token = null) {
     });
 }
 
-function generateColor(pastel = false) {
+function generateColor() {
     const randomInt = (min = 0, max = 1) => Math.floor(Math.random() * (max - min + 1) + min);
 
-    let color = pastel ? [
-        255, randomInt(162, 255), 162 // Pastel color
-    ] : [
-        255, randomInt(36, 255), 36 // Solid color
-    ];
+    let color = [ 255, randomInt(36, 255), randomInt(36, 162) ];
 
     for (let i = color.length - 1; i > 0; i--) { // Shuffle rgb color array
         let j = Math.floor(Math.random() * (i + 1));
@@ -99,7 +95,7 @@ async function sessionToken(username, id) {
     let user = {
         id: id,
         username: username,
-        color: userSession?.color ?? generateColor(false),
+        color: userSession?.color ?? generateColor(),
         iat: Date.now()
     };
     
