@@ -99,7 +99,7 @@ async function sessionToken(username, id) {
     let user = {
         id: id,
         username: username,
-        color: userSession?.color ?? generateColor(true),
+        color: userSession?.color ?? generateColor(false),
         iat: Date.now()
     };
     
