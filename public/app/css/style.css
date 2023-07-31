@@ -7,7 +7,7 @@ body {
     display: flex;
 }
 
-#app {
+.app-container {
     flex: 1;
     padding: 20px;
 
@@ -26,6 +26,7 @@ body {
     word-break: break-all;
     overflow: hidden scroll;
     scroll-behavior: smooth;
+    background-color: var(--container-color);
 }
 .messages-container, .message-container {
     display: flex;
@@ -65,9 +66,9 @@ span.username.offline {
  *  Message box styles
  */
 
-#message-box-wrapper {
+.message-box-wrapper {
     background-color: var(--dark-container-color);
-    border-radius: 8px;
+    border-radius: 0px 0px 16px 16px;
     
     display: flex;
     flex-direction: column;
@@ -104,8 +105,11 @@ span.username.offline {
  */
 
 #members-wrapper {
+    background-color: var(--container-color);
     overflow: hidden scroll;
     word-break: break-all;
+    border-radius: 16px;
+    padding: 20px;
     width: 220px;
 }
 .members-container {

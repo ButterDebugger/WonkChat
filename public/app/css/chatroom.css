@@ -1,19 +1,19 @@
 
-#chatroom {
+.chatroom-container {
     flex: 1;
     overflow: hidden;
 
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 12px;
 }
 
-#header {
+.header-container {
     display: flex;
     align-items: center;
 
     background-color: var(--container-color);
-    border-radius: 8px;
+    border-radius: 16px 16px 0px 0px;
     padding: 20px;
     min-height: 22px;
 }
@@ -34,13 +34,7 @@
     margin-right: 4px;
 }
 
-.chatroom-tab {
-    background-color: var(--container-color);
-    border-radius: 8px;
-    padding: 20px;
-}
-
-#chat {
+.chat-container {
     min-width: 440px;
     flex: 1;
     padding: 0px;

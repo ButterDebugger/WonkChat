@@ -68,10 +68,10 @@
     align-items: center;
 }
 .navbar-channel.active, .navbar-channel:hover {
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(38, 39, 45, 0.3);
 }
 .navbar-channel:active {
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(38, 39, 45, 0.6);
 }
 
 .navbar-controls {
@@ -96,10 +96,10 @@
     align-items: center;
 }
 .navbar-control:hover {
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(38, 39, 45, 0.3);
 }
 .navbar-control:active {
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(38, 39, 45, 0.6);
 }
 
 #join-room-modal.open {

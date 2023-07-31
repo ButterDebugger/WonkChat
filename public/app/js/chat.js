@@ -200,6 +200,7 @@ export function isAtBottomOfMessages() {
 
 messageBox.addEventListener("click", ({ target }) => {
     if (target !== messageBox) return;
+    
     messageInput.focus();
 });
 
