@@ -12,6 +12,7 @@ import { userDisplay } from "./components.js";
 export let userCache = new Map();
 export let debugMode = false;
 export let client = {
+    id: null,
     currentRoom: null,
     rooms: new Map(),
     attachments: []
@@ -41,6 +42,7 @@ async function syncClient() {
 
     if (debugMode) console.log("sync client", syncRes.data);
 
+    client.id = syncRes.data.id;
     client.rooms.clear();
 
     for (let roomname in syncRes.data.rooms) {
@@ -68,10 +70,14 @@ registerEvent("updateUser", ({ data }) => {
     userCache.set(data.id, data.data);
     
     // Dynamically update all elements
-    document.querySelectorAll(`.username[data-id="${data.id}"]`).forEach((ele) => {
-        ele.replaceWith(userDisplay(data.data.username, data.data.color, data.data.id, data.data.offline));
-    });
+    updateUserDynamically(data.data.username, data.data.color, data.data.id, data.data.offline);
 });
+
+function updateUserDynamically(username, color, id, offline) {
+    document.querySelectorAll(`.username[data-id="${id}"]`).forEach((ele) => {
+        ele.replaceWith(userDisplay(username, color, id, offline));
+    });
+}
 
 export async function getUsers(...ids) {
     let users = [];
@@ -95,6 +101,7 @@ export async function getUsers(...ids) {
             usersRes.data.users.forEach(user => {
                 users.push(user);
                 userCache.set(user.id, user);
+                updateUserDynamically(user.username, user.color, user.id, user.offline);
             });
         }
     }

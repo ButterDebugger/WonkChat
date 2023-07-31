@@ -1,4 +1,4 @@
-import { getUserSession } from "../storage/data.js";
+import { getUserSession, updateUserSession } from "../storage/data.js";
 import { getSubscribers } from "./gateway.js";
 
 let clientStreams = new Map();
@@ -103,12 +103,14 @@ function initRouter(router) {
     });
 }
 
-export async function setOnlineStatus(id, online) {
+async function setOnlineStatus(id, online) {
     let userSession = await getUserSession(id);
     if (userSession !== null) {
         let changed = userSession.offline !== !online;
 
-        userSession.offline = !online;
+        await updateUserSession(id, {
+            offline: !online
+        });
 
         if (changed) {
             updateUserSubscribers(id, userSession);

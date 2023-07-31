@@ -273,6 +273,7 @@ router.get("/sync/client", async (req, res) => {
 
     res.status(200).json({
         rooms: rooms,
+        id: userSession.id,
         success: true
     });
 });

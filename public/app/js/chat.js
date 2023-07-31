@@ -17,7 +17,7 @@ import {
     getNavbarChannel
 } from "./navbar.js";
 import {
-    chatMessage
+    chatMessage, joinRoomMessage
 } from "./components.js";
 import {
     addMembersContainer,
@@ -27,7 +27,8 @@ import {
 } from "./members.js";
 import {
     client,
-    debugMode
+    debugMode,
+    getUsers
 } from "./client.js";
 import { makeRequest, gatewayUrl, parseData, registerEvent, isStreamOpen } from "./comms.js";
 import showAlert from "./alert.js";
@@ -66,6 +67,13 @@ export async function joinRoom(roomname, suppressAlert = false) {
 
     if (joinRes.status === 200) {
         joinedRoomHandler(joinRes.data);
+        
+        let user = await getUsers(client.id);
+        user = user.find(u => u.id === client.id) ?? null;
+
+        if (user !== null) {
+            addChatElement(joinRoomMessage(user.username, user.color, user.id, user.offline), joinRes.data.name);
+        }
     } else {
         if (!suppressAlert) showAlert("Failed to join room", 2500);
     }

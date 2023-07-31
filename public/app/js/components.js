@@ -40,6 +40,36 @@ export function chatMessage(username, color, id, offline, content, timestamp, at
     return msgContainer;
 }
 
+export function joinRoomMessage(username, color, id, offline) {
+    let msgContainer = document.createElement("div");
+    msgContainer.classList.add("message");
+
+    msgContainer.appendChild(timestampComponent(Date.now()));
+    msgContainer.appendChild(userDisplay(username, color, id, offline));
+
+    let contEle = document.createElement("span");
+    contEle.classList.add("notification");
+    contEle.innerText = " has joined the chat";
+    msgContainer.appendChild(contEle);
+
+    return msgContainer;
+}
+
+export function leaveRoomMessage(username, color, id, offline) {
+    let msgContainer = document.createElement("div");
+    msgContainer.classList.add("message");
+
+    msgContainer.appendChild(timestampComponent(Date.now()));
+    msgContainer.appendChild(userDisplay(username, color, id, offline));
+
+    let contEle = document.createElement("span");
+    contEle.classList.add("notification");
+    contEle.innerText = " has left the chat";
+    msgContainer.appendChild(contEle);
+
+    return msgContainer;
+}
+
 export function userDisplay(username, color, id, offline = false) {
     let nameEle = document.createElement("span");
     nameEle.classList.add("username");

@@ -8,7 +8,9 @@ import {
 } from "./client.js";
 import {
     userDisplay,
-    timestampComponent
+    timestampComponent,
+    leaveRoomMessage,
+    joinRoomMessage
 } from "./components.js"
 import {
     addChatElement
@@ -39,18 +41,7 @@ registerEvent("updateMember", async ({ data }) => {
             user = user.find(u => u.id === data.id) ?? null;
 
             if (user !== null) {
-                let newEle = document.createElement("div");
-                newEle.classList.add("message");
-    
-                newEle.appendChild(timestampComponent(Date.now()));
-                newEle.appendChild(userDisplay(user.username, user.color, user.id, user.offline));
-    
-                let contEle = document.createElement("span");
-                contEle.classList.add("notification");
-                contEle.innerText = " has joined the chat";
-                newEle.appendChild(contEle);
-            
-                addChatElement(newEle, data.room);
+                addChatElement(joinRoomMessage(user.username, user.color, user.id, user.offline), data.room);
             }
     
             membersCache.add(data.id);
@@ -62,18 +53,7 @@ registerEvent("updateMember", async ({ data }) => {
             user = user.find(u => u.id === data.id) ?? null;
             
             if (user !== null) {
-                let leftEle = document.createElement("div");
-                leftEle.classList.add("message");
-    
-                leftEle.appendChild(timestampComponent(Date.now()));
-                leftEle.appendChild(userDisplay(user.username, user.color, user.id, user.offline));
-            
-                let contEle = document.createElement("span");
-                contEle.classList.add("notification");
-                contEle.innerText = " has left the chat";
-                leftEle.appendChild(contEle);
-    
-                addChatElement(leftEle, data.room);
+                addChatElement(leaveRoomMessage(user.username, user.color, user.id, user.offline), data.room);
             }
     
             membersCache.delete(data.id);
