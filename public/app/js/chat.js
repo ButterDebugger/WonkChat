@@ -66,7 +66,7 @@ export async function joinRoom(roomname, suppressAlert = false) {
     });
 
     if (joinRes.status === 200) {
-        joinedRoomHandler(joinRes.data);
+        await joinedRoomHandler(joinRes.data);
         
         let user = await getUsers(client.id);
         user = user.find(u => u.id === client.id) ?? null;
