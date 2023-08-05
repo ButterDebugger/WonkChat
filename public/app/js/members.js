@@ -52,7 +52,7 @@ registerEvent("updateMember", async ({ data }) => {
             user = user.find(u => u.id === data.id) ?? null;
             
             if (user !== null) {
-                addChatElement(leaveRoomMessage(user.username, user.color, user.id, user.offline), data.room);
+                addChatElement(leaveRoomMessage(user.username, user.color, user.id, user.offline, data.timestamp), data.room);
             }
     
             membersCache.delete(data.id);

@@ -152,8 +152,24 @@ export async function leaveRoom(roomname) {
 
 export function addChatElement(ele, roomname = null) {
     let scroll = isAtBottomOfMessages();
+    let msgsContainer = getMessagesContainer(roomname);
 
-    getMessagesContainer(roomname).appendChild(ele);
+    let timestampEle = ele.querySelector(".timestamp[data-time]");
+    let time = parseInt(timestampEle.getAttribute("data-time"));
+    let stampElements = Array.from(msgsContainer.querySelectorAll(".timestamp[data-time]"));
+
+    let timestamps = stampElements.map(ele => parseInt(ele.getAttribute("data-time")));
+    let index = timestamps.findIndex(stamp => stamp > time);
+
+    if (index == -1) {
+        msgsContainer.appendChild(ele);
+    } else {
+        let next = stampElements[index];
+        while (next.parentElement !== msgsContainer) {
+            next = next.parentElement;
+        }
+        next.insertAdjacentElement("beforebegin", ele);
+    }
 
     if (scroll) {
         messagesWrapper.style["scroll-behavior"] = "unset";

@@ -6,11 +6,7 @@ export function chatMessage(username, color, id, offline, content, timestamp, at
     
     let msgEle = document.createElement("div");
     msgEle.classList.add("message");
-    
-    if (!isNil(timestamp)) {
-        msgEle.appendChild(timestampComponent(timestamp));
-    }
-
+    msgEle.appendChild(timestampComponent(timestamp));
     msgEle.appendChild(userDisplay(username, color, id, offline));
 
     let contEle = document.createElement("span");
@@ -88,6 +84,7 @@ export function timestampComponent(timestamp) {
     let timeEle = document.createElement("span");
     timeEle.classList.add("timestamp");
     timeEle.innerText = time;
+    timeEle.setAttribute("data-time", timestamp);
 
     tippy(timeEle, {
         content: fullDate
