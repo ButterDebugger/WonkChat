@@ -8,7 +8,6 @@ import {
 } from "./client.js";
 import {
     userDisplay,
-    timestampComponent,
     leaveRoomMessage,
     joinRoomMessage
 } from "./components.js"
@@ -41,7 +40,7 @@ registerEvent("updateMember", async ({ data }) => {
             user = user.find(u => u.id === data.id) ?? null;
 
             if (user !== null) {
-                addChatElement(joinRoomMessage(user.username, user.color, user.id, user.offline), data.room);
+                addChatElement(joinRoomMessage(user.username, user.color, user.id, user.offline, data.timestamp), data.room);
             }
     
             membersCache.add(data.id);

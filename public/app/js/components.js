@@ -40,11 +40,11 @@ export function chatMessage(username, color, id, offline, content, timestamp, at
     return msgContainer;
 }
 
-export function joinRoomMessage(username, color, id, offline) {
+export function joinRoomMessage(username, color, id, offline, timestamp = Date.now()) {
     let msgContainer = document.createElement("div");
     msgContainer.classList.add("message");
 
-    msgContainer.appendChild(timestampComponent(Date.now()));
+    msgContainer.appendChild(timestampComponent(timestamp));
     msgContainer.appendChild(userDisplay(username, color, id, offline));
 
     let contEle = document.createElement("span");
@@ -55,11 +55,11 @@ export function joinRoomMessage(username, color, id, offline) {
     return msgContainer;
 }
 
-export function leaveRoomMessage(username, color, id, offline) {
+export function leaveRoomMessage(username, color, id, offline, timestamp = Date.now()) {
     let msgContainer = document.createElement("div");
     msgContainer.classList.add("message");
 
-    msgContainer.appendChild(timestampComponent(Date.now()));
+    msgContainer.appendChild(timestampComponent(timestamp));
     msgContainer.appendChild(userDisplay(username, color, id, offline));
 
     let contEle = document.createElement("span");
