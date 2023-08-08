@@ -144,8 +144,10 @@ export async function leaveRoom(roomname) {
         chatnameEle.innerText = "";
         chatdescEle.innerText = "";
         messageInput.placeholder = "Message no one";
+        client.currentRoom = null;
         updateChatLock();
-    } else {
+        updatePageTitle();
+    } else if (client.currentRoom === roomname) {
         switchRooms(client.rooms.entries().next().value[1].name);
     }
 }
@@ -216,6 +218,16 @@ export function switchRooms(roomname) {
     getNavbarChannel(roomname).classList.add("active");
     getMessagesContainer(roomname).classList.remove("hidden");
     getMembersContainer(roomname).classList.remove("hidden");
+
+    updatePageTitle();
+}
+
+function updatePageTitle() {
+    if (client.currentRoom === null) {
+        document.title = "Wonk Chat";
+    } else {
+        document.title = `#${client.currentRoom} • Wonk Chat`;
+    }
 }
 
 export function isAtBottomOfMessages() {
