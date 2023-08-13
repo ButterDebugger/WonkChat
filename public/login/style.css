@@ -14,11 +14,11 @@ body {
 
     margin: auto;
     padding: 48px 36px;
-    border: 1px solid rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(127, 127, 127, 0.2);
     min-width: 260px;
     border-radius: 8px;
     background-color: var(--container-color);
-    box-shadow: rgb(0 0 0 / 25%) -1px 1px 14px 1px;
+    box-shadow: rgba(127, 127, 127, 0.2) 0px 0px 14px 1px
 }
 
 .input-field {
@@ -29,8 +29,8 @@ body {
     gap: 8px;
 
     padding: 2px 8px 8px 8px;
-    border-radius: 8px;
-    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    border: 1px solid rgba(127, 127, 127, 0.2);
 }
 
 #username, #public-key, #private-key {
