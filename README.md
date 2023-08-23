@@ -23,7 +23,7 @@ Declare the environment variables on your system or inside a file named `.env` i
 ```env
 PORT = <0 - 65535> (defaults to 8080)
 TOKEN_SECRET = <128 characters>
-CLOUD_TOKEN = <cloud.butterycode.com token> (optional)
+CLOUD_TOKEN = <cloud.debutter.space token> (optional)
 ```
 
 ## License

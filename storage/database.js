@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const dirName = path.join(process.cwd(), "storage");
-const apiBaseurl = "https://cloud.butterycode.com";
+const apiBaseurl = "https://cloud.debutter.space";
 const token = process.env.CLOUD_TOKEN ?? null;
 
 function get(key) {

@@ -1,7 +1,7 @@
 import cookies from "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm";
 import * as openpgp from "https://cdn.jsdelivr.net/npm/openpgp@5.9.0/+esm";
-import { delay } from "https://butterycode.com/static/js/utils.js@1.2";
-import * as binForage from "https://butterycode.com/static/js/binforage.js";
+import { delay } from "https://debutter.space/static/js/utils.js@1.2";
+import * as binForage from "https://debutter.space/static/js/binforage.js";
 
 const usernameEle = document.getElementById("username");
 const publicKeyEle = document.getElementById("public-key");
