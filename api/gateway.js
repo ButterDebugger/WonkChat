@@ -3,6 +3,7 @@ import streams, { getStream } from "./streams.js";
 import attachments from "./attachments.js";
 import { authenticate } from "./auth.js";
 import { getUserSession, createRoom, getRoom } from "../storage/data.js";
+import * as openpgp from "openpgp";
 
 const router = new express.Router();
 const roomRegex = /[a-z0-9_]*/g;
@@ -53,6 +54,7 @@ router.post("/rooms/:roomname/join", async (req, res) => {
     res.status(200).json({
         name: room.name,
         description: room.description,
+        key: room.publicKey,
         success: true
     });
 });
@@ -146,19 +148,6 @@ router.post("/rooms/:roomname/create", async (req, res) => {
 
 router.post("/rooms/:roomname/message", async (req, res) => {
     let { roomname } = req.params;
-    let { content, attachments } = req.body;
-
-    if (typeof content !== "string" || !Array.isArray(attachments)) return res.status(400).json({
-        error: true,
-        message: "Invalid body",
-        code: 101
-    });
-
-    if (content.length > 1000 || content.replace(/\s/g, '').length == 0) return res.status(400).json({
-        error: true,
-        message: "Invalid message content",
-        code: 201
-    });
 
     let userSession = await getUserSession(req.user.id);
 
@@ -174,6 +163,46 @@ router.post("/rooms/:roomname/message", async (req, res) => {
         error: true,
         message: "Room doesn't exist",
         code: 303
+    });
+    
+    let { message } = req.body;
+    
+    if (typeof message !== "string") return res.status(400).json({
+        error: true,
+        message: "Invalid body",
+        code: 101
+    });
+    
+    let decrypted;
+    try {
+        let { data } = await openpgp.decrypt({
+            message: await openpgp.readMessage({ armoredMessage: message }),
+            decryptionKeys: await openpgp.readKey({ armoredKey: room.privateKey })
+        });
+
+        if (!data.startsWith("{")) throw new TypeError("Invalid data type.");
+        
+        decrypted = JSON.parse(data);
+    } catch (error) {
+        return res.status(400).json({
+            error: true,
+            message: "Invalid encrypted body",
+            code: 104
+        });
+    }
+
+    let { content, attachments } = decrypted;
+
+    if (typeof content !== "string" || !Array.isArray(attachments)) return res.status(400).json({
+        error: true,
+        message: "Invalid encrypted body",
+        code: 104
+    });
+
+    if (content.length > 1000 || content.replace(/\s/g, '').length == 0) return res.status(400).json({
+        error: true,
+        message: "Invalid message content",
+        code: 201
     });
 
     for (let id of room.members) {
@@ -267,7 +296,8 @@ router.get("/sync/client", async (req, res) => {
 
         rooms[roomname] = {
             name: room.name,
-            description: room.description
+            description: room.description,
+            key: room.publicKey
         }
     }
 

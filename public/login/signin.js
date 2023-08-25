@@ -1,5 +1,5 @@
 import cookies from "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm";
-import * as openpgp from "https://cdn.jsdelivr.net/npm/openpgp@5.9.0/+esm";
+import * as cryption from "../cryption.js";
 import { delay } from "https://debutter.space/static/js/utils.js@1.2";
 import * as binForage from "https://debutter.space/static/js/binforage.js";
 
@@ -64,14 +64,8 @@ generateKeyPairBtn.addEventListener("click", async () => {
     publicKeyField.classList.remove("hidden");
     privateKeyField.classList.remove("hidden");
     keyPairField.classList.add("hidden");
-    
-    let { publicKey, privateKey } = await openpgp.generateKey({
-        type: 'rsa',
-        rsaBits: 2048,
-        userIDs: [{
-            name: usernameEle.value
-        }]
-    });
+
+    let { publicKey, privateKey } = await cryption.generateKeyPair(usernameEle.value);
 
     publicKeyEle.value = publicKey;
     privateKeyEle.value = privateKey;
@@ -126,10 +120,7 @@ async function authenticate(speed = 500) {
         submitBtn.innerText = "Verifying";
         await delay(speed);
 
-        let { data: decrypted } = await openpgp.decrypt({
-            message: await openpgp.readMessage({ armoredMessage: message }),
-            decryptionKeys: await openpgp.readKey({ armoredKey: keyPair.privateKey })
-        });
+        let decrypted = await cryption.decrypt(message, keyPair.privateKey);
 
         axios.post(`${location.origin}/auth/verify/${id}`, {
             message: decrypted

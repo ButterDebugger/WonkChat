@@ -32,6 +32,7 @@ import {
 } from "./client.js";
 import { makeRequest, gatewayUrl, parseData, registerEvent, isStreamOpen } from "./comms.js";
 import showAlert from "./alert.js";
+import * as cryption from "../../cryption.js";
 
 let isLocked = false;
 
@@ -104,7 +105,8 @@ export async function joinedRoomHandler(data) {
 
     client.rooms.set(data.name, {
         name: data.name,
-        description: data.description
+        description: data.description,
+        key: data.key
     });
 
     // Add navbar channel button
@@ -254,19 +256,21 @@ async function sendMessage() {
     if (messageInput.disabled) return;
 
     let content = messageInput.value;
+    let room = client.rooms.get(client.currentRoom);
 
     if (content.length > 1000 || content.replace(/\s/g, '').length == 0) return;
  
     messageInput.value = "";
-
     clearAttachmentsBox();
 
     let messageRes = await makeRequest({
         method: "post",
         url: `${gatewayUrl}/rooms/${client.currentRoom}/message`,
         data: {
-            content: content,
-            attachments: client.attachments
+            message: await cryption.encrypt(JSON.stringify({
+                content: content,
+                attachments: client.attachments
+            }), room.key)
         }
     });
 

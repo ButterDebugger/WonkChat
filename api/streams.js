@@ -1,19 +1,26 @@
-import { getUserSession, updateUserSession } from "../storage/data.js";
+import { getPublicKey, getUserSession, updateUserSession } from "../storage/data.js";
 import { getSubscribers } from "./gateway.js";
+import * as openpgp from "openpgp";
 
 let clientStreams = new Map();
 
 class Stream {
     constructor(req, res) {
         this.clients = [];
+        this.session = null;
         this.remix(req, res);
         this.pings = 0;
         this.pingInterval = null;
         this.memory = [];
     }
 
-    send(data, event = "unknown") {
-        let message = `event:${event}\ndata:${data}\n\n`;
+    async send(data, event = "unknown") {
+        let key = await getPublicKey(this.session.id);
+        let encrypted = await openpgp.encrypt({ // TODO: make binary
+            message: await openpgp.createMessage({ text: data }),
+            encryptionKeys: await openpgp.readKey({ armoredKey: key })
+        });
+        let message = `event:${event}\ndata:${JSON.stringify(encrypted)}\n\n`;
 
         if (this.isAlive()) {
             for (let client of this.clients) {
@@ -23,8 +30,8 @@ class Stream {
             this.memory.push(message);
         }
     }
-    json(data, event) {
-        this.send(JSON.stringify(data), event);
+    async json(data, event) {
+        await this.send(JSON.stringify(data), event);
     }
     initPings() {
         if (this.pingInterval !== null) clearInterval(this.pingInterval);
@@ -46,10 +53,6 @@ class Stream {
         }
         return false;
     }
-    getSession() {
-        if (this.clients.length === 0) return null;
-        return this.clients[this.clients.length - 1].req.user;
-    }
     flushMemory() {
         if (!this.isAlive()) return false;
 
@@ -66,12 +69,13 @@ class Stream {
             req: req,
             res: res
         });
+        this.session = req.user;
 
-        setOnlineStatus(this.getSession().id, true);
+        setOnlineStatus(this.session.id, true);
         
         res.on("close", () => {
             res.end();
-            setOnlineStatus(this.getSession().id, this.isAlive());
+            setOnlineStatus(this.session.id, this.isAlive());
             this.clients = this.clients.filter(client => !client.res.finished);
         });
     }
@@ -130,7 +134,8 @@ export function updateUserSubscribers(id, userSession) {
                     username: userSession.username,
                     color: userSession.color,
                     offline: userSession.offline
-                }
+                },
+                timestamp: Date.now()
             }, "updateUser");
         }
     })

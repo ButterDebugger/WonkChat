@@ -1,4 +1,5 @@
-import { debugMode } from "./client.js";
+import { debugMode, client } from "./client.js";
+import * as cryption from "../../cryption.js";
 
 export let stream;
 export const baseUrl = location.origin;
@@ -6,9 +7,7 @@ export const gatewayUrl = `${baseUrl}/api`;
 
 let eventHandlers = {};
 
-init();
-
-function init() {
+export function init() {
     stream = new EventSource(`${gatewayUrl}/stream`);
 
     // Check every 500ms if the stream has closed
@@ -73,8 +72,22 @@ export function isStreamOpen() {
 export function registerEvent(type, callback) {
     let listeners = eventHandlers[type] ?? [];
 
-    if (stream instanceof EventSource) stream.addEventListener(type, callback);
-    listeners.push(callback);
+    const controller = async function({ data, type }) {
+        if (["open", "error", "close", "ping"].includes(type)) return callback({
+            data: data,
+            type: type
+        });
+
+        let decrypted = await cryption.decrypt(JSON.parse(data), client.keyPair.privateKey);
+
+        callback({
+            data: decrypted,
+            type: type
+        });
+    }
+
+    if (stream instanceof EventSource) stream.addEventListener(type, controller);
+    listeners.push(controller);
     eventHandlers[type] = listeners;
 }
 

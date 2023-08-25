@@ -1,4 +1,5 @@
 import db from "./database.js";
+import * as openpgp from "openpgp";
 
 let sessions = new Map();
 let rooms = new Map();
@@ -31,6 +32,14 @@ class Room {
         this.description = description;
         this.members = new Set();
         this.messages = [];
+
+        this.publicKey = null;
+        this.privateKey = null;
+    }
+
+    setKeyPair(publicKey = null, privateKey = null) {
+        this.publicKey = publicKey;
+        this.privateKey = privateKey;
     }
 }
 
@@ -89,6 +98,14 @@ export async function createRoom(roomname, description = null) {
     if (rooms.has(roomname)) return false;
 
     let room = new Room(roomname, description);
+    let { publicKey, privateKey } = await openpgp.generateKey({
+        type: 'rsa',
+        rsaBits: 2048,
+        userIDs: [{
+            name: roomname
+        }]
+    });
+    room.setKeyPair(publicKey, privateKey);
     rooms.set(roomname, room);
     return room;
 }

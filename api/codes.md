@@ -1,10 +1,11 @@
 ## Request error codes
 
-| Code | Message              |
-|:----:|----------------------|
-| 101  | Invalid body         |
-| 102  | Missing query string |
-| 103  | Missing files        |
+| Code | Message                |
+|:----:|------------------------|
+| 101  | Invalid body           |
+| 102  | Missing query string   |
+| 103  | Missing files          |
+| 104  | Invalid encrypted body |
 
 ## Message error codes
 
