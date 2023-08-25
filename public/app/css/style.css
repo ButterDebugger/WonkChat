@@ -117,3 +117,9 @@ span.username.offline {
     flex-direction: column;
     gap: 4px;
 }
+
+/* @media screen and (max-width: calc(440px + 100px + 220px)) {
+    #members-wrapper {
+        display: none;
+    }
+} */
