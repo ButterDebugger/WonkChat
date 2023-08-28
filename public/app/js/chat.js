@@ -1,4 +1,3 @@
-const messagesWrapper = document.getElementById("messages-wrapper");
 const sendButton = document.getElementById("send-button");
 const chattagEle = document.getElementById("chat-tag");
 const chatnameEle = document.getElementById("chat-name");
@@ -21,8 +20,8 @@ import {
 } from "./components.js";
 import {
     addMembersContainer,
-    getAllMembersContainers,
     getMembersContainer,
+    getMembersWrapper,
     setMembers
 } from "./members.js";
 import {
@@ -34,6 +33,7 @@ import { makeRequest, gatewayUrl, parseData, registerEvent, isStreamOpen } from 
 import showAlert from "./alert.js";
 import * as cryption from "../../cryption.js";
 
+const channelWrappers = new Map();
 let isLocked = false;
 
 function unlockChat() {
@@ -126,6 +126,10 @@ export async function joinedRoomHandler(data) {
     switchRooms(data.name);
 }
 
+export async function openDirectMessage(id) {
+    showAlert("This has not been implemented yet.");
+}
+
 export async function leaveRoom(roomname) {
     let leaveRes = await makeRequest({
         method: "post",
@@ -137,7 +141,7 @@ export async function leaveRoom(roomname) {
     client.rooms.delete(roomname);
 
     getNavbarChannel(roomname).remove();
-    getMessagesContainer(roomname).remove();
+    removeMessagesContainer(roomname);
     getMembersContainer(roomname).remove();
 
     if (client.rooms.size == 0) {
@@ -176,6 +180,7 @@ export function addChatElement(ele, roomname = null) {
     }
 
     if (scroll) {
+        let messagesWrapper = getMessagesWrapper();
         messagesWrapper.style["scroll-behavior"] = "unset";
         ele.scrollIntoView();
         messagesWrapper.style["scroll-behavior"] = "";
@@ -183,29 +188,31 @@ export function addChatElement(ele, roomname = null) {
 }
 
 export function addMessagesContainer(roomname) {
-    let msgCont = document.createElement("div");
-    msgCont.classList.add("messages-container");
-    msgCont.setAttribute("room", roomname);
-    messagesWrapper.appendChild(msgCont);
+    let msgsWrapper = document.createElement("div");
+    msgsWrapper.id = "messages-wrapper";
+    msgsWrapper.setAttribute("room", roomname);
+    channelWrappers.set(`#${roomname}`, msgsWrapper);
 }
 
-export function getMessagesContainer(roomname = null) {
-    return messagesWrapper.querySelector(`.messages-container[room="${roomname === null ? client.currentRoom : roomname}"]`);
+export function getMessagesContainer(roomname) {
+    return channelWrappers.get(`#${roomname}`) ?? null;
 }
 
-export function getAllMessagesContainers() {
-    return messagesWrapper.querySelectorAll(".messages-container");
+export function removeMessagesContainer(roomname) {
+    return channelWrappers.delete(`#${roomname}`);
+}
+
+function getMessagesWrapper() {
+    return document.getElementById("messages-wrapper");
+}
+
+export function getAllChannelWrappers() {
+    return Array.from(channelWrappers.values());
 }
 
 export function switchRooms(roomname) {
     getAllNavbarChannels().forEach(ele => {
         ele.classList.remove("active");
-    });
-    getAllMessagesContainers().forEach(ele => {
-        ele.classList.add("hidden");
-    });
-    getAllMembersContainers().forEach(ele => {
-        ele.classList.add("hidden");
     });
 
     client.currentRoom = roomname;
@@ -217,9 +224,10 @@ export function switchRooms(roomname) {
     chatdescEle.innerText = roomInfo.description;
     messageInput.placeholder = `Message #${roomInfo.name}`;
 
+    getMessagesWrapper().replaceWith(getMessagesContainer(roomname));
+    getMembersWrapper().replaceWith(getMembersContainer(roomname));
+
     getNavbarChannel(roomname).classList.add("active");
-    getMessagesContainer(roomname).classList.remove("hidden");
-    getMembersContainer(roomname).classList.remove("hidden");
 
     updatePageTitle();
 }
@@ -233,6 +241,7 @@ function updatePageTitle() {
 }
 
 export function isAtBottomOfMessages() {
+    let messagesWrapper = getMessagesWrapper();
     return messagesWrapper.scrollHeight - Math.ceil(messagesWrapper.scrollTop) <= messagesWrapper.clientHeight;
 }
 

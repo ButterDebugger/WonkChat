@@ -18,7 +18,7 @@ let fileData = new FormData();
 
 attachBtn.addEventListener("click", () => {
     let scroll = isAtBottomOfMessages();
-    let messages = getMessagesContainer();
+    let messages = getMessagesContainer(client.currentRoom);
 
     if (scroll) {
         messages.style["scroll-behavior"] = "unset";
@@ -75,7 +75,7 @@ async function uploadAttachments() {
 
     let attachments = uploadRes.data;
     let scroll = isAtBottomOfMessages();
-    let messages = getMessagesContainer();
+    let messages = getMessagesContainer(client.currentRoom);
 
     attachments.filter(attachment => attachment.success && !client.attachments.includes(attachment.path)).forEach(attachment => {
         client.attachments.push(attachment.path);

@@ -1,8 +1,10 @@
 #navbar {
     background-color: var(--dark-container-color);
     width: 220px;
-    z-index: 10;
-    border-right: 1px solid rgba(155, 155, 155, 0.1);
+    border-radius: 16px;
+    padding: 16px;
+    overflow: hidden auto;
+    transition: 0.3s width;
 
     display: flex;
     flex-direction: column;
@@ -11,9 +13,8 @@
 .navbar-spacer {
     min-height: 8px;
     flex: 1;
-    border-top: 1px solid rgba(155, 155, 155, 0.1);
     border-bottom: 1px solid rgba(155, 155, 155, 0.1);
-    margin: 4px 8px;
+    margin: 4px 0px;
 }
 
 #navbar.open {
@@ -36,36 +37,29 @@
     align-items: stretch;
     gap: 3px;
     
-    padding: 8px 8px 4px 0px;
-    overflow: hidden auto;
+    padding: 0px 0px 4px 0px;
 }
 
 #navbar-bars {
     display: none;
-    margin-right: 20px;
 }
-
-@media screen and (max-width: 980px) {
-    #navbar:not(.open) {
-        display: none;
-    }
-    #navbar-bars {
-        display: inline-block;
-    }
+#navbar-bars > img {
+    height: 16px;
+    width: 16px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 
 .navbar-channel {
     padding: 8px 12px;
     transition: background-color 0.1s ease-in-out;
     cursor: pointer;
-    border-radius: 0px 16px 16px 0px;
-    gap: 8px;
+    border-radius: 16px;
 
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
 }
 .navbar-channel.active, .navbar-channel:hover {
     background-color: rgba(38, 39, 45, 0.3);
@@ -74,20 +68,19 @@
     background-color: rgba(38, 39, 45, 0.6);
 }
 
-.navbar-controls {
+#navbar-controls {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 
-    padding: 4px 8px 8px 0px;
-    overflow: hidden auto;
+    padding: 4px 0px 0px 0px;
     gap: 3px;
 }
 .navbar-control {
     padding: 8px 12px;
     transition: background-color 0.1s ease-in-out;
     cursor: pointer;
-    border-radius: 0px 16px 16px 0px;
+    border-radius: 16px;
     gap: 8px;
 
     display: flex;
@@ -110,7 +103,7 @@
     background-color: var(--dark-container-color);
     box-shadow: rgb(0 0 0 / 25%) -1px 1px 14px 1px;
     padding: 48px 36px;
-    border: 1px solid rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(127, 127, 127, 0.2);
     border-radius: 8px;
 }
 #join-room-header {
@@ -163,4 +156,39 @@
 }
 .room-close:hover {
     filter: none;
+}
+
+.navbar-wrapper {
+    display: flex;
+
+    position: relative;
+}
+#navbar-bars {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: absolute;
+    transform: translate(50%, -50%);
+    top: 50%;
+    right: 0px;
+
+    background-color: var(--container-color);
+    padding: 8px;
+    border-radius: 33px;
+    cursor: pointer;
+}
+
+#navbar:not(.expand) {
+    width: fit-content;
+    min-width: 32px;
+}
+#navbar:not(.expand) .room-name, #navbar:not(.expand) .room-close, #navbar:not(.expand) .nav-control-text {
+    display: none;
+}
+#navbar:not(.expand) .navbar-channel, #navbar:not(.expand) .navbar-control {
+    padding: 8px;
+}
+#navbar.expand ~ #navbar-bars > img {
+    transform: rotate(-180deg);
 }

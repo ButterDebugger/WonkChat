@@ -17,8 +17,12 @@
     flex: 1;
 }
 
-#attach-button, #send-button, #navbar-bars, #members-show {
+#attach-button, #send-button {
     height: 28px;
+    cursor: pointer;
+}
+#members-show {
+    height: 22px;
     cursor: pointer;
 }
 

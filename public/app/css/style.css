@@ -27,8 +27,12 @@ body {
     overflow: hidden scroll;
     scroll-behavior: smooth;
     background-color: var(--container-color);
+    
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
-.messages-container, .message-container {
+.message-container {
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -56,6 +60,12 @@ span.timestamp, span.notification {
 }
 span.timestamp, span.username {
     white-space: nowrap;
+}
+span.username {
+    cursor: pointer;
+}
+span.username:hover {
+    text-decoration: underline;
 }
 
 span.username.offline {
@@ -106,20 +116,22 @@ span.username.offline {
 
 #members-wrapper {
     background-color: var(--container-color);
-    overflow: hidden scroll;
+    overflow: hidden auto;
     word-break: break-all;
     border-radius: 16px;
     padding: 20px;
     width: 220px;
-}
-.members-container {
+    
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-/* @media screen and (max-width: calc(440px + 100px + 220px)) {
+/* @media screen and (max-width: calc(372px + 100px + 220px)) {
     #members-wrapper {
+        display: none;
+    }
+    #members-show {
         display: none;
     }
 } */

@@ -1,6 +1,7 @@
 import "./attachments.js";
 import "./navbar.js";
 import {
+    getAllChannelWrappers,
     joinRoom,
     joinedRoomHandler,
     updateChatLock
@@ -9,6 +10,7 @@ import { makeRequest, gatewayUrl, parseData, registerEvent, init as initComms } 
 import showAlert from "./alert.js";
 import { userDisplay } from "./components.js";
 import * as binForage from "https://debutter.space/static/js/binforage.js";
+import { getAllMemberWrappers } from "./members.js";
 
 export let userCache = new Map();
 export let debugMode = false;
@@ -84,8 +86,10 @@ registerEvent("updateUser", ({ data }) => {
 });
 
 function updateUserDynamically(username, color, id, offline) {
-    document.querySelectorAll(`.username[data-id="${id}"]`).forEach((ele) => {
-        ele.replaceWith(userDisplay(username, color, id, offline));
+    [document, getAllChannelWrappers(), getAllMemberWrappers()].flat().forEach(ele => {
+        ele.querySelectorAll(`.username[data-id="${id}"]`).forEach((ele) => {
+            ele.replaceWith(userDisplay(username, color, id, offline));
+        });
     });
 }
 

@@ -1,4 +1,5 @@
 import { isNil, dom, domParser } from "https://debutter.space/static/js/utils.js@1.2";
+import { openDirectMessage } from "./chat.js";
 
 export function chatMessage(username, color, id, offline, content, timestamp, attachments = []) {
     let msgContainer = document.createElement("div");
@@ -73,6 +74,10 @@ export function userDisplay(username, color, id, offline = false) {
     nameEle.setAttribute("data-id", id);
     nameEle.innerText = `${username}`;
     nameEle.style.color = color;
+
+    nameEle.addEventListener("click", () => {
+        openDirectMessage(id);
+    });
 
     return nameEle;
 }

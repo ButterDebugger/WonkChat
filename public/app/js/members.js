@@ -1,5 +1,4 @@
 const membersShow = document.getElementById("members-show");
-const membersWrapper = document.getElementById("members-wrapper");
 
 import {
     client,
@@ -17,13 +16,14 @@ import {
 import { parseData, registerEvent } from "./comms.js";
 
 let roomMembersCache = new Map();
+let memberWrappers = new Map();
 
 tippy(membersShow, {
     content: "Toggle Member List"
 });
 
 membersShow.addEventListener("click", () => {
-    membersWrapper.classList.toggle("hidden");
+    getMembersWrapper().classList.toggle("hidden");
 });
 
 registerEvent("updateMember", async ({ data }) => {
@@ -83,16 +83,24 @@ export async function setMembers(roomname, ids) {
 };
 
 export function addMembersContainer(roomname) {
-    let memCont = document.createElement("div");
-    memCont.classList.add("members-container");
-    memCont.setAttribute("room", roomname);
-    membersWrapper.appendChild(memCont);
+    let membWrapper = document.createElement("div");
+    membWrapper.id = "members-wrapper";
+    membWrapper.setAttribute("room", roomname);
+    memberWrappers.set(`#${roomname}`, membWrapper);
 }
 
-export function getMembersContainer(roomname = null) {
-    return membersWrapper.querySelector(`.members-container[room="${roomname === null ? client.currentRoom : roomname}"]`);
+export function getMembersContainer(roomname) {
+    return memberWrappers.get(`#${roomname}`) ?? null;
 }
 
-export function getAllMembersContainers() {
-    return membersWrapper.querySelectorAll(".members-container");
+export function removeMembersContainer(roomname) {
+    return memberWrappers.delete(roomname);
+}
+
+export function getMembersWrapper() {
+    return document.getElementById("members-wrapper");
+}
+
+export function getAllMemberWrappers() {
+    return Array.from(memberWrappers.values());
 }

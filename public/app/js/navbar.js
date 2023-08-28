@@ -2,22 +2,21 @@ const joinRoomModalEle = document.getElementById("join-room-modal");
 const joinRoomInput = document.getElementById("join-room-input");
 const joinRoomButton = document.getElementById("join-room-button");
 const joinRoomHeader = document.getElementById("join-room-header");
-const navbarJoinRoomEle = document.getElementById("navbar-join-room");
-const navbarSignOutButton = document.getElementById("navbar-log-out");
 const navbarBars = document.getElementById("navbar-bars");
 const navbarEle = document.getElementById("navbar");
 const navbarChannels = document.getElementById("navbar-channels");
+const navbarControls = document.getElementById("navbar-controls");
 
 import { createRoom, joinRoom, leaveRoom, switchRooms } from "./chat.js";
 import { closeModal, openModal } from "./modal.js";
 
 let joinRoomAction = "join";
 
-navbarSignOutButton.addEventListener("click", () => {
+addNavbarControl("../icons/power-off-solid.svg", "Log out").addEventListener("click", () => {
     location.href = "/logout";
 });
 
-navbarJoinRoomEle.addEventListener("click", () => {
+addNavbarControl("../icons/plus-solid.svg", "Join a room").addEventListener("click", () => {
     joinRoomHeader.innerText = "Join a Room";
     joinRoomButton.src = "../icons/right-to-bracket-solid.svg";
     joinRoomAction = "join";
@@ -35,12 +34,31 @@ joinRoomButton.addEventListener("click", () => {
 });
 
 navbarBars.addEventListener("click", () => {
-    openModal(navbarEle, 20);
+    navbarEle.classList.toggle("expand");
+    updateTooltips(!navbarEle.classList.contains("expand"));
 });
 
 window.addEventListener("resize", () => {
-    closeModal(navbarEle);
+    updateTooltips(!navbarEle.classList.contains("expand"));
 });
+window.addEventListener("load", () => {
+    if (window.innerWidth <= 980) {
+        navbarEle.classList.remove("expand");
+    } else {
+        navbarEle.classList.add("expand");
+    }
+
+    updateTooltips(!navbarEle.classList.contains("expand"));
+});
+
+function updateTooltips(state) {
+    getAllNavbarChannels().forEach(ele => {
+        ele.tooltip[state ? "enable" : "disable"]();
+    });
+    getAllNavbarControls().forEach(ele => {
+        ele.tooltip[state ? "enable" : "disable"]();
+    });
+}
 
 async function join() {
     let roomname = joinRoomInput.value;
@@ -70,10 +88,42 @@ async function join() {
     }
 }
 
+export function addNavbarControl(iconSrc, text) {
+    let contEle = document.createElement("div");
+    contEle.classList.add("navbar-control");
+
+    contEle.tooltip = tippy(contEle, {
+        content: text,
+        placement: "right",
+        hideOnClick: false
+    });
+    if (navbarEle.classList.contains("expand")) contEle.tooltip.disable();
+
+    let tagEle = document.createElement("img");
+    tagEle.classList.add("no-select", "no-drag", "nav-tag");
+    tagEle.src = iconSrc;
+    contEle.appendChild(tagEle);
+
+    let textEle = document.createElement("span");
+    textEle.classList.add("nav-control-text");
+    textEle.innerText = `${text}`;
+    contEle.appendChild(textEle);
+
+    navbarControls.prepend(contEle);
+    return contEle;
+}
+
 export function addNavbarChannel(roomname) {
     let chanEle = document.createElement("div");
     chanEle.setAttribute("room", roomname);
     chanEle.classList.add("navbar-channel");
+
+    chanEle.tooltip = tippy(chanEle, {
+        content: roomname,
+        placement: "right",
+        hideOnClick: false
+    });
+    if (navbarEle.classList.contains("expand")) chanEle.tooltip.disable();
 
     let tagEle = document.createElement("img");
     tagEle.classList.add("no-select", "no-drag", "nav-tag");
@@ -107,4 +157,8 @@ export function getNavbarChannel(roomname) {
 
 export function getAllNavbarChannels() {
     return navbarChannels.querySelectorAll(".navbar-channel");
+}
+
+function getAllNavbarControls() {
+    return navbarControls.querySelectorAll(".navbar-control");
 }

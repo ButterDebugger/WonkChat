@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="./css/attachments.css" />
     <link rel="stylesheet" href="./css/modal.css">
     <link rel="stylesheet" href="./css/alert.css">
-    <link rel="preload" as="image" href="../icons/bars-solid.svg">
+    <link rel="preload" as="image" href="../icons/chevron-right-solid.svg">
     <link rel="preload" as="image" href="../icons/circle-arrow-up-solid.svg">
     <link rel="preload" as="image" href="../icons/circle-plus-solid.svg">
     <link rel="preload" as="image" href="../icons/hashtag-solid.svg">
@@ -44,25 +44,20 @@
 
     <div id="modal-backdrop"></div>
 
-    <nav id="navbar">
-      <div id="navbar-channels"></div>
-      <div class="navbar-spacer"></div>
-      <div class="navbar-controls">
-        <div class="navbar-control" id="navbar-join-room">
-          <img class="no-select no-drag nav-tag" src="/icons/plus-solid.svg">
-          <span class="nav-control-text">Join a room</span>
-        </div>
-        <div class="navbar-control" id="navbar-log-out">
-          <img class="no-select no-drag nav-tag" src="/icons/power-off-solid.svg">
-          <span class="nav-control-text">Log out</span>
+    <div class="app-container">
+      <div class="navbar-wrapper">
+        <nav id="navbar">
+          <div id="navbar-channels"></div>
+          <div class="navbar-spacer"></div>
+          <div id="navbar-controls"></div>
+        </nav>
+        <div id="navbar-bars">
+          <img class="no-select no-drag" src="../icons/chevron-right-solid.svg"></img>
         </div>
       </div>
-    </nav>
 
-    <div class="app-container">
       <div class="chatroom-container">
         <div class="header-container">
-          <img id="navbar-bars" class="no-select no-drag" src="../icons/bars-solid.svg"></img>
           <img id="chat-tag" class="no-select no-drag">
           <span id="chat-name"></span>
           <span id="chat-description"></span>

@@ -18,7 +18,7 @@ body {
     min-width: 260px;
     border-radius: 8px;
     background-color: var(--container-color);
-    box-shadow: rgba(127, 127, 127, 0.2) 0px 0px 14px 1px
+    box-shadow: rgba(127, 127, 127, 0.2) 0px 0px 6px 1px;
 }
 
 .input-field {
