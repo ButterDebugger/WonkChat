@@ -5,14 +5,18 @@
     --text-color: #ffffff;
     --secondary-text-color: #d1d2db;
     --background-color: #070709;
-    --container-color: #141417;
-    --dark-container-color: #0d0d0f;
+    --container-color: #18181c;
+    --dark-container-color: #0f0f11;
     --tippy-color: #212125;
     --primary-color: #5841f7;
     --secondary-color: #f74185;
     --warning-color: #d93025;
 }
 
+html, body {
+    height: 100vh;
+    margin: 0px;
+}
 body {
     background-color: var(--background-color);
     color: var(--text-color);

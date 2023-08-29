@@ -1,7 +1,3 @@
-html, body {
-    height: 100%;
-    margin: 0px;
-}
 body {
     overflow: hidden;
     display: flex;
@@ -91,12 +87,6 @@ span.username.offline {
     gap: 12px;
 }
 
-@keyframes spin {
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
 #message-input {
     flex: 1;
     padding: 8px;
@@ -111,7 +101,7 @@ span.username.offline {
 }
 
 /*
- *  Chatroom sidebar styles
+ *  Members sidebar styles
  */
 
 #members-wrapper {

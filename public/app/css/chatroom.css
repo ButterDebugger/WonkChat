@@ -1,4 +1,3 @@
-
 .chatroom-container {
     flex: 1;
     overflow: hidden;
@@ -43,4 +42,9 @@
     flex-direction: column;
 
     overflow-y: auto;
+}
+
+#members-show {
+    height: 22px;
+    cursor: pointer;
 }
