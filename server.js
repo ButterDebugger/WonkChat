@@ -2,7 +2,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import path from "node:path";
-import fs from "node:fs/promises"
+import fs from "node:fs/promises";
 import dotenv from "dotenv";
 import { authRoute, authenticate } from "./api/auth.js";
 import gateway from "./api/gateway.js";
