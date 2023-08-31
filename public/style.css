@@ -4,7 +4,6 @@ html, body {
 
 body {
     display: flex;
-    justify-content: center;
 }
 
 main {
@@ -13,6 +12,7 @@ main {
     justify-content: space-between;
     gap: 48px;
 
+    margin: 0px auto 0px auto;
     padding: 20px;
     max-width: 1260px;
     flex: 1;
