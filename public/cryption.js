@@ -1,4 +1,4 @@
-import * as openpgp from "https://cdn.jsdelivr.net/npm/openpgp@5.9.0/+esm";
+import * as openpgp from "https://cdn.jsdelivr.net/npm/openpgp@5.10.1/+esm";
 
 export async function decrypt(message, privateKey) {
     let { data: decrypted } = await openpgp.decrypt({
