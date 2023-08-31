@@ -22,6 +22,7 @@ import {
     addMembersContainer,
     getMembersContainer,
     getMembersWrapper,
+    removeMembersContainer,
     setMembers
 } from "./members.js";
 import {
@@ -142,7 +143,7 @@ export async function leaveRoom(roomname) {
 
     getNavbarChannel(roomname).remove();
     removeMessagesContainer(roomname);
-    getMembersContainer(roomname).remove();
+    removeMembersContainer(roomname);
 
     if (client.rooms.size == 0) {
         chattagEle.classList.add("hidden");
