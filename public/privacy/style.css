@@ -1,0 +1,27 @@
+p, li {
+    font-size: 18px;
+}
+
+.page-content {
+    gap: 40px;
+}
+
+.terms-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+    justify-items: center;
+}
+.terms-container > p {
+    max-width: 400px;
+}
+
+@media screen and (max-width: 600px) {
+    .terms-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.term-content {
+    color: var(--secondary-text-color);
+}
