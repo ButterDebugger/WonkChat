@@ -44,6 +44,25 @@ attachBtn.addEventListener("click", () => {
     }
 });
 
+window.addEventListener("paste", async (event) => {
+    let items = Array.from(event.clipboardData.items);
+    let needsUpdate = false;
+
+    if (items.length > 0) {
+        items.forEach(item => {
+            if (item.kind === "file") {
+                let blob = item.getAsFile();
+                fileData.append("files", blob);
+                needsUpdate = true;
+            }
+        });
+    }
+
+    if (needsUpdate) {
+        uploadAttachments();
+    }
+});
+
 async function uploadAttachments() {
     if (isChatLocked()) return;
 
