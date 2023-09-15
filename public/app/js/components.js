@@ -1,4 +1,4 @@
-import { isNil, dom, domParser } from "https://debutter.space/static/js/utils.js@1.2";
+import { isNil, dom, domParser } from "https://debutter.space/x/js/utils.js@1.2";
 import { openDirectMessage } from "./chat.js";
 
 export function chatMessage(username, color, id, offline, content, timestamp, attachments = []) {
