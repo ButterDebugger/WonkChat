@@ -79,6 +79,12 @@ hasKeyPairBtn.addEventListener("click", async () => {
 });
 
 usernameEle.addEventListener("input", updateSubmitButton);
+usernameEle.addEventListener("keypress", ({ code }) => {
+    if (code !== "Enter") return;
+    
+    let valid = updateSubmitButton();
+    if (valid) authenticate();
+});
 publicKeyEle.addEventListener("input", updateSubmitButton);
 privateKeyEle.addEventListener("input", updateSubmitButton);
 
