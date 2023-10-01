@@ -9,7 +9,7 @@ import {
 import { makeRequest, gatewayUrl, parseData, registerEvent, init as initComms } from "./comms.js";
 import showAlert from "./alert.js";
 import { userDisplay } from "./components.js";
-import * as binForage from "https://debutter.space/x/js/binforage.js";
+import * as binForage from "https://debutter.dev/x/js/binforage.js";
 import { getAllMemberWrappers } from "./members.js";
 
 export let userCache = new Map();

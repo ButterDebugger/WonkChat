@@ -1,7 +1,7 @@
 import cookies from "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm";
 import * as cryption from "../cryption.js";
-import { delay } from "https://debutter.space/x/js/utils.js@1.2";
-import * as binForage from "https://debutter.space/x/js/binforage.js";
+import { delay } from "https://debutter.dev/x/js/utils.js@1.2";
+import * as binForage from "https://debutter.dev/x/js/binforage.js";
 
 const usernameEle = document.getElementById("username");
 const publicKeyEle = document.getElementById("public-key");
