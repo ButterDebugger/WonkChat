@@ -13,7 +13,7 @@ let loginExpiration = 60_000; // 1 minute
  *  Router middleware for authenticating a user's token stored in the cookies
  */
 export async function authenticate(req, res, next) {
-    let result = await verifyToken(req.cookies["token"]);
+    let result = await verifyToken(req.headers["authorization"] || req.cookies["token"]);
 
     if (result.success) {
         req.user = result.user;
