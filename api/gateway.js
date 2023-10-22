@@ -55,6 +55,7 @@ router.post("/rooms/:roomname/join", async (req, res) => {
         name: room.name,
         description: room.description,
         key: room.publicKey,
+        members: Array.from(room.members),
         success: true
     });
 });
