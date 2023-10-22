@@ -228,6 +228,33 @@ router.post("/rooms/:roomname/message", async (req, res) => {
     });
 });
 
+router.get("/rooms/:roomname/info", async (req, res) => {
+    let { roomname } = req.params;
+
+    let userSession = await getUserSession(req.user.id);
+
+    if (!userSession.rooms.has(roomname)) return res.status(400).json({
+        error: true,
+        message: "Cannot query info about a room that you are not in",
+        code: 307
+    });
+
+    let room = await getRoom(roomname);
+
+    if (room === null) return res.status(400).json({
+        error: true,
+        message: "Room doesn't exist",
+        code: 303
+    });
+
+    res.status(200).json({
+        name: room.name,
+        description: room.description,
+        key: room.publicKey,
+        success: true
+    });
+});
+
 router.post("/rooms/:roomname/typing", (req, res) => {
     let { roomname } = req.params;
 
