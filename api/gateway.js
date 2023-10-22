@@ -99,7 +99,7 @@ router.post("/rooms/:roomname/leave", async (req, res) => {
     });
 });
 
-router.get("/rooms/:roomname/members", async (req, res) => {
+router.get("/rooms/:roomname/members", async (req, res) => { // TODO: deprecate this in favor of /rooms/:roomname/info
     let { roomname } = req.params;
 
     let userSession = await getUserSession(req.user.id);
@@ -251,6 +251,7 @@ router.get("/rooms/:roomname/info", async (req, res) => {
         name: room.name,
         description: room.description,
         key: room.publicKey,
+        members: Array.from(room.members),
         success: true
     });
 });
