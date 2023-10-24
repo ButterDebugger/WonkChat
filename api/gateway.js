@@ -326,13 +326,16 @@ router.get("/sync/client", async (req, res) => {
         rooms[roomname] = {
             name: room.name,
             description: room.description,
-            key: room.publicKey
+            key: room.publicKey,
+            members: Array.from(room.members),
         }
     }
 
     res.status(200).json({
         rooms: rooms,
         id: userSession.id,
+        username: userSession.username,
+        color: userSession.color,
         success: true
     });
 });
