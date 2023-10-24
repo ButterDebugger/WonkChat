@@ -317,25 +317,44 @@ router.get("/users", async (req, res) => {
 
 router.get("/sync/client", async (req, res) => {
     let userSession = await getUserSession(req.user.id);
+    let viewableUsers = new Set();
 
     // Get rooms
-    let rooms = {};
+    let rooms = [];
     for (let roomname of userSession.rooms) {
         let room = await getRoom(roomname);
 
-        rooms[roomname] = {
+        viewableUsers = new Set([...viewableUsers, ...room.members]);
+
+        rooms.push({
             name: room.name,
             description: room.description,
             key: room.publicKey,
             members: Array.from(room.members),
-        }
+        });
     }
+
+    // Get viewable users
+    viewableUsers.delete(userSession.id);
+    
+    let users = await Promise.all(Array.from(viewableUsers).map(async (id) => {
+        let session = await getUserSession(id);
+
+        return {
+            id: session.id,
+            username: session.username,
+            color: session.color
+        }
+    }));
 
     res.status(200).json({
         rooms: rooms,
-        id: userSession.id,
-        username: userSession.username,
-        color: userSession.color,
+        users: users,
+        you: {
+            id: userSession.id,
+            username: userSession.username,
+            color: userSession.color,
+        },
         success: true
     });
 });

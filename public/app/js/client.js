@@ -48,13 +48,12 @@ async function syncClient() {
 
     if (debugMode) console.log("sync client", syncRes.data);
 
-    client.id = syncRes.data.id;
+    client.id = syncRes.data.you.id;
     client.rooms.clear();
 
-    for (let roomname in syncRes.data.rooms) {
-        let roomInfo = syncRes.data.rooms[roomname];
-        client.rooms.set(roomname, roomInfo);
-        joinedRoomHandler(roomInfo);
+    for (let room of syncRes.data.rooms) {
+        client.rooms.set(room.name, room);
+        joinedRoomHandler(room);
     }
 }
 
