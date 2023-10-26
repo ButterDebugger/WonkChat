@@ -343,7 +343,8 @@ router.get("/sync/client", async (req, res) => {
         return {
             id: session.id,
             username: session.username,
-            color: session.color
+            color: session.color,
+            offline: session.offline
         }
     }));
 
