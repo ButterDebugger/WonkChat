@@ -355,6 +355,7 @@ router.get("/sync/client", async (req, res) => {
             id: userSession.id,
             username: userSession.username,
             color: userSession.color,
+            offline: userSession.offline
         },
         success: true
     });
