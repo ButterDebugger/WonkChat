@@ -232,7 +232,7 @@ authRoute.post("/verify/:id", async (req, res) => {
         color: user.color
     });
 
-    updateUserSubscribers(login.id, userSession);
+    await updateUserSubscribers(login.id, userSession);
 
     // Send user session token
     res.status(200).json({

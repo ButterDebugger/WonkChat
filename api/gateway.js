@@ -2,7 +2,7 @@ import express from "express";
 import streams, { getStream } from "./streams.js";
 import attachments from "./attachments.js";
 import { authenticate } from "./auth.js";
-import { getUserSession, createRoom, getRoom } from "../storage/data.js";
+import { getUserSession, createRoom, getRoom, getUserViews } from "../storage/data.js";
 import * as openpgp from "openpgp";
 
 const router = new express.Router();
@@ -404,6 +404,9 @@ function isValidRoomname(roomname) {
     return true;
 }
 
-export function getSubscribers(id) {
-    return Array.from(userSubscriptions.get(id) ?? new Set());
+export async function getSubscribers(id) {
+    let viewers = await getUserViews(id);
+    let subscriptions = userSubscriptions.get(id) ?? new Set();
+
+    return Array.from(new Set([...viewers, ...subscriptions]));
 }

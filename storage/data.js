@@ -81,6 +81,22 @@ export async function getUserSession(id) {
     return sessions.get(id);
 }
 
+export async function getUserViews(id) {
+    if (!sessions.has(id)) return new Set();
+
+    let viewers = [];
+    let user = sessions.get(id);
+
+    for (let roomName of user.rooms) {
+        if (!rooms.has(roomName)) continue;
+    
+        let room = rooms.get(roomName);
+        viewers = viewers.concat(...room.members);
+    }
+
+    return new Set(viewers);
+}
+
 export async function updateUserSession(id, extra = {}) {
     if (!sessions.has(id)) return false;
 

@@ -117,13 +117,15 @@ async function setOnlineStatus(id, online) {
         });
 
         if (changed) {
-            updateUserSubscribers(id, userSession);
+            await updateUserSubscribers(id, userSession);
         }
     }
 }
 
-export function updateUserSubscribers(id, userSession) {
-    getSubscribers(id).forEach(subscriber => {
+export async function updateUserSubscribers(id, userSession) {
+    let viewers = await getSubscribers(id);
+    
+    viewers.forEach(subscriber => {
         let stream = getStream(subscriber);
 
         if (stream !== null) {
