@@ -315,7 +315,7 @@ router.get("/users", async (req, res) => { // TODO: deprecate this in favor of /
     });
 });
 
-router.get("/users/:userid/subscribe", async (req, res) => {
+router.post("/users/:userid/subscribe", async (req, res) => {
     let { userid } = req.params;
     
     // Update list of subscribers
@@ -328,7 +328,7 @@ router.get("/users/:userid/subscribe", async (req, res) => {
     });
 });
 
-router.get("/users/:userid/unsubscribe", async (req, res) => {
+router.post("/users/:userid/unsubscribe", async (req, res) => {
     let { userid } = req.params;
     
     // Update list of subscribers
