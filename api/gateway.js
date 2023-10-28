@@ -337,15 +337,13 @@ router.get("/sync/client", async (req, res) => {
     // Get viewable users
     viewableUsers.delete(userSession.id);
     
-    let users = await Promise.all(Array.from(viewableUsers).map(async (id) => {
-        let session = await getUserSession(id);
-
-        return {
+    let users = await Promise.all(Array.from(viewableUsers).map((id) => {
+        return getUserSession(id).then((session) => ({
             id: session.id,
             username: session.username,
             color: session.color,
             offline: session.offline
-        }
+        }));
     }));
 
     res.status(200).json({
