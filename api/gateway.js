@@ -263,7 +263,7 @@ router.post("/rooms/:roomname/typing", (req, res) => {
     // TODO: finish this
 });
 
-router.get("/users", async (req, res) => {
+router.get("/users", async (req, res) => { // TODO: deprecate this in favor of /users/:userid ~> /subscribe /unsubscribe /fetch
     let { ids, subscribe } = req.query;
 
     if (typeof ids !== "string") return res.status(400).json({
@@ -311,6 +311,55 @@ router.get("/users", async (req, res) => {
     
     res.status(200).json({
         users: users,
+        success: true
+    });
+});
+
+router.get("/users/:userid/subscribe", async (req, res) => {
+    let { userid } = req.params;
+    
+    // Update list of subscribers
+    let subscribers = userSubscriptions.get(userid) ?? new Set();
+    subscribers.add(req.user.id);
+    userSubscriptions.set(userid, subscribers);
+
+    res.status(200).json({
+        success: true
+    });
+});
+
+router.get("/users/:userid/unsubscribe", async (req, res) => {
+    let { userid } = req.params;
+    
+    // Update list of subscribers
+    let subscribers = userSubscriptions.get(userid) ?? new Set();
+    subscribers.delete(req.user.id);
+    userSubscriptions.set(userid, subscribers);
+
+    res.status(200).json({
+        success: true
+    });
+});
+
+router.get("/users/:userid/fetch", async (req, res) => {
+    let { userid } = req.params;
+
+    let session = await getUserSession(userid);
+
+    if (!session) return res.status(400).json({
+        error: true,
+        message: "User does not exist",
+        code: 401
+    });
+
+    res.status(200).json({
+        id: session.id,
+        data: {
+            id: session.id,
+            username: session.username,
+            color: session.color,
+            offline: session.offline,
+        },
         success: true
     });
 });

@@ -25,6 +25,12 @@
 | 306  | Cannot leave a room that you are already not in     |
 | 307  | Cannot query info about a room that you are not in  |
 
+## User error codes
+
+| Code | Message             |
+|:----:|---------------------|
+| 401  | User does not exist |
+
 ## Authorization error codes
 
 | Code | Message                                      |
