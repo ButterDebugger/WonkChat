@@ -87,7 +87,7 @@ export class Client extends eventemitter3 {
 		});
 	}
 
-	async login(username, publicKey, privateKey) {
+	async authorize(username, publicKey, privateKey) {
 		// Make login request
 		let loginRes;
 
@@ -132,6 +132,10 @@ export class Client extends eventemitter3 {
 				Authorization: this.token
 			}
 		});
+	}
+
+	async login(username, publicKey, privateKey) {
+		await this.authorize(username, publicKey, privateKey);
 
 		await this.syncClient();
 
