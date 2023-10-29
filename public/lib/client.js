@@ -132,6 +132,8 @@ export class Client extends eventemitter3 {
 				Authorization: this.token
 			}
 		});
+
+		return true;
 	}
 
 	async login(username, publicKey, privateKey) {
