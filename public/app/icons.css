@@ -48,6 +48,10 @@
     width: var(--ic-extra-small);
     height: var(--ic-extra-small);
 }
+.ic-text-size {
+    width: 1em;
+    height: 1em;
+}
 
 /* Default icon style */
 .ic-raw {

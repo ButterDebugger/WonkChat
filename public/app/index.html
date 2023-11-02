@@ -25,53 +25,76 @@
 	<body>
 		<div id="root">
 			<div id="app">
-				<div id="drawer">
+				<div id="explore-drawer" class="drawer hidden">
+					<div class="header">
+						<span class="title">Explore</span>
+					</div>
+					<div class="content no-select">
+						<input id="explore-search" type="text" placeholder="Search">
+					</div>
+				</div>
+
+				<div id="rooms-drawer" class="drawer">
 					<div class="header">
 						<span class="title">Rooms</span>
 						<div class="join-room-btn-container">
 							<span id="join-room-btn" class="ic-raw ic-small ic-plus"></span>
 						</div>
 					</div>
-					<div class="content">
-						<div>
-							<span>what</span>
+					<div class="content no-select">
+						<div class="channel-tab">
+							<span class="ic-raw ic-text-size ic-hashtag"></span>
+							<span>wonk</span>
 						</div>
-						<div>
-							<span>what</span>
+						<div class="channel-tab">
+							<span class="ic-raw ic-text-size ic-hashtag"></span>
+							<span>void</span>
 						</div>
-						<div>
-							<span>what</span>
+						<div class="channel-tab">
+							<span class="ic-raw ic-text-size ic-hashtag"></span>
+							<span>general</span>
 						</div>
-						<div>
-							<span>what</span>
+					</div>
+				</div>
+
+				<div id="messages-drawer" class="drawer hidden">
+					<div class="header">
+						<span class="title">Messages</span>
+						<div class="start-convo-btn-container">
+							<span id="start-convo-btn" class="ic-raw ic-small ic-plus"></span>
 						</div>
-						<div>
-							<span>what</span>
+					</div>
+					<div class="content no-select">
+						<div class="channel-tab">
+							<span class="ic-raw ic-text-size ic-at"></span>
+							<span>Debutter</span>
 						</div>
-						<div>
-							<span>what</span>
+						<div class="channel-tab">
+							<span class="ic-raw ic-text-size ic-at"></span>
+							<span>Sloth</span>
 						</div>
-						<div>
-							<span>what</span>
+						<div class="channel-tab">
+							<span class="ic-raw ic-text-size ic-at"></span>
+							<span>Applesauce</span>
 						</div>
 					</div>
 				</div>
 
 				<div id="navbar" class="no-select">
-					<div class="nav-item">
+					<div id="nav-explore" class="nav-item">
 						<span class="nav-icon ic-raw ic-compass"></span>
 						<span class="nav-text">Explore</span>
 					</div>
-					<div class="nav-item active">
+					<div id="nav-rooms" class="nav-item active">
 						<span class="nav-icon ic-raw ic-hashtag"></span>
 						<span class="nav-text">Rooms</span>
 					</div>
-					<div class="nav-item">
+					<div id="nav-messages" class="nav-item">
 						<span class="nav-icon ic-raw ic-at"></span>
 						<span class="nav-text">Messages</span>
 					</div>
 					<div class="flex-spacer"></div>
-					<div class="nav-item">
+					<div id="nav-you" class="nav-item">
 						<span class="nav-icon ic-raw ic-user"></span>
 						<span class="nav-text">You</span>
 					</div>
