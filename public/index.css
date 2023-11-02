@@ -72,10 +72,6 @@ header {
     align-items: center;
 }
 
-.flex-spacer {
-    flex: 1;
-}
-
 .icon {
     width: 32px;
     height: 32px;

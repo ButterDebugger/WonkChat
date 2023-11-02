@@ -1,0 +1,62 @@
+:root {
+    --ic-large: 32px;
+    --ic-normal: 24px;
+    --ic-small: 20px;
+    --ic-extra-small: 16px;
+}
+
+/* Icon images */
+.ic-plus {
+    -webkit-mask-image: url("/assets/plus-solid.svg");
+    mask-image: url("/assets/plus-solid.svg");
+}
+.ic-at {
+    -webkit-mask-image: url("/assets/at-solid.svg");
+    mask-image: url("/assets/at-solid.svg");
+}
+.ic-hashtag {
+    -webkit-mask-image: url("/assets/hashtag-solid.svg");
+    mask-image: url("/assets/hashtag-solid.svg");
+}
+.ic-user {
+    -webkit-mask-image: url("/assets/user-large-solid.svg");
+    mask-image: url("/assets/user-large-solid.svg");
+}
+.ic-compass {
+    -webkit-mask-image: url("/assets/compass-solid.svg");
+    mask-image: url("/assets/compass-solid.svg");
+}
+.ic-gear {
+    -webkit-mask-image: url("/assets/gear-solid.svg");
+    mask-image: url("/assets/gear-solid.svg");
+}
+
+/* Icon sizes */
+.ic-large {
+    width: var(--ic-large);
+    height: var(--ic-large);
+}
+.ic-normal {
+    width: var(--ic-normal);
+    height: var(--ic-normal);
+}
+.ic-small {
+    width: var(--ic-small);
+    height: var(--ic-small);
+}
+.ic-extra-small {
+    width: var(--ic-extra-small);
+    height: var(--ic-extra-small);
+}
+
+/* Default icon style */
+.ic-raw {
+    display: inline-block;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: cover;
+    mask-size: cover;
+    background-color: var(--text-color);
+    background-size: cover;
+    background-repeat: no-repeat;
+}

@@ -37,7 +37,7 @@ app.get("/logout", (req, res) => {
 app.use("/auth", authRoute);
 
 // App routes
-app.use("/app", authenticate);
+// app.use("/app", authenticate);
 app.use(express.static(path.join(process.cwd(), "public"), {
     extensions: ['html', 'htm']
 }));

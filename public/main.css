@@ -3,10 +3,12 @@
 
 :root {
     --text-color: #ffffff;
-    --secondary-text-color: #d1d2db;
+    --secondary-text-color: #bebfc7;
     --background-color: #070709;
     --container-color: #18181c;
     --dark-container-color: #0f0f11;
+    --hover-color: rgba(127, 127, 127, 0.2);
+    --active-color: rgba(127, 127, 127, 0.4);
     --tippy-color: #212125;
     --primary-color: #5841f7;
     --secondary-color: #f74185;
@@ -29,6 +31,10 @@ a {
 }
 a:hover {
     text-decoration: underline;
+}
+
+.flex-spacer {
+    flex: 1;
 }
 
 /* Tippy styles; NOTE: This is not the correct way to do this but it works */

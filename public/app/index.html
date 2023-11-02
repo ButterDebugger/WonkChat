@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 		<meta
 			name="description"
 			content="Welcome to the chat app for wonky fellows like you."
@@ -15,12 +15,68 @@
 		<meta property="og:type" content="website" />
 		<title>Wonk Chat</title>
 		<link rel="stylesheet" href="../main.css" />
-		<script src="https://cdn.polyfill.io/v3/polyfill.min.js"></script>
+		<link rel="stylesheet" href="./icons.css">
+		<link rel="stylesheet" href="./index.css" />
+		<!-- <script src="https://cdn.polyfill.io/v3/polyfill.min.js"></script>
 		<script src="https://unpkg.com/@popperjs/core@2"></script>
-		<script src="https://unpkg.com/tippy.js@6"></script>
+		<script src="https://unpkg.com/tippy.js@6"></script> -->
 		<script defer type="module" src="./main.js"></script>
 	</head>
 	<body>
+		<div id="root">
+			<div id="app">
+				<div id="drawer">
+					<div class="header">
+						<span class="title">Rooms</span>
+						<div class="join-room-btn-container">
+							<span id="join-room-btn" class="ic-raw ic-small ic-plus"></span>
+						</div>
+					</div>
+					<div class="content">
+						<div>
+							<span>what</span>
+						</div>
+						<div>
+							<span>what</span>
+						</div>
+						<div>
+							<span>what</span>
+						</div>
+						<div>
+							<span>what</span>
+						</div>
+						<div>
+							<span>what</span>
+						</div>
+						<div>
+							<span>what</span>
+						</div>
+						<div>
+							<span>what</span>
+						</div>
+					</div>
+				</div>
 
+				<div id="navbar" class="no-select">
+					<div class="nav-item">
+						<span class="nav-icon ic-raw ic-compass"></span>
+						<span class="nav-text">Explore</span>
+					</div>
+					<div class="nav-item active">
+						<span class="nav-icon ic-raw ic-hashtag"></span>
+						<span class="nav-text">Rooms</span>
+					</div>
+					<div class="nav-item">
+						<span class="nav-icon ic-raw ic-at"></span>
+						<span class="nav-text">Messages</span>
+					</div>
+					<div class="flex-spacer"></div>
+					<div class="nav-item">
+						<span class="nav-icon ic-raw ic-user"></span>
+						<span class="nav-text">You</span>
+					</div>
+				</div>
+			</div>
+		</div>
     </body>
 </html>
