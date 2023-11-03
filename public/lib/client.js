@@ -179,6 +179,18 @@ export class Client extends eventemitter3 {
 
 			this.emit("userUpdate", data.id, data.data, data.timestamp);
 		});
+		this.stream.on("message", async ({ data }) => {
+			data = await parseStreamData(data, this.keyPair.privateKey);
+
+			let authorData = {
+				...data.author,
+				timestamp: data.timestamp
+			};
+			this.users.update(data.author.id, authorData);
+			let message = new RoomMessage(this, data.author.id, data.room, data);
+
+			this.emit("roomMemberMessage", message);
+		});
 	}
 }
 
@@ -190,4 +202,24 @@ async function parseStreamData(data, privateKey) {
 	} catch (error) {};
 
 	return data;
+}
+
+class RoomMessage {
+	constructor(client, userId, roomName, msgData) {
+		Object.defineProperty(this, "client", { value: client });
+
+		this._userId = userId;
+		this._roomName = roomName;
+
+		this.content = msgData.content;
+		this.attachments = msgData.attachments;
+		this.timestamp = msgData.timestamp;
+	}
+
+	get room() {
+		return this.client.rooms.cache.get(this._roomName);
+	}
+	get author() {
+		return this.client.users.cache.get(this._userId);
+	}
 }
