@@ -6,7 +6,7 @@ export default class UserManager {
 
 		this.cache = new Map();
 
-		this.client.on("userUpdate", (id, data) => update(id, data));
+		this.client.on("userUpdate", (id, data) => this.update(id, data));
 	}
 
 	update(userId, data) {
