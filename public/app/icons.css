@@ -30,6 +30,14 @@
     -webkit-mask-image: url("/assets/gear-solid.svg");
     mask-image: url("/assets/gear-solid.svg");
 }
+.ic-magnifying-glass {
+    -webkit-mask-image: url("/assets/magnifying-glass-solid.svg");
+    mask-image: url("/assets/magnifying-glass-solid.svg");
+}
+.ic-filter {
+    -webkit-mask-image: url("/assets/filter-solid.svg");
+    mask-image: url("/assets/filter-solid.svg");
+}
 
 /* Icon sizes */
 .ic-large {

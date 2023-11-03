@@ -25,16 +25,24 @@
 	<body>
 		<div id="root">
 			<div id="app">
-				<div id="explore-drawer" class="drawer hidden">
+				<div id="explore-drawer" class="drawer">
 					<div class="header">
 						<span class="title">Explore</span>
 					</div>
 					<div class="content no-select">
-						<input id="explore-search" type="text" placeholder="Search">
+						<div class="search-container">
+							<div id="search-btn">
+								<span class="ic-raw ic-small ic-magnifying-glass"></span>
+							</div>
+							<input id="explore-search" type="text" placeholder="Search">
+							<div id="filter-btn">
+								<span class="ic-raw ic-small ic-filter"></span>
+							</div>
+						</div>
 					</div>
 				</div>
 
-				<div id="rooms-drawer" class="drawer">
+				<div id="rooms-drawer" class="drawer hidden">
 					<div class="header">
 						<span class="title">Rooms</span>
 						<div class="join-room-btn-container">
@@ -81,11 +89,11 @@
 				</div>
 
 				<div id="navbar" class="no-select">
-					<div id="nav-explore" class="nav-item">
+					<div id="nav-explore" class="nav-item active">
 						<span class="nav-icon ic-raw ic-compass"></span>
 						<span class="nav-text">Explore</span>
 					</div>
-					<div id="nav-rooms" class="nav-item active">
+					<div id="nav-rooms" class="nav-item">
 						<span class="nav-icon ic-raw ic-hashtag"></span>
 						<span class="nav-text">Rooms</span>
 					</div>
