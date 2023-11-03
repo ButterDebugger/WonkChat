@@ -37,6 +37,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
 
     padding: 8px;
     border-radius: 16px 16px 0px 0px;
