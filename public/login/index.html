@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="description" content="Login to start chatting with your wonky fellows."/>
     <meta name="theme-color" content="#5841f7">
     <meta property="og:image" content="/icon.png">
@@ -16,59 +16,63 @@
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
     <script src="https://unpkg.com/axios@1.3.4/dist/axios.min.js"></script>
-    <script defer type="module" src="./signin.js"></script>
+    <script defer type="module" src="./login.js"></script>
   </head>
   <body>
-    <div class="container">
-      <h1 class="header">Login</h1>
-      <h5 id="error-message"></h5>
+    <div id="root">
+      <div id="app">
+        <div class="container">
+          <h1 class="header">Login</h1>
+          <h5 id="error-message"></h5>
 
-      <fieldset class="input-field">
-        <input
-          type="text"
-          name="username"
-          id="username"
-          minlength="3"
-          maxlength="16"
-          pattern="^(?! )[\x20-\x7E]{3,16}(?<! )$"
-          autocomplete="username"
-          spellcheck="false"
-          required
-        />
-        <legend class="required">Username</legend>
-      </fieldset>
+          <fieldset class="input-field">
+            <input
+              type="text"
+              name="username"
+              id="username"
+              minlength="3"
+              maxlength="16"
+              pattern="^(?! )[\x20-\x7E]{3,16}(?<! )$"
+              autocomplete="username"
+              spellcheck="false"
+              required
+            />
+            <legend class="required">Username</legend>
+          </fieldset>
 
-      <fieldset id="key-pair-field" class="input-field">
-        <button id="restore-key-pair" class="hidden">Restore last used</button>
-        <button id="generate-key-pair">Generate one for me</button>
-        <button id="has-key-pair">I have my own</button>
+          <fieldset id="key-pair-field" class="input-field">
+            <button id="restore-key-pair" class="hidden">Restore last used</button>
+            <button id="generate-key-pair">Generate one for me</button>
+            <button id="has-key-pair">I have my own</button>
 
-        <legend class="required">PGP Key Pair <img src="" alt=""></legend>
-      </fieldset>
+            <legend class="required">PGP Key Pair <img src="" alt=""></legend>
+          </fieldset>
 
-      <fieldset id="public-key-field" class="input-field hidden">
-        <textarea
-          name="public-key"
-          id="public-key"
-          rows="4"
-          spellcheck="false"
-          required
-        ></textarea>
-        <legend class="required">Public Key</legend>
-      </fieldset>
+          <fieldset id="public-key-field" class="input-field hidden">
+            <textarea
+              name="public-key"
+              id="public-key"
+              rows="4"
+              spellcheck="false"
+              required
+            ></textarea>
+            <legend class="required">Public Key</legend>
+          </fieldset>
 
-      <fieldset id="private-key-field" class="input-field hidden">
-        <textarea
-          name="private-key"
-          id="private-key"
-          rows="4"
-          spellcheck="false"
-          required
-        ></textarea>
-        <legend class="required">Private Key</legend>
-      </fieldset>
-      
-      <button id="submit" disabled>Submit</button>
+          <fieldset id="private-key-field" class="input-field hidden">
+            <textarea
+              name="private-key"
+              id="private-key"
+              rows="4"
+              spellcheck="false"
+              required
+            ></textarea>
+            <legend class="required">Private Key</legend>
+          </fieldset>
+          
+          <button id="submit" disabled>Submit</button>
+        </div>
+      </div>
     </div>
   </body>
 </html>
