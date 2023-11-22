@@ -20,7 +20,7 @@ body {
     gap: 8px;
 
     height: 100%;
-    padding: 8px;
+    padding: 16px;
 }
 
 /* Drawer content */
@@ -30,7 +30,6 @@ body {
     gap: 8px;
 
     flex: 1;
-    overflow-y: hidden;
 }
 
 .drawer > .header {
@@ -170,8 +169,6 @@ body {
     #app {
         flex-direction: row-reverse;
         gap: 24px;
-
-        padding: 16px;
     }
 
     .drawer {

@@ -6,6 +6,6 @@ import {} from "./ui.js";
 const client = new Client();
 
 await client.login(await binForage.get("username"), await binForage.get("publicKey"), await binForage.get("privateKey")).catch((err) => {
-    alert(err)
+    console.log(err)
     location.href = "/login";
 });

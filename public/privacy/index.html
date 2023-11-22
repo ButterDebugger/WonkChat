@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="description" content="A chat app for wonky fellows who value their privacy."/>
     <meta name="theme-color" content="#5841f7">
     <meta property="og:image" content="/icon.png">
@@ -18,60 +18,62 @@
     <link rel="stylesheet" href="../index.css" />
     <link rel="stylesheet" href="./style.css" />
   </head>
-  <body class="full-page">
-    <main>
-        <header>
-            <img class="icon no-select no-drag" src="/icon.png" alt="">
-            <span class="title no-select">Wonk Chat</span>
-            <div class="flex-spacer"></div>
-            <a class="button open-app" href="/">Back Home</a>
-        </header>
-        <div class="page-content">
-            <div class="container">
-                <h1>Privacy Policy</h1>
-                <p>Wonk Chat was built with your privacy in mind.<br>We understand your privacy is important to you so please take the time to read through it.</p>
+  <body>
+    <div id="root">
+        <main>
+            <header>
+                <img class="icon no-select no-drag" src="/icon.png" alt="">
+                <span class="title no-select">Wonk Chat</span>
+                <div class="flex-spacer"></div>
+                <a class="button open-app" href="/">Back Home</a>
+            </header>
+            <div class="page-content">
+                <div class="container">
+                    <h1>Privacy Policy</h1>
+                    <p>Wonk Chat was built with your privacy in mind.<br>We understand your privacy is important to you so please take the time to read through it.</p>
+                </div>
+                <div class="terms-container">
+                    <p>
+                        <b>Information we collect</b>
+                        <br>
+                        <span class="term-content">We do not collect any of your personal information. We only collect friendly statistics about our site provided by <a href="https://www.cloudflare.com/web-analytics/">CloudFlare's web analytics</a>.</span>
+                    </p>
+                    <p>
+                        <b>Changes to this policy</b>
+                        <br>
+                        <span class="term-content">We may update this privacy policy from time to time. Any changes will be posted on this page, so please check back periodically to stay informed about how we are protecting your information.</span>
+                    </p>
+                    <p>
+                        <b>Data security</b>
+                        <br>
+                        <span class="term-content">We are committed to ensuring the security of your information. All of your data is stored locally in your browser and stays on your device, not to be sent to us or any third party.</span>
+                    </p>
+                    <p>
+                        <b>Contact us</b>
+                        <br>
+                        <span class="term-content">If you have any questions or concerns about our privacy policy or the way we handle your information, please feel free to contact us at <a href="mailto:contact@debutter.dev">contact@debutter.dev</a>.</span>
+                    </p>
+                </div>
+                <p>By using Wonk Chat, you agree to the terms of this privacy policy.</p>
             </div>
-            <div class="terms-container">
-                <p>
-                    <b>Information we collect</b>
-                    <br>
-                    <span class="term-content">We do not collect any of your personal information. We only collect friendly statistics about our site provided by <a href="https://www.cloudflare.com/web-analytics/">CloudFlare's web analytics</a>.</span>
-                </p>
-                <p>
-                    <b>Changes to this policy</b>
-                    <br>
-                    <span class="term-content">We may update this privacy policy from time to time. Any changes will be posted on this page, so please check back periodically to stay informed about how we are protecting your information.</span>
-                </p>
-                <p>
-                    <b>Data security</b>
-                    <br>
-                    <span class="term-content">We are committed to ensuring the security of your information. All of your data is stored locally in your browser and stays on your device, not to be sent to us or any third party.</span>
-                </p>
-                <p>
-                    <b>Contact us</b>
-                    <br>
-                    <span class="term-content">If you have any questions or concerns about our privacy policy or the way we handle your information, please feel free to contact us at <a href="mailto:contact@debutter.dev">contact@debutter.dev</a>.</span>
-                </p>
-            </div>
-            <p>By using Wonk Chat, you agree to the terms of this privacy policy.</p>
-        </div>
-        <footer>
-            <div class="footer-column">
-                <span>LEGAL</span>
-                <span>© 2023 ButterDebugger.<br>All Rights Reserved.</span>
-                <span>Icons used from <a href="https://fontawesome.com/">Font Awesome</a>.</span>
-            </div>
-            <div class="footer-column">
-                <span>RESOURCES</span>
-                <a href="https://github.com/ButterDebugger/WonkChat/issues">Issues</a>
-                <a href="https://github.com/ButterDebugger/WonkChat">Source</a>
-            </div>
-            <div class="footer-column">
-                <span>POLICIES</span>
-                <a href="/#">Terms of Service</a>
-                <a href="/privacy">Privacy Policy</a>
-            </div>
-        </footer>
-    </main>
+            <footer>
+                <div class="footer-column">
+                    <span>LEGAL</span>
+                    <span>© 2023 ButterDebugger.<br>All Rights Reserved.</span>
+                    <span>Icons used from <a href="https://fontawesome.com/">Font Awesome</a>.</span>
+                </div>
+                <div class="footer-column">
+                    <span>RESOURCES</span>
+                    <a href="https://github.com/ButterDebugger/WonkChat/issues">Issues</a>
+                    <a href="https://github.com/ButterDebugger/WonkChat">Source</a>
+                </div>
+                <div class="footer-column">
+                    <span>POLICIES</span>
+                    <a href="/#">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                </div>
+            </footer>
+        </main>
+    </div>
   </body>
 </html>
