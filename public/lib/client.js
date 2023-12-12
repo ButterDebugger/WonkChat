@@ -1,4 +1,4 @@
-import axios from "https://cdn.jsdelivr.net/npm/axios@1.5.1/+esm";
+import axios from "https://cdn.jsdelivr.net/npm/axios@1.6.2/+esm";
 import eventemitter3 from "https://cdn.jsdelivr.net/npm/eventemitter3@5.0.1/+esm";
 import EventSource from "https://cdn.jsdelivr.net/npm/eventsource@2.0.2/+esm";
 import { decryptMessage, generateKeyPair } from "./cryption.js";
