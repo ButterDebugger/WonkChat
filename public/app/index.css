@@ -73,6 +73,10 @@ body {
 
 /* Drawer content */
 .channel-tab {
+    display: flex;
+    gap: 0.5ch;
+    align-items: center;
+
     cursor: pointer;
     padding: 8px;
     border-radius: 33px;
@@ -132,15 +136,19 @@ body {
     flex-direction: row;
     justify-content: space-evenly;
     
+    position: relative;
     border-radius: 16px;
     padding: 8px;
     background-color: var(--dark-container-color);
 }
 #navbar > .nav-item {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
+    justify-content: center;
 
+    z-index: 1;
+    flex: 1;
     border-radius: 33px;
     padding: 8px;
     cursor: pointer;
@@ -153,6 +161,10 @@ body {
 #navbar > .nav-item > .nav-text {
     font-size: 12px;
     color: var(--secondary-text-color);
+    display: none;
+    margin-left: 1ch;
+    white-space: nowrap;
+    overflow: hidden;
 }
 #navbar > .nav-item.active > .nav-icon, #navbar > .nav-item:hover > .nav-icon {
     background-color: var(--text-color);
@@ -160,8 +172,41 @@ body {
 #navbar > .nav-item.active > .nav-text, #navbar > .nav-item:hover > .nav-text {
     color: var(--text-color);
 }
+
+#navbar > .nav-item.active > .nav-text {
+    display: initial;
+}
+
 #navbar > .flex-spacer {
     display: none;
+}
+
+#nav-lavalamp {
+    --ll-scale: calc((100% - 16px));
+    position: absolute;
+    height: calc(var(--ic-normal) + 16px);
+    width: calc(var(--ll-scale) * 0.25);
+    top: 8px;
+    z-index: 0;
+    transition: all .35s ease 0s;
+    border-radius: 33px;
+}
+
+#nav-explore.active ~ #nav-lavalamp {
+    left: calc(0% + 8px);
+    background-color: var(--hover-color);
+}
+#nav-rooms.active ~ #nav-lavalamp {
+    left: calc(var(--ll-scale) * 0.25 + 8px);
+    background-color: var(--hover-color);
+}
+#nav-messages.active ~ #nav-lavalamp {
+    left: calc(var(--ll-scale) * 0.50 + 8px);
+    background-color: var(--hover-color);
+}
+#nav-you.active ~ #nav-lavalamp {
+    left: calc(var(--ll-scale) * 0.75 + 8px);
+    background-color: var(--hover-color);
 }
 
 /* Desktop design */
@@ -192,12 +237,12 @@ body {
         border-radius: 24px;
     }
     #navbar > .nav-item {
-        flex-direction: row;
-        gap: 8px;
+        flex: 0;
     }
     #navbar > .nav-item > .nav-text {
         font-size: 14px;
         color: var(--text-color);
+        display: initial;
     }
     #navbar > .nav-item > .nav-icon {
         width: var(--ic-small);
@@ -210,14 +255,11 @@ body {
     #navbar > .nav-item:active {
         background-color: var(--active-color);
     }
-    #navbar > .nav-item.active > .nav-icon, #navbar > .nav-item:hover > .nav-icon {
-        background-color: var(--text-color);
-    }
-    #navbar > .nav-item.active > .nav-text, #navbar > .nav-item:hover > .nav-text {
-        color: var(--text-color);
-    }
     #navbar > .flex-spacer {
         display: initial;
         border-bottom: 1px solid var(--hover-color);
+    }
+    #nav-lavalamp {
+        display: none;
     }
 }
