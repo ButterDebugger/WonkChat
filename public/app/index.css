@@ -157,6 +157,7 @@ body {
     width: var(--ic-normal);
     height: var(--ic-normal);
     background-color: var(--secondary-text-color);
+    transition: background-color 0.2s ease-in-out;
 }
 #navbar > .nav-item > .nav-text {
     font-size: 12px;
