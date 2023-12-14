@@ -55,6 +55,10 @@ body {
     width: -webkit-fill-available;
     width: -moz-available;
     width: fill-available;
+    outline: none;
+}
+#username:focus, #public-key:focus, #private-key:focus {
+    border-color: var(--primary-color);
 }
 #username:invalid, #public-key:invalid, #private-key:invalid {
     border-color: var(--warning-color);
