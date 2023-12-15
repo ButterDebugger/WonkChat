@@ -17,9 +17,11 @@
 		<link rel="stylesheet" href="../main.css" />
 		<link rel="stylesheet" href="./icons.css">
 		<link rel="stylesheet" href="./index.css" />
-		<!-- <script src="https://cdn.polyfill.io/v3/polyfill.min.js"></script>
+		<link rel="stylesheet" href="./view-drawer.css">
+		<script src="https://cdn.polyfill.io/v3/polyfill.min.js"></script>
 		<script src="https://unpkg.com/@popperjs/core@2"></script>
-		<script src="https://unpkg.com/tippy.js@6"></script> -->
+		<script src="https://unpkg.com/tippy.js@6"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.0/moment.min.js"></script>
 		<script defer type="module" src="./main.js"></script>
 	</head>
 	<body>
@@ -75,10 +77,25 @@
 						</div>
 					</div>
 				</div>
+
+				<div id="you-drawer" class="drawer hidden">
+					<div class="header">
+						<span class="title">You</span>
+						<div class="flex-spacer"></div>
+						<div class="logout-btn-container">
+							<span id="logout-btn" class="ic-raw ic-small ic-right-arrow-bracket"></span>
+						</div>
+						<div class="settings-btn-container">
+							<span id="settings-btn" class="ic-raw ic-small ic-gear"></span>
+						</div>
+					</div>
+					<div class="content no-select"></div>
+				</div>
 				
 				<div id="view-wrapper" class="drawer hidden">
 					<div class="header"></div>
 					<div class="content"></div>
+					<div class="footer"></div>
 				</div>
 
 				<div id="navbar" class="no-select">

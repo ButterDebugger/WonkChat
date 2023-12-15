@@ -25,3 +25,31 @@ export function createMessageTab(userId, username) { // NOTE: unfinished
 
     return ele;
 }
+
+export function createMessage(message) {
+    let ele = domParser(
+        `<div class="message">
+            <div class="message-header">
+                <span class="message-author"></span>
+                <span class="message-timestamp"></span>
+            </div>
+            <div class="message-content">
+                <div class="message-body"></div>
+                <div class="message-attachments"></div>
+            </div>
+        </div>`
+    );
+
+    // Set message text content
+    ele.querySelector(".message-author").innerText = message.author.username;
+    ele.querySelector(".message-author").style.color = message.author.color;
+    ele.querySelector(".message-timestamp").innerText = moment(message.timestamp).format("LT");
+    ele.querySelector(".message-body").innerText = message.content;
+
+    // Add tippy to the message timestamp
+    tippy(ele.querySelector(".message-timestamp"), {
+        content: moment(message.timestamp).format("LLLL"),
+    });
+
+    return ele;
+}

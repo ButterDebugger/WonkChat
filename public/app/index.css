@@ -130,6 +130,39 @@ body {
     z-index: 2;
 }
 
+/* You drawer styles */
+#you-drawer > .header {
+    gap: 8px;
+}
+
+.logout-btn-container {
+    border-radius: 33px;
+    padding: 8px;
+    width: calc(var(--ic-small) + 16px);
+    height: calc(var(--ic-small) + 16px);
+    cursor: pointer;
+}
+.logout-btn-container:hover {
+    background-color: var(--hover-color);
+}
+.logout-btn-container:active {
+    background-color: var(--active-color);
+}
+
+.settings-btn-container {
+    border-radius: 33px;
+    padding: 8px;
+    width: calc(var(--ic-small) + 16px);
+    height: calc(var(--ic-small) + 16px);
+    cursor: pointer;
+}
+.settings-btn-container:hover {
+    background-color: var(--hover-color);
+}
+.settings-btn-container:active {
+    background-color: var(--active-color);
+}
+
 /* Navbar styles */
 #navbar {
     display: flex;

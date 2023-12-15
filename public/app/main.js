@@ -1,6 +1,7 @@
 import { Client } from "../lib/client.js";
 import * as binForage from "https://debutter.dev/x/js/binforage.js";
 import { updateRoomTabs } from "./ui.js";
+import { appendMessage } from "./views.js";
 
 export const client = new Client();
 
@@ -28,4 +29,9 @@ client.on("roomMemberLeave", (userId, roomName, timestamp) => {
 
 client.on("roomMemberJoin", (userId, roomName, timestamp) => {
     console.log("yippee member joined", userId, roomName, timestamp);
+});
+
+client.on("roomMemberMessage", (message) => {
+    console.log("message", message);
+    appendMessage(message);
 });

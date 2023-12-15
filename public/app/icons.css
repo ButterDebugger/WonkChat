@@ -38,6 +38,22 @@
     -webkit-mask-image: url("/assets/filter-solid.svg");
     mask-image: url("/assets/filter-solid.svg");
 }
+.ic-arrow-up {
+    -webkit-mask-image: url("/assets/arrow-up-solid.svg");
+    mask-image: url("/assets/arrow-up-solid.svg");
+}
+.ic-chevron-left {
+    -webkit-mask-image: url("/assets/chevron-left-solid.svg");
+    mask-image: url("/assets/chevron-left-solid.svg");
+}
+.ic-gear {
+    mask-image: url("/assets/gear-solid.svg");
+    mask-image: url("/assets/gear-solid.svg");
+}
+.ic-right-arrow-bracket {
+    -webkit-mask-image: url("/assets/right-to-bracket-solid.svg");
+    mask-image: url("/assets/right-to-bracket-solid.svg");
+}
 
 /* Icon sizes */
 .ic-large {
