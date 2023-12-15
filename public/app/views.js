@@ -53,8 +53,11 @@ export function getOrCreateRoomWrapper(room) {
 
     // Add send message handlers
     const send = async function() {
+        let value = messageBox.querySelector("input").value;
+        if (value.length === 0) return;
+
         let result = await sendMessage(room.name, {
-            text: messageBox.querySelector("input").value
+            text: value
         });
 
         if (result) {
