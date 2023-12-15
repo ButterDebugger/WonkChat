@@ -35,3 +35,12 @@ client.on("roomMemberMessage", (message) => {
     console.log("message", message);
     appendMessage(message);
 });
+
+export async function sendMessage(roomName, options) {
+    try {
+        await client.rooms.cache.get(roomName).send(options);
+    } catch (error) {
+        return false;
+    }
+    return true;
+}

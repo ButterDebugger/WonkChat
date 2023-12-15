@@ -1,6 +1,7 @@
 import { domParser } from "https://debutter.dev/x/js/utils.js@1.2";
 import { createMessage } from "./components.js";
 import { switchDrawer } from "./ui.js";
+import { sendMessage } from "./main.js";
 
 const viewWrappers = new Map();
 
@@ -50,7 +51,24 @@ export function getOrCreateRoomWrapper(room) {
     messageBox.querySelector("input").placeholder = `Message #${room.name}`;
     wrapper.footer.appendChild(messageBox);
 
+    // Add send message handlers
+    const send = async function() {
+        let result = await sendMessage(room.name, {
+            text: messageBox.querySelector("input").value
+        });
 
+        if (result) {
+            messageBox.querySelector("input").value = "";
+        } else {
+            alert("Failed to send message"); // TODO: make fancier
+        }
+    }
+    messageBox.querySelector("input").addEventListener("keydown", ({ key }) => {
+        if (key === "Enter") send();
+    });
+    messageBox.querySelector("span[name=send-button]").addEventListener("click", send);
+
+    // Append back icon to wrapper header
     let backIcon = domParser(
         `<div class="back-icon-container">
             <span class="back-icon ic-raw ic-chevron-left"></span>
