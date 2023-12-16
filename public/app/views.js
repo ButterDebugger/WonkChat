@@ -54,15 +54,15 @@ export function getOrCreateRoomWrapper(room) {
     // Add send message handlers
     const send = async function() {
         let value = messageBox.querySelector("input").value;
+        messageBox.querySelector("input").value = "";
+
         if (value.length === 0) return;
 
         let result = await sendMessage(room.name, {
             text: value
         });
 
-        if (result) {
-            messageBox.querySelector("input").value = "";
-        } else {
+        if (!result) {
             alert("Failed to send message"); // TODO: make fancier
         }
     }
@@ -97,6 +97,13 @@ export function getOrCreateRoomWrapper(room) {
 
 export function appendMessage(message) {
     let wrapper = getOrCreateWrapper(`#${message.room.name}`);
+    let scroll = wrapper.content.scrollHeight - Math.ceil(wrapper.content.scrollTop) <= wrapper.content.clientHeight;
     let messageEle = createMessage(message);
     wrapper.content.appendChild(messageEle);
+
+    if (scroll) {
+        wrapper.content.style["scroll-behavior"] = "unset";
+        messageEle.scrollIntoView();
+        wrapper.content.style["scroll-behavior"] = "";
+    }
 }

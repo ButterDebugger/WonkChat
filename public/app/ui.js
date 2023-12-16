@@ -57,6 +57,9 @@ export function updateRoomTabs() {
             viewDrawer.querySelector(".header").replaceWith(wrapper.header);
             viewDrawer.querySelector(".content").replaceWith(wrapper.content);
             viewDrawer.querySelector(".footer").replaceWith(wrapper.footer);
+
+            // Scroll to the bottom
+            wrapper.content.scrollTop = wrapper.content.scrollHeight;
         });
         
         roomsContainer.appendChild(ele);
