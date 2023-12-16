@@ -30,6 +30,7 @@ body {
     gap: 8px;
 
     flex: 1;
+    height: 100%;
 }
 
 .drawer > .header {
