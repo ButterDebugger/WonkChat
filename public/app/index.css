@@ -17,17 +17,17 @@ body {
 #app {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
 
     height: 100%;
-    padding: 16px;
+    padding: 4px;
 }
 
 /* Drawer content */
 .drawer {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
 
     flex: 1;
     height: 100%;
@@ -40,7 +40,7 @@ body {
     gap: 16px;
 
     padding: 8px;
-    border-radius: 16px 16px 0px 0px;
+    border-radius: 8px;
     background-color: var(--container-color);
 }
 .drawer > .header > .title {
@@ -54,7 +54,7 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: 8px;
-    border-radius: 0px 0px 16px 16px;
+    border-radius: 8px;
     background-color: var(--container-color);
 }
 
@@ -249,6 +249,7 @@ body {
     #app {
         flex-direction: row-reverse;
         gap: 24px;
+        padding: 16px;
     }
 
     .drawer {
