@@ -88,3 +88,48 @@
     background-size: cover;
     background-repeat: no-repeat;
 }
+
+/* Icon button containers */
+.ic-large-container {
+    --container-size: var(--ic-large);
+}
+.ic-normal-container {
+    --container-size: var(--ic-normal);
+}
+.ic-small-container {
+    --container-size: var(--ic-small);
+}
+.ic-extra-small-container {
+    --container-size: var(--ic-extra-small);
+}
+.ic-text-size-container {
+    --container-size: 1em;
+}
+
+.ic-large-container,
+.ic-normal-container,
+.ic-small-container,
+.ic-extra-small-container,
+.ic-text-size-container {
+    border-radius: 33px;
+    padding: 8px;
+    width: calc(var(--ic-container-size) + 16px);
+    height: calc(var(--ic-container-size) + 16px);
+    cursor: pointer;
+}
+
+.ic-large-container:hover,
+.ic-normal-container:hover,
+.ic-small-container:hover,
+.ic-extra-small-container:hover,
+.ic-text-size-container:hover {
+    background-color: var(--hover-color);
+}
+
+.ic-large-container:active,
+.ic-normal-container:active,
+.ic-small-container:active,
+.ic-extra-small-container:active,
+.ic-text-size-container:active {
+    background-color: var(--active-color);
+}
