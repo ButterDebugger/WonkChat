@@ -54,6 +54,10 @@
     -webkit-mask-image: url("/assets/right-to-bracket-solid.svg");
     mask-image: url("/assets/right-to-bracket-solid.svg");
 }
+.ic-ellipsis {
+    -webkit-mask-image: url("/assets/ellipsis-solid.svg");
+    mask-image: url("/assets/ellipsis-solid.svg");
+}
 
 /* Icon sizes */
 .ic-large {
@@ -136,4 +140,15 @@
 .ic-extra-small-container:active,
 .ic-text-size-container:active {
     background-color: var(--active-color);
+}
+
+/* Reveal background color on mobile */
+@media screen and (max-width: 1024px) {
+    .ic-large-container,
+    .ic-normal-container,
+    .ic-small-container,
+    .ic-extra-small-container,
+    .ic-text-size-container {
+        background-color: var(--hover-color);
+    }
 }

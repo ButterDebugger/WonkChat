@@ -39,12 +39,12 @@ export function getOrCreateRoomWrapper(room) {
     // Append footer message box
     let messageBox = domParser(
         `<div class="message-box">
-            <div class="message-box-icon-container">
-                <span name="attach-button" class="message-box-icon ic-raw ic-plus"></span>
+            <div class="ic-normal-container">
+                <span name="attach-button" class="message-box-icon ic-raw ic-normal ic-plus"></span>
             </div>
             <input type="text" name="message-input" maxlength="1000">
-            <div class="message-box-icon-container">
-                <span name="send-button" class="message-box-icon ic-raw ic-arrow-up"></span>
+            <div class="ic-normal-container">
+                <span name="send-button" class="message-box-icon ic-raw ic-normal ic-arrow-up"></span>
             </div>
         </div>`
     );
@@ -73,8 +73,8 @@ export function getOrCreateRoomWrapper(room) {
 
     // Append back icon to wrapper header
     let backIcon = domParser(
-        `<div class="back-icon-container">
-            <span class="back-icon ic-raw ic-chevron-left"></span>
+        `<div class="ic-small-container">
+            <span class="back-icon ic-raw ic-small ic-chevron-left"></span>
         </div>`
     );
     backIcon.addEventListener("click", () => {
@@ -91,6 +91,18 @@ export function getOrCreateRoomWrapper(room) {
     let description = domParser(`<span class="description"></span>`);
     description.innerText = room.description;
     wrapper.header.appendChild(description);
+
+    // Append flex spacer
+    let spacer = domParser(`<div class="flex-spacer"></div>`);
+    wrapper.header.appendChild(spacer);
+
+    // Append more icon to wrapper header
+    let moreIcon = domParser(
+        `<div class="ic-small-container">
+            <span class="back-icon ic-raw ic-small ic-ellipsis"></span>
+        </div>`
+    );
+    wrapper.header.appendChild(moreIcon);
 
     return wrapper;
 }

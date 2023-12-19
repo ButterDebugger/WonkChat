@@ -45,24 +45,16 @@ body {
 
     padding: 2px 8px 8px 8px;
     border-radius: 12px;
-    border: 1px solid rgba(127, 127, 127, 0.2);
+    border: 1px solid var(--input-border-color);
 }
 
 #username, #public-key, #private-key {
     padding: 6px;
     border-radius: 8px;
-    border: 2px solid rgba(0, 0, 0, 0.2);
     width: -webkit-fill-available;
     width: -moz-available;
     width: fill-available;
     outline: none;
-}
-#username:focus, #public-key:focus, #private-key:focus {
-    border-color: var(--primary-color);
-}
-#username:invalid, #public-key:invalid, #private-key:invalid {
-    border-color: var(--warning-color);
-    border-style: dashed;
 }
 #private-key {
     transition: color 0.2s ease-in-out, text-shadow 0.2s ease-in-out;

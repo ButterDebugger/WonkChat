@@ -14,23 +14,7 @@
     color: var(--secondary-text-color);
 }
 
-.back-icon-container {
-    display: flex;
-
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 33px;
-}
-.back-icon-container:hover {
-    background-color: var(--hover-color);
-}
-.back-icon-container:active {
-    background-color: var(--active-color);
-}
-
 .back-icon {
-    width: var(--ic-small);
-    height: var(--ic-small);
     background-color: var(--text-color);
     transition: background-color 0.2s ease-in-out;
 }
@@ -100,8 +84,7 @@
     display: flex;
     flex-direction: row;
     
-    border-radius: 16px;
-    padding: 8px;
+    padding: 12px;
     background-color: var(--dark-container-color);
 }
 
@@ -117,27 +100,10 @@
     padding: 6px;
     border-radius: 8px;
     height: 100%;
-    border: 2px solid rgba(0, 0, 0, 0.2);
     outline: none;
 }
 
-.message-box-icon-container {
-    display: flex;
-
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 33px;
-}
-.message-box-icon-container:hover {
-    background-color: var(--hover-color);
-}
-.message-box-icon-container:active {
-    background-color: var(--active-color);
-}
-
 .message-box-icon {
-    width: var(--ic-normal);
-    height: var(--ic-normal);
     background-color: var(--text-color);
     transition: background-color 0.2s ease-in-out;
 }
@@ -153,8 +119,5 @@
 @media screen and (min-width: 1024px) {
     #view-wrapper > .content.room {
         border-radius: 0px;
-    }
-    #view-wrapper > .footer {
-        border-radius: 0px 0px 16px 16px;
     }
 }
