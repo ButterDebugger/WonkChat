@@ -3,10 +3,10 @@
 
 :root {
     --text-color: #ffffff;
-    --secondary-text-color: #9f9fa5;
-    --background-color: #070709;
-    --container-color: #18181c;
-    --dark-container-color: #0f0f11;
+    --secondary-text-color: #919094;
+    --background-color: #0e0d11;
+    --container-color: #23222b;
+    --dark-container-color: #17171c;
     --hover-color: rgba(127, 127, 127, 0.2);
     --active-color: rgba(127, 127, 127, 0.4);
     --input-background-color: rgba(0, 0, 0, 0.35);
