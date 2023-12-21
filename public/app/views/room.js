@@ -1,34 +1,13 @@
 import { domParser } from "https://debutter.dev/x/js/utils.js@1.2";
-import { createMessage } from "./components.js";
-import { switchDrawer } from "./ui.js";
-import { sendMessage } from "./main.js";
-
-const viewWrappers = new Map();
-
-function hasWrapper(key) {
-    return viewWrappers.has(key);
-}
-
-function getOrCreateWrapper(key) {
-    if (viewWrappers.has(key)) return viewWrappers.get(key);
-
-    let headerEle = domParser(`<div class="header"></div>`);
-    let contentEle = domParser(`<div class="content"></div>`);
-    let footerEle = domParser(`<div class="footer"></div>`);
-
-    let wrapper = {
-        header: headerEle,
-        content: contentEle,
-        footer: footerEle
-    };
-
-    viewWrappers.set(key, wrapper);
-    return wrapper;
-}
+import { createMessage } from "../components.js";
+import { changeViewDrawer, switchDrawer } from "../ui.js";
+import { sendMessage } from "../main.js";
+import { hasWrapper, getOrCreateWrapper, getWrapper } from "./wrapper.js";
+import { getOrCreateRoomInfoWrapper } from "./room-info.js";
 
 export function getOrCreateRoomWrapper(room) {
     let roomKey = `#${room.name}`;
-    if (hasWrapper(roomKey)) return viewWrappers.get(roomKey);
+    if (hasWrapper(roomKey)) return getWrapper(roomKey);
 
     let wrapper = getOrCreateWrapper(roomKey);
 
@@ -74,7 +53,7 @@ export function getOrCreateRoomWrapper(room) {
     // Append back icon to wrapper header
     let backIcon = domParser(
         `<div class="ic-small-container">
-            <span class="back-icon ic-raw ic-small ic-chevron-left"></span>
+            <span class="ic-raw ic-small ic-chevron-left"></span>
         </div>`
     );
     backIcon.addEventListener("click", () => {
@@ -99,9 +78,15 @@ export function getOrCreateRoomWrapper(room) {
     // Append more icon to wrapper header
     let moreIcon = domParser(
         `<div class="ic-small-container">
-            <span class="back-icon ic-raw ic-small ic-ellipsis"></span>
+            <span class="ic-raw ic-small ic-ellipsis"></span>
         </div>`
     );
+    moreIcon.addEventListener("click", () => {
+        switchDrawer("view");
+
+        let wrapper = getOrCreateRoomInfoWrapper(room);
+        changeViewDrawer(wrapper);
+    });
     wrapper.header.appendChild(moreIcon);
 
     return wrapper;

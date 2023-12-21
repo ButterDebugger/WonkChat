@@ -8,6 +8,7 @@ export function createRoomTab(name) {
         </div>`
 	);
 
+    ele.setAttribute("data-channel-id", name); // NOTE: is name is not always going to be the id
     ele.querySelector("[name='channel-name']").innerText = name;
 
     return ele;

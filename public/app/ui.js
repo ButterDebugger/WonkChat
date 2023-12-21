@@ -1,6 +1,6 @@
 import { createRoomTab } from "./components.js";
 import { client } from "./main.js";
-import { getOrCreateRoomWrapper } from "./views.js";
+import { getOrCreateRoomWrapper } from "./views/room.js";
 
 const exploreDrawer = document.getElementById("explore-drawer");
 const roomsDrawer = document.getElementById("rooms-drawer");
@@ -43,25 +43,38 @@ export function switchDrawer(drawerName) {
     }
 }
 
+export function changeViewDrawer(wrapper) {
+    viewDrawer.querySelector(".header").replaceWith(wrapper.header);
+    viewDrawer.querySelector(".content").replaceWith(wrapper.content);
+    viewDrawer.querySelector(".footer").replaceWith(wrapper.footer);
+}
+
 export function updateRoomTabs() {
     let roomsContainer = roomsDrawer.querySelector(".content");
+    let oldTabs = Array.from(roomsContainer.querySelectorAll(".channel-tab"));
 
     for (let room of client.rooms.cache.values()) {
         let ele = createRoomTab(room.name);
         getOrCreateRoomWrapper(room);
 
+        // Remove room tab from list of old tabs
+        oldTabs = oldTabs.filter(tab => tab.getAttribute("data-channel-id") != room.name);
+
         ele.addEventListener("click", () => {
             switchDrawer("view");
 
             let wrapper = getOrCreateRoomWrapper(room);
-            viewDrawer.querySelector(".header").replaceWith(wrapper.header);
-            viewDrawer.querySelector(".content").replaceWith(wrapper.content);
-            viewDrawer.querySelector(".footer").replaceWith(wrapper.footer);
+            changeViewDrawer(wrapper);
 
             // Scroll to the bottom
             wrapper.content.scrollTop = wrapper.content.scrollHeight;
         });
         
         roomsContainer.appendChild(ele);
+    }
+
+    // Remove any remaining old tabs
+    for (let tab of oldTabs) {
+        tab.remove();
     }
 }

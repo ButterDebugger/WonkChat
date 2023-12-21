@@ -1,5 +1,5 @@
 /* Room header styles */
-#view-wrapper > .header.room {
+.header.room {
     align-items: baseline;
     justify-content: flex-start;
     gap: 16px;
@@ -14,13 +14,8 @@
     color: var(--secondary-text-color);
 }
 
-.back-icon {
-    background-color: var(--text-color);
-    transition: background-color 0.2s ease-in-out;
-}
-
 /* Room content styles */
-#view-wrapper > .content.room {
+.content.room {
     gap: 8px;
 }
 
@@ -80,7 +75,7 @@
 }
 
 /* Footer styles */
-#view-wrapper > .footer {
+.footer.room {
     display: flex;
     flex-direction: row;
     
@@ -117,7 +112,7 @@
 
 /* Desktop design */
 @media screen and (min-width: 1024px) {
-    #view-wrapper > .content.room {
+    .content.room {
         border-radius: 0px;
     }
 }
