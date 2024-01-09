@@ -17,7 +17,7 @@ cd WonkChat
 sudo bash start.sh
 ```
 
-When hosting, make sure that the client server and api server are protected behind your firewall, only accessible through the reverse proxy.
+When hosting, ensure that both the client and api servers are protected behind a firewall, only accessible through the reverse proxy.
 
 > The client server is hosted on port 4030 and the api server is hosted on port 5000.
 
