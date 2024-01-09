@@ -15,13 +15,13 @@ const server = http.createServer({}, app).listen(5000);
 
 // Add server log listeners
 server.addListener("listening", () => {
-    console.log(chalk.bgGreen.bold(" LISTENING "), chalk.white(`Running on port ${port}`));
+    console.log(chalk.bgGreen.bold(" LISTENING "), chalk.white(`API server is running`));
 });
 server.addListener("close", () => {
-    console.log(chalk.bgYellow.bold(" CLOSE "), chalk.white("Server has closed"));
+    console.log(chalk.bgYellow.bold(" CLOSE "), chalk.white("API server has closed"));
 });
 server.addListener("error", (err) => {
-    console.error(chalk.bgRed.bold(" ERROR "), chalk.white("Server has encountered an error:"), err);
+    console.error(chalk.bgRed.bold(" ERROR "), chalk.white("API server has encountered an error:"), err);
 });
 
 // Add middleware
