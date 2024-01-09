@@ -28,6 +28,8 @@ PORT = <0 - 65535> (defaults to 80)
 TOKEN_SECRET = <128 characters>
 ```
 
+> At the moment, changing the port will require you to edit [`nginx.conf`](nginx.conf)
+
 ## License
 
-WonkChat is licensed under [``MIT License``](LICENSE).
+WonkChat is licensed under [`MIT License`](LICENSE).
