@@ -117,7 +117,7 @@ async function authenticate(speed = 500) {
     submitBtn.innerText = "Authorizing";
     await delay(speed);
 
-    axios.post(`${location.origin}/auth/login`, {
+    axios.post(`${location.origin}/api/auth/login`, {
         username: usernameEle.value,
         publicKey: keyPair.publicKey
     }).then(async (res) => {
@@ -128,7 +128,7 @@ async function authenticate(speed = 500) {
 
         let decrypted = await cryption.decrypt(message, keyPair.privateKey);
 
-        axios.post(`${location.origin}/auth/verify/${id}`, {
+        axios.post(`${location.origin}/api/auth/verify/${id}`, {
             message: decrypted
         }).then((res) => {
             let { id, token } = res.data;

@@ -1,4 +1,3 @@
-import db from "./database.js";
 import * as openpgp from "openpgp";
 
 let sessions = new Map();

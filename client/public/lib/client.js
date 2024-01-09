@@ -197,7 +197,7 @@ export class Client extends eventemitter3 {
 async function parseStreamData(data, privateKey) {
 	try {
 		data = JSON.parse(data);
-		data = await decryptMessage(data, privateKey);
+		data = await cryption.decrypt(data, privateKey);
 		data = JSON.parse(data);
 	} catch (error) {};
 

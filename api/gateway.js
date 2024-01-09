@@ -2,7 +2,7 @@ import express from "express";
 import streams, { getStream } from "./streams.js";
 import attachments from "./attachments.js";
 import { authenticate } from "./auth.js";
-import { getUserSession, createRoom, getRoom, getUserViews } from "../storage/data.js";
+import { getUserSession, createRoom, getRoom, getUserViews } from "./data.js";
 import * as openpgp from "openpgp";
 
 const router = new express.Router();
@@ -431,7 +431,7 @@ router.get("/sync/memory", async (req, res) => {
 
 export default function(app) {
     streams(router);
-    app.use("/api", authenticate, router);
+    app.use(authenticate, router);
 
     // Create starting room
     createRoom("wonk", "Welcome to Wonk Chat!");

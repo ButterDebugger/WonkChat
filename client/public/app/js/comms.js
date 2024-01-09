@@ -1,58 +1,52 @@
+import cookies from "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm";
+import EventSource from "https://cdn.jsdelivr.net/npm/eventsource@2.0.2/+esm";
 import { debugMode, client } from "./client.js";
 import * as cryption from "../../cryption.js";
 
-export let stream;
-export const baseUrl = location.origin;
-export const gatewayUrl = `${baseUrl}/api`;
+export const gatewayUrl = `${location.origin}/api`;
+export let stream = null;
 
-let eventHandlers = {};
+let earlyEvents = {};
+let streamOpen = false;
 
 export function init() {
-    stream = new EventSource(`${gatewayUrl}/stream`);
-
-    // Check every 500ms if the stream has closed
-    let stateInterval = setInterval(() => {
-        if (stream.readyState === EventSource.CLOSED) {
-            closeHandler();
-            clearInterval(stateInterval);
+    stream = new EventSource(`${gatewayUrl}/stream`, {
+        headers: {
+            Authorization: cookies.get("token")
         }
-    }, 500);
-
-    stream.addEventListener("open", () => {
-        if (debugMode) console.log("Event stream opened");
     });
 
-    stream.addEventListener("error", (event) => {
+    stream.on("open", () => {
+        if (debugMode) console.log("Event stream opened");
+        
+        streamOpen = true;
+    });
+    
+    stream.on("error", (event) => {
         if (debugMode) console.error("An error has occurred with the event stream", event);
 
-        stream.close();
+        setTimeout(() => {
+            window.location.href = "/login";
+        }, 500);
     });
 
-    function closeHandler() {
+    stream.on("close", () => {
         if (debugMode) console.log("Event stream closed");
         
-        stream.dispatchEvent(new CustomEvent("close", {
-            detail: {}
-        }));
-
-        // Reload window after 2.5sec
-        setTimeout(() => {
-            if (debugMode) console.log("Reloading webpage");
-            location.reload();
-        }, 2500);
-    };
-
-    stream.addEventListener("ping", ({ data }) => {
+        streamOpen = false;
+    });
+    
+    stream.on("ping", ({ data }) => {
         data = parseData(data);
         if (typeof data == "undefined") return;
-
+    
         if (debugMode) console.log("ping", data.ping);
     });
 
-    // Re-register event handlers
-    for (let type of Object.keys(eventHandlers)) {
-        for (let listener of eventHandlers[type]) {
-            stream.addEventListener(type, listener);
+    // Register early events
+    for (const type in earlyEvents) {
+        for (const event of earlyEvents[type]) {
+            stream.on(type, event);
         }
     }
 }
@@ -66,12 +60,10 @@ export function parseData(data) {
 }
 
 export function isStreamOpen() {
-    return stream.readyState === EventSource.OPEN;
+    return streamOpen;
 }
 
 export function registerEvent(type, callback) {
-    let listeners = eventHandlers[type] ?? [];
-
     const controller = async function({ data, type }) {
         if (["open", "error", "close", "ping"].includes(type)) return callback({
             data: data,
@@ -86,9 +78,12 @@ export function registerEvent(type, callback) {
         });
     }
 
-    if (stream instanceof EventSource) stream.addEventListener(type, controller);
-    listeners.push(controller);
-    eventHandlers[type] = listeners;
+    if (stream !== null) {
+        stream.on(type, controller);
+    } else {
+        if (!earlyEvents[type]) earlyEvents[type] = [];
+        earlyEvents[type].push(controller);
+    }
 }
 
 export function makeRequest(options) {

@@ -2,11 +2,11 @@ import express from "express";
 import fileUpload from "express-fileupload";
 import path from "node:path";
 import fs from "node:fs";
-import { authenticate } from "../api/auth.js";
-import { Snowflake } from "../storage/identifier.js";
+import { authenticate } from "./auth.js";
+import { Snowflake } from "./identifier.js";
 
-if (!fs.existsSync(path.join(process.cwd(), "storage/attachments"))) {
-    fs.mkdirSync(path.join(process.cwd(), "storage/attachments"));
+if (!fs.existsSync(path.join(process.cwd(), "attachments"))) {
+    fs.mkdirSync(path.join(process.cwd(), "attachments"));
 }
 
 const router = new express.Router();
@@ -33,7 +33,7 @@ router.get("/upload", (req, res) => {
     res.redirect("/app");
 });
 router.use("/attachments", (req, res) => {
-    express.static(path.join(process.cwd(), "storage/attachments"))(req, res, () => {
+    express.static(path.join(process.cwd(), "attachments"))(req, res, () => {
         res.status(404).end();
     });
 });
@@ -45,7 +45,7 @@ function saveFiles(files, uid) {
         files.forEach(file => {
             let fileId = Snowflake.generate();
             let fileLoc = `attachments/${uid}/${fileId}/${file.name}`;
-            let filePath = path.join(process.cwd(), "storage", fileLoc);
+            let filePath = path.join(process.cwd(), fileLoc);
 
             file.mv(filePath, (err) => {
                 if (err) {
@@ -75,8 +75,8 @@ function saveFiles(files, uid) {
 }
 
 function clean() { // Clear attachments folder
-    fs.readdirSync(path.join(process.cwd(), "storage/attachments")).forEach(f => {
-        fs.rmSync(path.join(process.cwd(), "storage/attachments", f), {
+    fs.readdirSync(path.join(process.cwd(), "attachments")).forEach(f => {
+        fs.rmSync(path.join(process.cwd(), "attachments", f), {
             recursive: true,
             force: true
         });

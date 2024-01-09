@@ -1,4 +1,4 @@
-import { getPublicKey, getUserSession, updateUserSession } from "../storage/data.js";
+import { getPublicKey, getUserSession, updateUserSession } from "./data.js";
 import { getSubscribers } from "./gateway.js";
 import * as openpgp from "openpgp";
 

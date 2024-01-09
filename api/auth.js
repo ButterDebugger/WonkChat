@@ -3,8 +3,8 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import crypto from "node:crypto";
 import * as openpgp from "openpgp";
-import { createUserSession, getPublicKey, getUserSession, setPublicKey, updateUserSession } from "../storage/data.js";
-import { Fingerprint } from "../storage/identifier.js";
+import { createUserSession, getPublicKey, getUserSession, setPublicKey, updateUserSession } from "./data.js";
+import { Fingerprint } from "./identifier.js";
 import { updateUserSubscribers } from "./streams.js";
 
 let loginExpiration = 60_000; // 1 minute

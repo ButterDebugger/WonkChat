@@ -14,16 +14,18 @@ If you wish to install and run WonkChat, follow these steps:
 ```sh
 git clone https://github.com/ButterDebugger/WonkChat.git
 cd WonkChat
-npm install
-npm start
+sudo bash start.sh
 ```
+
+When hosting, make sure that the client server and api server are protected behind your firewall, only accessible through the reverse proxy.
+
+> The client server is hosted on port 4030 and the api server is hosted on port 5000.
 
 ### Environment Variables
 Declare the environment variables on your system or inside a file named `.env` in the root of the project's directory.
 ```env
-PORT = <0 - 65535> (defaults to 8080)
+PORT = <0 - 65535> (defaults to 80)
 TOKEN_SECRET = <128 characters>
-CLOUD_TOKEN = <cloud.debutter.dev token> (optional)
 ```
 
 ## License
