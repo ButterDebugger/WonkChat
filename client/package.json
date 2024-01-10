@@ -1,5 +1,5 @@
 {
-  "name": "wonk-frontend",
+  "name": "wonk-client",
   "version": "1.0.0",
   "description": "wonk chat frontend",
   "main": "index.js",
