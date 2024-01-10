@@ -14,6 +14,7 @@ If you wish to install and run WonkChat, follow these steps:
 ```sh
 git clone https://github.com/ButterDebugger/WonkChat.git
 cd WonkChat
+git submodule update --init --recursive
 sudo bash start.sh
 ```
 
