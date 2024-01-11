@@ -10,8 +10,9 @@ import { authRoute } from "./auth.js";
 import gateway from "./gateway.js";
 
 dotenv.config();
+const port = process.env.PORT ?? 5000;
 const app = express();
-const server = http.createServer({}, app).listen(5000);
+const server = http.createServer({}, app).listen(port);
 
 // Add server log listeners
 server.addListener("listening", () => {
