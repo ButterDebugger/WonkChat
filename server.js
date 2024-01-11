@@ -38,7 +38,7 @@ app.get("/logout", (req, res) => {
 
 // Ping route
 app.get("/ping", (req, res) => {
-    es.status(200).json({
+    res.status(200).json({
         message: "Pong!",
         success: true
     });
