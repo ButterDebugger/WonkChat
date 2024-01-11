@@ -36,6 +36,14 @@ app.get("/logout", (req, res) => {
     res.redirect("/login");
 });
 
+// Ping route
+app.get("/ping", (req, res) => {
+    es.status(200).json({
+        message: "Pong!",
+        success: true
+    });
+});
+
 // Auth routes
 app.use("/auth", authRoute);
 
