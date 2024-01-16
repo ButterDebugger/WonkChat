@@ -29,9 +29,6 @@ router.post("/upload", authenticate, async (req, res) => {
 
     res.json(data);
 });
-router.get("/upload", (req, res) => {
-    res.redirect("/app");
-});
 router.use("/attachments", (req, res) => {
     express.static(path.join(process.cwd(), "attachments"))(req, res, () => {
         res.status(404).end();

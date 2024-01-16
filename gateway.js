@@ -10,7 +10,7 @@ const roomRegex = /[a-z0-9_]*/g;
 
 let userSubscriptions = new Map();
 
-router.post("/rooms/:roomname/join", async (req, res) => {
+router.post("/rooms/:roomname/join", authenticate, async (req, res) => {
     let { roomname } = req.params;
 
     let userSession = await getUserSession(req.user.id);
@@ -60,7 +60,7 @@ router.post("/rooms/:roomname/join", async (req, res) => {
     });
 });
 
-router.post("/rooms/:roomname/leave", async (req, res) => {
+router.post("/rooms/:roomname/leave", authenticate, async (req, res) => {
     let { roomname } = req.params;
 
     let userSession = await getUserSession(req.user.id);
@@ -100,7 +100,7 @@ router.post("/rooms/:roomname/leave", async (req, res) => {
     });
 });
 
-router.get("/rooms/:roomname/members", async (req, res) => { // TODO: deprecate this in favor of /rooms/:roomname/info
+router.get("/rooms/:roomname/members", authenticate, async (req, res) => { // TODO: deprecate this in favor of /rooms/:roomname/info
     let { roomname } = req.params;
 
     let userSession = await getUserSession(req.user.id);
@@ -125,7 +125,7 @@ router.get("/rooms/:roomname/members", async (req, res) => { // TODO: deprecate 
     });
 });
 
-router.post("/rooms/:roomname/create", async (req, res) => {
+router.post("/rooms/:roomname/create", authenticate, async (req, res) => {
     let { roomname } = req.params;
 
     if (!isValidRoomname(roomname)) return res.status(400).json({
@@ -147,7 +147,7 @@ router.post("/rooms/:roomname/create", async (req, res) => {
     });
 });
 
-router.post("/rooms/:roomname/message", async (req, res) => {
+router.post("/rooms/:roomname/message", authenticate, async (req, res) => {
     let { roomname } = req.params;
 
     let userSession = await getUserSession(req.user.id);
@@ -229,7 +229,7 @@ router.post("/rooms/:roomname/message", async (req, res) => {
     });
 });
 
-router.get("/rooms/:roomname/info", async (req, res) => {
+router.get("/rooms/:roomname/info", authenticate, async (req, res) => {
     let { roomname } = req.params;
 
     let userSession = await getUserSession(req.user.id);
@@ -257,13 +257,13 @@ router.get("/rooms/:roomname/info", async (req, res) => {
     });
 });
 
-router.post("/rooms/:roomname/typing", (req, res) => {
+router.post("/rooms/:roomname/typing", authenticate, (req, res) => {
     let { roomname } = req.params;
 
     // TODO: finish this
 });
 
-router.get("/users", async (req, res) => { // TODO: deprecate this in favor of /users/:userid ~> /subscribe /unsubscribe /fetch
+router.get("/users", authenticate, async (req, res) => { // TODO: deprecate this in favor of /users/:userid ~> /subscribe /unsubscribe /fetch
     let { ids, subscribe } = req.query;
 
     if (typeof ids !== "string") return res.status(400).json({
@@ -315,7 +315,7 @@ router.get("/users", async (req, res) => { // TODO: deprecate this in favor of /
     });
 });
 
-router.post("/users/:userid/subscribe", async (req, res) => {
+router.post("/users/:userid/subscribe", authenticate, async (req, res) => {
     let { userid } = req.params;
     
     // Update list of subscribers
@@ -328,7 +328,7 @@ router.post("/users/:userid/subscribe", async (req, res) => {
     });
 });
 
-router.post("/users/:userid/unsubscribe", async (req, res) => {
+router.post("/users/:userid/unsubscribe", authenticate, async (req, res) => {
     let { userid } = req.params;
     
     // Update list of subscribers
@@ -341,7 +341,7 @@ router.post("/users/:userid/unsubscribe", async (req, res) => {
     });
 });
 
-router.get("/users/:userid/fetch", async (req, res) => {
+router.get("/users/:userid/fetch", authenticate, async (req, res) => {
     let { userid } = req.params;
 
     let session = await getUserSession(userid);
@@ -364,7 +364,7 @@ router.get("/users/:userid/fetch", async (req, res) => {
     });
 });
 
-router.get("/sync/client", async (req, res) => {
+router.get("/sync/client", authenticate, async (req, res) => {
     let userSession = await getUserSession(req.user.id);
     let viewableUsers = new Set();
 
@@ -408,7 +408,7 @@ router.get("/sync/client", async (req, res) => {
     });
 });
 
-router.get("/sync/memory", async (req, res) => {
+router.get("/sync/memory", authenticate, async (req, res) => {
     let stream = getStream(req.user.id);
     if (stream === null) return res.status(400).json({
         error: true,
@@ -431,7 +431,7 @@ router.get("/sync/memory", async (req, res) => {
 
 export default function(app) {
     streams(router);
-    app.use(authenticate, router);
+    app.use(router);
 
     // Create starting room
     createRoom("wonk", "Welcome to Wonk Chat!");

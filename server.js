@@ -30,12 +30,6 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(cors());
 
-// Login routes
-app.get("/logout", (req, res) => {
-    res.clearCookie("token");
-    res.redirect("/login");
-});
-
 // Ping route
 app.get("/ping", (req, res) => {
     res.status(200).json({
@@ -49,3 +43,12 @@ app.use("/auth", authRoute);
 
 // Handle api gateway
 gateway(app);
+
+// Unknown endpoint handler
+app.use((req, res, next) => {
+    res.status(400).json({
+        error: true,
+        message: "Unknown endpoint",
+        code: 105
+    })
+});

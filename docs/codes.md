@@ -6,6 +6,7 @@
 | 102  | Missing query string   |
 | 103  | Missing files          |
 | 104  | Invalid encrypted body |
+| 105  | Unknown endpoint       |
 
 ## Message error codes
 

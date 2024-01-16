@@ -32,7 +32,7 @@
   },
   "nodemonConfig": {
     "ignore": [
-      "storage/attachments",
+      "attachments",
       "public"
     ],
     "ext": "js"

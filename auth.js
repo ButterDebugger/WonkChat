@@ -23,7 +23,11 @@ export async function authenticate(req, res, next) {
             res.clearCookie("token");
         }
 
-        res.redirect(`/login/${result.refresh ? "?refresh" : ""}`);
+        res.status(400).json({
+            error: true,
+            message: "Invalid credentials",
+            code: 501
+        });
     }
 }
 
@@ -135,6 +139,14 @@ export const authRoute = express.Router();
 const logins = new Map();
 
 authRoute.use(authLimiter);
+
+authRoute.get("/logout", (req, res) => {
+    res.clearCookie("token");
+
+    res.status(200).json({
+        success: true
+    });
+});
 
 authRoute.post("/login", async (req, res) => {
     let { username, publicKey } = req.body;
