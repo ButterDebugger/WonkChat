@@ -81,30 +81,28 @@ class Stream {
     }
 }
 
-function initRouter(router) {
-    router.get("/stream", (req, res) => {
-        res.writeHead(200, {
-            "Connection": "keep-alive",
-            "Cache-Control": "no-cache",
-            "Content-Type": "text/event-stream",
-        });
-        res.flushHeaders();
-
-        let stream;
-        if (clientStreams.has(req.user.id)) {
-            stream = clientStreams.get(req.user.id);
-            stream.remix(req, res);
-        } else {
-            stream = new Stream(req, res);
-            clientStreams.set(req.user.id, stream);
-        }
-        
-        stream.json({
-            opened: true
-        }, "connect");
-
-        stream.initPings();
+export function getStreamRoute(req, res) {
+    res.writeHead(200, {
+        "Connection": "keep-alive",
+        "Cache-Control": "no-cache",
+        "Content-Type": "text/event-stream",
     });
+    res.flushHeaders();
+
+    let stream;
+    if (clientStreams.has(req.user.id)) {
+        stream = clientStreams.get(req.user.id);
+        stream.remix(req, res);
+    } else {
+        stream = new Stream(req, res);
+        clientStreams.set(req.user.id, stream);
+    }
+    
+    stream.json({
+        opened: true
+    }, "connect");
+
+    stream.initPings();
 }
 
 async function setOnlineStatus(id, online) {
@@ -147,8 +145,4 @@ export function getStream(id) {
     let stream = clientStreams.get(id);
     if (!(stream instanceof Stream)) return null;
     return stream;
-}
-
-export default function(gatewayRouter) {
-    initRouter(gatewayRouter);
 }

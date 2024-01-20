@@ -135,12 +135,12 @@ const authLimiter = rateLimit({
     }
 });
 
-export const authRoute = express.Router();
+export const router = express.Router();
 const logins = new Map();
 
-authRoute.use(authLimiter);
+router.use(authLimiter);
 
-authRoute.get("/logout", (req, res) => {
+router.get("/logout", (req, res) => {
     res.clearCookie("token");
 
     res.status(200).json({
@@ -148,7 +148,7 @@ authRoute.get("/logout", (req, res) => {
     });
 });
 
-authRoute.post("/login", async (req, res) => {
+router.post("/login", async (req, res) => {
     let { username, publicKey } = req.body;
 
     if (typeof username !== "string" || typeof publicKey !== "string") return res.status(400).json({
@@ -206,7 +206,7 @@ authRoute.post("/login", async (req, res) => {
     });
 });
 
-authRoute.post("/verify/:id", async (req, res) => {
+router.post("/verify/:id", async (req, res) => {
     let { id } = req.params;
     let { message } = req.body;
 

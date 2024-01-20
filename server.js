@@ -1,13 +1,15 @@
 import express from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
-import path from "node:path";
+import { router as attachmentsRoute, clean as cleanAttachments } from "./attachments.js";
+import { getStreamRoute } from "./streams.js";
 import chalk from "chalk";
 import http from "node:http";
 import cors from "cors";
 import dotenv from "dotenv";
-import { authRoute } from "./auth.js";
-import gateway from "./gateway.js";
+import { router as authRoute } from "./auth.js";
+import { router as gatewayRoute } from "./gateway.js";
+import { createRoom } from "./data.js";
 
 dotenv.config();
 const port = process.env.PORT ?? 5000;
@@ -42,7 +44,17 @@ app.get("/ping", (req, res) => {
 app.use("/auth", authRoute);
 
 // Handle api gateway
-gateway(app);
+app.use(gatewayRoute);
+
+// Handle stream route
+app.get("/stream", getStreamRoute);
+
+// Clear attachments folder and handle attachments route
+app.use(attachmentsRoute);
+cleanAttachments();
+
+// Create starting room
+createRoom("wonk", "Welcome to Wonk Chat!");
 
 // Unknown endpoint handler
 app.use((req, res, next) => {

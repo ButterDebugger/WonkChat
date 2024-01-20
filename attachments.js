@@ -9,7 +9,7 @@ if (!fs.existsSync(path.join(process.cwd(), "attachments"))) {
     fs.mkdirSync(path.join(process.cwd(), "attachments"));
 }
 
-const router = new express.Router();
+export const router = new express.Router();
 
 router.use(fileUpload({
     createParentPath: true
@@ -71,16 +71,11 @@ function saveFiles(files, uid) {
     });
 }
 
-function clean() { // Clear attachments folder
+export function clean() { // Clear attachments folder
     fs.readdirSync(path.join(process.cwd(), "attachments")).forEach(f => {
         fs.rmSync(path.join(process.cwd(), "attachments", f), {
             recursive: true,
             force: true
         });
     });
-}
-
-export default {
-    router,
-    clean
 }

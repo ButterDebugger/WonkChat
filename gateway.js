@@ -1,11 +1,10 @@
 import express from "express";
-import streams, { getStream } from "./streams.js";
-import attachments from "./attachments.js";
+import { getStream } from "./streams.js";
 import { authenticate } from "./auth.js";
 import { getUserSession, createRoom, getRoom, getUserViews } from "./data.js";
 import * as openpgp from "openpgp";
 
-const router = new express.Router();
+export const router = new express.Router();
 const roomRegex = /[a-z0-9_]*/g;
 
 let userSubscriptions = new Map();
@@ -428,18 +427,6 @@ router.get("/sync/memory", authenticate, async (req, res) => {
         success: true
     });
 });
-
-export default function(app) {
-    streams(router);
-    app.use(router);
-
-    // Create starting room
-    createRoom("wonk", "Welcome to Wonk Chat!");
-    
-    // Handle attachments
-    app.use(attachments.router);
-    attachments.clean();
-}
 
 function isValidRoomname(roomname) {
     if (typeof roomname !== "string") return false;
