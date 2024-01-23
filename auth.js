@@ -239,10 +239,7 @@ router.post("/verify/:id", async (req, res) => {
     let { user, token } = await sessionToken(login.username, login.id);
 
     // Create the default session user and update subscribers 
-    let userSession = await createUserSession(login.id, {
-        username: user.username,
-        color: user.color
-    });
+    let userSession = await createUserSession(login.id, user.username, user.color);
 
     await updateUserSubscribers(login.id, userSession);
 

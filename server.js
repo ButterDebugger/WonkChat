@@ -7,7 +7,7 @@ import chalk from "chalk";
 import http from "node:http";
 import cors from "cors";
 import dotenv from "dotenv";
-import { router as authRoute } from "./auth.js";
+import { router as authRoute, authenticate } from "./auth.js";
 import { router as gatewayRoute } from "./gateway.js";
 import { createRoom } from "./data.js";
 
@@ -44,10 +44,10 @@ app.get("/ping", (req, res) => {
 app.use("/auth", authRoute);
 
 // Handle api gateway
-app.use(gatewayRoute);
+app.use(authenticate, gatewayRoute);
 
 // Handle stream route
-app.get("/stream", getStreamRoute);
+app.get("/stream", authenticate, getStreamRoute);
 
 // Clear attachments folder and handle attachments route
 app.use(attachmentsRoute);

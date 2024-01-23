@@ -1,14 +1,32 @@
+import fs from "node:fs";
+import path from "node:path";
 import * as openpgp from "openpgp";
+import Database from "better-sqlite3";
 
+// Create storage directory
+if (!fs.existsSync(path.join(process.cwd(), "storage"))) {
+    fs.mkdirSync(path.join(process.cwd(), "storage"));
+}
+
+// Setup database
+const db = new Database("storage/data.sqlite");
+
+// TODO: Finish database initialization
+db.exec("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, color TEXT, rooms TEXT ARRAY, online BOOLEAN, publicKey BLOB)");
+db.exec("CREATE TABLE IF NOT EXISTS rooms (name TEXT PRIMARY KEY, description TEXT, members INTEGER ARRAY, publicKey BLOB, privateKey BLOB)");
+
+// Data structures:
 let sessions = new Map();
 let rooms = new Map();
-let publicKeys = new Map();
 
 class User {
     constructor(id) {
         this.id = id;
+        this.username = null;
+        this.color = null;
         this.rooms = new Set();
         this.offline = true;
+        this.publicKey = null;
     }
 
     async joinRoom(roomname) {
@@ -22,6 +40,14 @@ class User {
         room.members.delete(this.id);
         
         this.rooms.delete(roomname);
+    }
+
+    get online() {
+        return !this.offline;
+    }
+
+    set online(value) {
+        this.offline = !value;
     }
 }
 
@@ -59,32 +85,28 @@ class Attachment {
     }
 }
 
-// TODO: add optional database handing into functions
+// Interface functions:
+export async function createUserSession(userId, username, color) {
+    if (sessions.has(userId)) return sessions.get(userId);
 
-export async function createUserSession(id, extra = {}) {
-    if (sessions.has(id)) return sessions.get(id);
-
-    let user = new User(id);
-
-    for (let key in extra) {
-        user[key] = extra[key];
-    }
-
-    sessions.set(id, user);
+    let user = new User(userId);
+    user.username = username;
+    user.color = color;
+    sessions.set(userId, user);
     return user;
 }
 
-export async function getUserSession(id) {
-    if (!sessions.has(id)) return null;
+export async function getUserSession(userId) {
+    if (!sessions.has(userId)) return null;
 
-    return sessions.get(id);
+    return sessions.get(userId);
 }
 
-export async function getUserViews(id) {
-    if (!sessions.has(id)) return new Set();
+export async function getUserViews(userId) {
+    if (!sessions.has(userId)) return new Set();
 
     let viewers = [];
-    let user = sessions.get(id);
+    let user = sessions.get(userId);
 
     for (let roomName of user.rooms) {
         if (!rooms.has(roomName)) continue;
@@ -96,16 +118,16 @@ export async function getUserViews(id) {
     return new Set(viewers);
 }
 
-export async function updateUserSession(id, extra = {}) {
-    if (!sessions.has(id)) return false;
+export async function updateUserSession(userId, extra = {}) {
+    if (!sessions.has(userId)) return false;
 
-    let user = sessions.get(id);
+    let user = sessions.get(userId);
 
     for (let key in extra) {
         user[key] = extra[key];
     }
 
-    sessions.set(id, user);
+    sessions.set(userId, user);
     return true;
 }
 
@@ -131,12 +153,17 @@ export async function getRoom(roomname) {
     return rooms.get(roomname);
 }
 
-export async function setPublicKey(fingerprint, publicKey) {
-    publicKeys.set(fingerprint, publicKey);
+export async function setPublicKey(userId, publicKey) {
+    if (!sessions.has(userId)) return false;
+
+    let user = sessions.get(userId);
+    user.publicKey = publicKey;
+    sessions.set(userId, user);
+    return true;
 }
 
-export async function getPublicKey(fingerprint) {
-    if (!publicKeys.has(fingerprint)) return null;
+export async function getPublicKey(userId) {
+    if (!sessions.has(userId)) return null;
 
-    return publicKeys.get(fingerprint);
+    return sessions.get(userId).publicKey;
 }
