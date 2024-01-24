@@ -11,7 +11,6 @@ if (!fs.existsSync(path.join(process.cwd(), "storage"))) {
 // Setup database
 const db = new Database("storage/data.sqlite");
 
-// TODO: Finish database initialization
 db.exec("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, color TEXT, rooms TEXT ARRAY, online BOOLEAN, publicKey BLOB)");
 db.exec("CREATE TABLE IF NOT EXISTS rooms (name TEXT PRIMARY KEY, description TEXT, members INTEGER ARRAY, publicKey BLOB, privateKey BLOB)");
 
@@ -25,7 +24,7 @@ class User {
         this.username = null;
         this.color = null;
         this.rooms = new Set();
-        this.offline = true;
+        this.online = false;
         this.publicKey = null;
     }
 
@@ -42,12 +41,12 @@ class User {
         this.rooms.delete(roomname);
     }
 
-    get online() {
-        return !this.offline;
+    get offline() {
+        return !this.online;
     }
 
-    set online(value) {
-        this.offline = !value;
+    set offline(value) {
+        this.online = !value;
     }
 }
 
@@ -118,15 +117,21 @@ export async function getUserViews(userId) {
     return new Set(viewers);
 }
 
-export async function updateUserSession(userId, extra = {}) {
+export async function updateUserProfile(userId, username, color) {
     if (!sessions.has(userId)) return false;
 
     let user = sessions.get(userId);
+    user.username = username;
+    user.color = color;
+    sessions.set(userId, user);
+    return true;
+}
 
-    for (let key in extra) {
-        user[key] = extra[key];
-    }
+export async function updateUserStatus(userId, online) {
+    if (!sessions.has(userId)) return false;
 
+    let user = sessions.get(userId);
+    user.online = online;
     sessions.set(userId, user);
     return true;
 }

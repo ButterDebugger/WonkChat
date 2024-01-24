@@ -1,4 +1,4 @@
-import { getPublicKey, getUserSession, updateUserSession } from "./data.js";
+import { getPublicKey, getUserSession, updateUserStatus } from "./data.js";
 import { getSubscribers } from "./gateway.js";
 import * as openpgp from "openpgp";
 
@@ -110,9 +110,7 @@ async function setOnlineStatus(id, online) {
     if (userSession !== null) {
         let changed = userSession.offline !== !online;
 
-        await updateUserSession(id, {
-            offline: !online
-        });
+        await updateUserStatus(id, online);
 
         if (changed) {
             await updateUserSubscribers(id, userSession);

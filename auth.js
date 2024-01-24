@@ -3,7 +3,7 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import crypto from "node:crypto";
 import * as openpgp from "openpgp";
-import { createUserSession, getPublicKey, getUserSession, setPublicKey, updateUserSession } from "./data.js";
+import { createUserSession, getPublicKey, getUserSession, setPublicKey, updateUserProfile } from "./data.js";
 import { Fingerprint } from "./identifier.js";
 import { updateUserSubscribers } from "./streams.js";
 
@@ -104,10 +104,7 @@ async function sessionToken(username, id) {
     };
     
     if (userSession !== null) {
-        await updateUserSession(id, {
-            username: user.username,
-            color: user.color
-        });
+        await updateUserProfile(id, user.username, user.color);
     }
 
     return {
