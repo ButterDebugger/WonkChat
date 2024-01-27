@@ -26,6 +26,7 @@
     "express-fileupload": "^1.4.0",
     "express-rate-limit": "^6.7.0",
     "jsonwebtoken": "^9.0.0",
+    "knex": "^3.1.0",
     "openpgp": "^5.10.1"
   },
   "devDependencies": {

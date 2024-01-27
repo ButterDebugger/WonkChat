@@ -37,7 +37,7 @@ export const Fingerprint = {
     }
 }
 
-function intToBase36(number) {
+export function intToBase36(number) {
     const baseChars = "0123456789abcdefghijklmnopqrstuvwxyz";
     let result = (number > 0n) ? "" : "0";
     while (number > 0n) {
@@ -47,7 +47,7 @@ function intToBase36(number) {
     return result;
 }
 
-function base36ToInt(string) {
+export function base36ToInt(string) {
     const baseChars = "0123456789abcdefghijklmnopqrstuvwxyz";
     let length = BigInt(string.length) - 1n;
     let result = 0n;

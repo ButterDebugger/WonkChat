@@ -1,7 +1,7 @@
 import express from "express";
 import { getStream } from "./streams.js";
 import { authenticate } from "./auth.js";
-import { getUserSession, createRoom, getRoom, getUserViews } from "./data.js";
+import { getUserSession, createRoom, getRoom, getUserViews, addUserToRoom, removeUserFromRoom } from "./data.js";
 import * as openpgp from "openpgp";
 
 export const router = new express.Router();
@@ -34,7 +34,13 @@ router.post("/rooms/:roomname/join", authenticate, async (req, res) => {
         code: 303
     });
 
-    await userSession.joinRoom(roomname);
+    let success = await addUserToRoom(req.user.id, roomname);
+
+    if (success === null) return res.status(500).json({
+        error: true,
+        message: "Internal server error",
+        code: 106
+    });
 
     for (let id of room.members) {
         if (id === req.user.id) continue;
@@ -53,7 +59,7 @@ router.post("/rooms/:roomname/join", authenticate, async (req, res) => {
     res.status(200).json({
         name: room.name,
         description: room.description,
-        key: room.publicKey,
+        key: room.armoredPublicKey,
         members: Array.from(room.members),
         success: true
     });
@@ -78,7 +84,13 @@ router.post("/rooms/:roomname/leave", authenticate, async (req, res) => {
         code: 303
     });
 
-    await userSession.leaveRoom(roomname);
+    let success = await removeUserFromRoom(req.user.id, roomname);
+
+    if (success === null) return res.status(500).json({
+        error: true,
+        message: "Internal server error",
+        code: 106
+    });
 
     for (let id of room.members) {
         if (id === req.user.id) continue;
@@ -177,7 +189,7 @@ router.post("/rooms/:roomname/message", authenticate, async (req, res) => {
     try {
         let { data } = await openpgp.decrypt({
             message: await openpgp.readMessage({ armoredMessage: message }),
-            decryptionKeys: await openpgp.readKey({ armoredKey: room.privateKey })
+            decryptionKeys: await openpgp.readKey({ binaryKey: room.privateKey })
         });
 
         if (!data.startsWith("{")) throw new TypeError("Invalid data type.");
@@ -250,7 +262,7 @@ router.get("/rooms/:roomname/info", authenticate, async (req, res) => {
     res.status(200).json({
         name: room.name,
         description: room.description,
-        key: room.publicKey,
+        key: room.armoredPublicKey,
         members: Array.from(room.members),
         success: true
     });
@@ -377,7 +389,7 @@ router.get("/sync/client", authenticate, async (req, res) => {
         rooms.push({
             name: room.name,
             description: room.description,
-            key: room.publicKey,
+            key: room.armoredPublicKey,
             members: Array.from(room.members),
         });
     }

@@ -1,4 +1,4 @@
-import { getPublicKey, getUserSession, updateUserStatus } from "./data.js";
+import { getUserPublicKey, getUserSession, setUserStatus } from "./data.js";
 import { getSubscribers } from "./gateway.js";
 import * as openpgp from "openpgp";
 
@@ -15,10 +15,10 @@ class Stream {
     }
 
     async send(data, event = "unknown") {
-        let key = await getPublicKey(this.session.id);
+        let key = await getUserPublicKey(this.session.id);
         let encrypted = await openpgp.encrypt({ // TODO: make binary
             message: await openpgp.createMessage({ text: data }),
-            encryptionKeys: await openpgp.readKey({ armoredKey: key })
+            encryptionKeys: await openpgp.readKey({ binaryKey: key })
         });
         let message = `event:${event}\ndata:${JSON.stringify(encrypted)}\n\n`;
 
@@ -110,7 +110,7 @@ async function setOnlineStatus(id, online) {
     if (userSession !== null) {
         let changed = userSession.offline !== !online;
 
-        await updateUserStatus(id, online);
+        await setUserStatus(id, online);
 
         if (changed) {
             await updateUserSubscribers(id, userSession);

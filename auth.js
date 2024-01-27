@@ -3,7 +3,7 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import crypto from "node:crypto";
 import * as openpgp from "openpgp";
-import { createUserSession, getPublicKey, getUserSession, setPublicKey, updateUserProfile } from "./data.js";
+import { getUserPublicKey, getUserSession, setUserPublicKey, updateUserProfile } from "./data.js";
 import { Fingerprint } from "./identifier.js";
 import { updateUserSubscribers } from "./streams.js";
 
@@ -59,7 +59,7 @@ export function verifyToken(token = null) {
             });
 
             // Check if public key is still available on the server
-            if (await getPublicKey(user.id) === null) return resolve({
+            if (await getUserPublicKey(user.id) === null) return resolve({
                 success: false,
                 reset: false,
                 refresh: true,
@@ -168,11 +168,13 @@ router.post("/login", async (req, res) => {
     // Encrypt a random code for the user to verify
     let code = crypto.randomBytes(256).toString("base64url");
     let encrypted;
+    let armoredKey;
 
     try {
+        armoredKey = await openpgp.readKey({ armoredKey: publicKey });
         encrypted = await openpgp.encrypt({
             message: await openpgp.createMessage({ text: code }),
-            encryptionKeys: await openpgp.readKey({ armoredKey: publicKey })
+            encryptionKeys: armoredKey
         });
     } catch (error) {
         return res.status(400).json({
@@ -189,7 +191,7 @@ router.post("/login", async (req, res) => {
     logins.set(loginId, {
         username: username,
         id: id,
-        publicKey: publicKey,
+        publicKey: armoredKey.write(),
         code: code
     });
 
@@ -230,13 +232,21 @@ router.post("/verify/:id", async (req, res) => {
     logins.delete(id);
     
     // Save public key
-    await setPublicKey(login.id, login.publicKey);
+    await setUserPublicKey(login.id, login.publicKey);
     
     // Generate session token
     let { user, token } = await sessionToken(login.username, login.id);
 
     // Create the default session user and update subscribers 
-    let userSession = await createUserSession(login.id, user.username, user.color);
+    let success = await updateUserProfile(login.id, user.username, user.color);
+
+    if (success === null) return res.status(500).json({
+        error: true,
+        message: "Internal server error",
+        code: 106
+    });
+
+    let userSession = await getUserSession(login.id);
 
     await updateUserSubscribers(login.id, userSession);
 
