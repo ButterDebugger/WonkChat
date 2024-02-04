@@ -231,13 +231,10 @@ router.post("/verify/:id", async (req, res) => {
 
     logins.delete(id);
     
-    // Save public key
-    await setUserPublicKey(login.id, login.publicKey);
-    
     // Generate session token
     let { user, token } = await sessionToken(login.username, login.id);
 
-    // Create the default session user and update subscribers 
+    // Create the default session user 
     let success = await updateUserProfile(login.id, user.username, user.color);
 
     if (success === null) return res.status(500).json({
@@ -245,7 +242,11 @@ router.post("/verify/:id", async (req, res) => {
         message: "Internal server error",
         code: 106
     });
+    
+    // Save public key
+    await setUserPublicKey(login.id, login.publicKey);
 
+    // Update subscribers
     let userSession = await getUserSession(login.id);
 
     await updateUserSubscribers(login.id, userSession);
