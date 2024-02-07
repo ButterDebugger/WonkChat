@@ -287,17 +287,17 @@ router.get("/users", authenticate, async (req, res) => { // TODO: deprecate this
     if (typeof subscribe == "string") {
         switch (subscribe) {
             case "yes":
-                sessionUsernames.forEach(id => {
-                    let subscribers = userSubscriptions.get(id) ?? new Set();
+                sessionUsernames.forEach(username => {
+                    let subscribers = userSubscriptions.get(username) ?? new Set();
                     subscribers.add(req.user.username);
-                    userSubscriptions.set(id, subscribers);
+                    userSubscriptions.set(username, subscribers);
                 });
                 break;
             case "no":
-                sessionUsernames.forEach(id => {
-                    let subscribers = userSubscriptions.get(id) ?? new Set();
+                sessionUsernames.forEach(username => {
+                    let subscribers = userSubscriptions.get(username) ?? new Set();
                     subscribers.delete(req.user.username);
-                    userSubscriptions.set(id, subscribers);
+                    userSubscriptions.set(username, subscribers);
                 });
                 break;
             default:
@@ -305,13 +305,12 @@ router.get("/users", authenticate, async (req, res) => { // TODO: deprecate this
         }
     }
 
-    let userSessions = await Promise.all(sessionUsernames.map((id) => {
-        return getUserSession(id);
+    let userSessions = await Promise.all(sessionUsernames.map((username) => {
+        return getUserSession(username);
     }));
 
     let users = userSessions.reduce((arr, user) => {
         if (user !== null) arr.push({
-            id: user.id,
             username: user.username,
             color: user.color,
             offline: user.offline

@@ -225,7 +225,7 @@ router.post("/verify", async (req, res) => {
         });
     }
 
-    // Check if login id exists
+    // Check if login nonce exists
     if (!logins.has(nonce)) return res.status(400).json({
         error: true,
         message: "Login code has expired",
