@@ -12,7 +12,7 @@ let userSubscriptions = new Map();
 router.post("/rooms/:roomname/join", authenticate, async (req, res) => {
     let { roomname } = req.params;
 
-    let userSession = await getUserSession(req.user.id);
+    let userSession = await getUserSession(req.user.username);
 
     if (!isValidRoomname(roomname)) return res.status(400).json({
         error: true,
@@ -34,7 +34,7 @@ router.post("/rooms/:roomname/join", authenticate, async (req, res) => {
         code: 303
     });
 
-    let success = await addUserToRoom(req.user.id, roomname);
+    let success = await addUserToRoom(req.user.username, roomname);
 
     if (success === null) return res.status(500).json({
         error: true,
@@ -42,15 +42,15 @@ router.post("/rooms/:roomname/join", authenticate, async (req, res) => {
         code: 106
     });
 
-    for (let id of room.members) {
-        if (id === req.user.id) continue;
+    for (let username of room.members) {
+        if (username === req.user.username) continue;
 
-        let stream = getStream(id);
+        let stream = getStream(username);
         if (stream === null) continue;
 
         stream.json({
             room: roomname,
-            id: req.user.id,
+            username: req.user.username,
             timestamp: Date.now(),
             state: "join"
         }, "updateMember");
@@ -68,7 +68,7 @@ router.post("/rooms/:roomname/join", authenticate, async (req, res) => {
 router.post("/rooms/:roomname/leave", authenticate, async (req, res) => {
     let { roomname } = req.params;
 
-    let userSession = await getUserSession(req.user.id);
+    let userSession = await getUserSession(req.user.username);
 
     if (!userSession.rooms.has(roomname)) return res.status(400).json({
         error: true,
@@ -84,7 +84,7 @@ router.post("/rooms/:roomname/leave", authenticate, async (req, res) => {
         code: 303
     });
 
-    let success = await removeUserFromRoom(req.user.id, roomname);
+    let success = await removeUserFromRoom(req.user.username, roomname);
 
     if (success === null) return res.status(500).json({
         error: true,
@@ -92,15 +92,15 @@ router.post("/rooms/:roomname/leave", authenticate, async (req, res) => {
         code: 106
     });
 
-    for (let id of room.members) {
-        if (id === req.user.id) continue;
+    for (let username of room.members) {
+        if (username === req.user.username) continue;
 
-        let stream = getStream(id);
+        let stream = getStream(username);
         if (stream === null) continue;
 
         stream.json({
             room: roomname,
-            id: req.user.id,
+            username: req.user.username,
             timestamp: Date.now(),
             state: "leave"
         }, "updateMember");
@@ -114,7 +114,7 @@ router.post("/rooms/:roomname/leave", authenticate, async (req, res) => {
 router.get("/rooms/:roomname/members", authenticate, async (req, res) => { // TODO: deprecate this in favor of /rooms/:roomname/info
     let { roomname } = req.params;
 
-    let userSession = await getUserSession(req.user.id);
+    let userSession = await getUserSession(req.user.username);
 
     if (!userSession.rooms.has(roomname)) return res.status(400).json({
         error: true,
@@ -161,7 +161,7 @@ router.post("/rooms/:roomname/create", authenticate, async (req, res) => {
 router.post("/rooms/:roomname/message", authenticate, async (req, res) => {
     let { roomname } = req.params;
 
-    let userSession = await getUserSession(req.user.id);
+    let userSession = await getUserSession(req.user.username);
 
     if (!userSession.rooms.has(roomname)) return res.status(400).json({
         error: true,
@@ -217,15 +217,14 @@ router.post("/rooms/:roomname/message", authenticate, async (req, res) => {
         code: 201
     });
 
-    for (let id of room.members) {
-        let stream = getStream(id);
+    for (let username of room.members) {
+        let stream = getStream(username);
         if (stream === null) continue;
 
         stream.json({
             author: {
                 username: userSession.username,
                 color: userSession.color,
-                id: userSession.id,
                 offline: userSession.offline
             },
             room: roomname,
@@ -243,7 +242,7 @@ router.post("/rooms/:roomname/message", authenticate, async (req, res) => {
 router.get("/rooms/:roomname/info", authenticate, async (req, res) => {
     let { roomname } = req.params;
 
-    let userSession = await getUserSession(req.user.id);
+    let userSession = await getUserSession(req.user.username);
 
     if (!userSession.rooms.has(roomname)) return res.status(400).json({
         error: true,
@@ -275,29 +274,29 @@ router.post("/rooms/:roomname/typing", authenticate, (req, res) => {
 });
 
 router.get("/users", authenticate, async (req, res) => { // TODO: deprecate this in favor of /users/:userid ~> /subscribe /unsubscribe /fetch
-    let { ids, subscribe } = req.query;
+    let { usernames, subscribe } = req.query;
 
-    if (typeof ids !== "string") return res.status(400).json({
+    if (typeof usernames !== "string") return res.status(400).json({
         error: true,
         message: "Missing query string",
         code: 102
     });
 
-    let sessionIds = ids.split(",");
+    let sessionUsernames = usernames.split(",");
 
     if (typeof subscribe == "string") {
         switch (subscribe) {
             case "yes":
-                sessionIds.forEach(id => {
+                sessionUsernames.forEach(id => {
                     let subscribers = userSubscriptions.get(id) ?? new Set();
-                    subscribers.add(req.user.id);
+                    subscribers.add(req.user.username);
                     userSubscriptions.set(id, subscribers);
                 });
                 break;
             case "no":
-                sessionIds.forEach(id => {
+                sessionUsernames.forEach(id => {
                     let subscribers = userSubscriptions.get(id) ?? new Set();
-                    subscribers.delete(req.user.id);
+                    subscribers.delete(req.user.username);
                     userSubscriptions.set(id, subscribers);
                 });
                 break;
@@ -306,7 +305,7 @@ router.get("/users", authenticate, async (req, res) => { // TODO: deprecate this
         }
     }
 
-    let userSessions = await Promise.all(sessionIds.map((id) => {
+    let userSessions = await Promise.all(sessionUsernames.map((id) => {
         return getUserSession(id);
     }));
 
@@ -331,7 +330,7 @@ router.post("/users/:userid/subscribe", authenticate, async (req, res) => {
     
     // Update list of subscribers
     let subscribers = userSubscriptions.get(userid) ?? new Set();
-    subscribers.add(req.user.id);
+    subscribers.add(req.user.username);
     userSubscriptions.set(userid, subscribers);
 
     res.status(200).json({
@@ -344,7 +343,7 @@ router.post("/users/:userid/unsubscribe", authenticate, async (req, res) => {
     
     // Update list of subscribers
     let subscribers = userSubscriptions.get(userid) ?? new Set();
-    subscribers.delete(req.user.id);
+    subscribers.delete(req.user.username);
     userSubscriptions.set(userid, subscribers);
 
     res.status(200).json({
@@ -352,10 +351,10 @@ router.post("/users/:userid/unsubscribe", authenticate, async (req, res) => {
     });
 });
 
-router.get("/users/:userid/fetch", authenticate, async (req, res) => {
-    let { userid } = req.params;
+router.get("/users/:username/fetch", authenticate, async (req, res) => {
+    let { username } = req.params;
 
-    let session = await getUserSession(userid);
+    let session = await getUserSession(username);
 
     if (!session) return res.status(400).json({
         error: true,
@@ -364,9 +363,8 @@ router.get("/users/:userid/fetch", authenticate, async (req, res) => {
     });
 
     res.status(200).json({
-        id: session.id,
+        username: session.username,
         data: {
-            id: session.id,
             username: session.username,
             color: session.color,
             offline: session.offline,
@@ -376,7 +374,7 @@ router.get("/users/:userid/fetch", authenticate, async (req, res) => {
 });
 
 router.get("/sync/client", authenticate, async (req, res) => {
-    let userSession = await getUserSession(req.user.id);
+    let userSession = await getUserSession(req.user.username);
     let viewableUsers = new Set();
 
     // Get rooms
@@ -395,11 +393,10 @@ router.get("/sync/client", authenticate, async (req, res) => {
     }
 
     // Get viewable users
-    viewableUsers.delete(userSession.id);
+    viewableUsers.delete(userSession.username);
     
-    let users = await Promise.all(Array.from(viewableUsers).map((id) => {
-        return getUserSession(id).then((session) => ({
-            id: session.id,
+    let users = await Promise.all(Array.from(viewableUsers).map((username) => {
+        return getUserSession(username).then((session) => ({
             username: session.username,
             color: session.color,
             offline: session.offline
@@ -410,7 +407,6 @@ router.get("/sync/client", authenticate, async (req, res) => {
         rooms: rooms,
         users: users,
         you: {
-            id: userSession.id,
             username: userSession.username,
             color: userSession.color,
             offline: userSession.offline
@@ -420,7 +416,7 @@ router.get("/sync/client", authenticate, async (req, res) => {
 });
 
 router.get("/sync/memory", authenticate, async (req, res) => {
-    let stream = getStream(req.user.id);
+    let stream = getStream(req.user.username);
     if (stream === null) return res.status(400).json({
         error: true,
         message: "Could not find an active stream",
@@ -450,9 +446,9 @@ function isValidRoomname(roomname) {
     return true;
 }
 
-export async function getSubscribers(id) {
-    let viewers = await getUserViews(id);
-    let subscriptions = userSubscriptions.get(id) ?? new Set();
+export async function getSubscribers(username) {
+    let viewers = await getUserViews(username);
+    let subscriptions = userSubscriptions.get(username) ?? new Set();
 
     return Array.from(new Set([...viewers, ...subscriptions]));
 }

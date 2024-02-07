@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import * as openpgp from "openpgp";
 import knex from "knex";
+import bcrypt from "bcrypt";
 
 // Create storage directory
 if (!fs.existsSync(path.join(process.cwd(), "storage"))) {
@@ -22,8 +23,9 @@ await Promise.all([
 	db.schema.hasTable("users").then((exists) => {
 		if (!exists) {
 			return db.schema.createTable("users", (table) => {
-				table.text("id").primary(); // TODO: use usernames instead for ids
-				table.text("username");
+				table.text("username").primary();
+				table.text("displayName");
+				table.text("password");
 				table.text("color");
                 table.text("rooms").defaultTo("[]"); // TODO: Use a different data type that sql supports
 				table.boolean("online").defaultTo(false);
@@ -45,9 +47,9 @@ await Promise.all([
 ]);
 
 // Interface functions:
-export async function getUserSession(userId) {
+export async function getUserSession(username) {
     return await db("users")
-        .where("id", userId)
+        .where("username", username)
         .first()
         .then((user) => {
             if (!user) return null;
@@ -60,22 +62,52 @@ export async function getUserSession(userId) {
         .catch(() => null);
 }
 
-export async function updateUserProfile(userId, username, color) {
+export async function createUserProfile(username, password, color) {
     return await db("users")
-        .insert({
-            id: userId,
-            username: username,
-            color: color
+        .where("username", username)
+        .first()
+        .then(async (user) => {
+            // Check if user already exists
+            if (user) return false;
+
+            return db("users")
+                .insert({
+                    username: username,
+                    password: await bcrypt.hash(password, 10),
+                    color: color
+                })
+                .then(() => true)
+                .catch(() => null);
         })
-        .onConflict("id")
-        .merge()
-        .then(() => getUserSession(userId))
         .catch(() => null);
 }
 
-export async function setUserStatus(userId, online) {
+export async function compareUserProfile(username, password) {
     return await db("users")
-        .where("id", userId)
+        .where("username", username)
+        .first()
+        .then(async (user) => {
+            if (!user) return false;
+
+            return await bcrypt.compare(password, user.password);
+        })
+        .catch(() => false);
+}
+
+export async function updateUserProfile(username, color) {
+    return await db("users")
+        .where("username", username)
+        .update({
+            username: username,
+            color: color
+        })
+        .then(() => true)
+        .catch(() => false);
+}
+
+export async function setUserStatus(username, online) {
+    return await db("users")
+        .where("username", username)
         .update({
             online: online
         })
@@ -83,19 +115,19 @@ export async function setUserStatus(userId, online) {
         .catch(() => false);
 }
 
-export async function addUserToRoom(userId, roomname) {
-    let user = await getUserSession(userId);
+export async function addUserToRoom(username, roomname) {
+    let user = await getUserSession(username);
     if (user === null) return false;
 
     let room = await getRoom(roomname);
     if (room === null) return false;
 
     user.rooms.add(roomname);
-    room.members.add(userId);
+    room.members.add(username);
 
     return await db.transaction(async (trx) => { // TODO: test this
         await trx("users")
-            .where("id", userId)
+            .where("username", username)
             .update({
                 rooms: JSON.stringify(Array.from(user.rooms))
             });
@@ -109,19 +141,19 @@ export async function addUserToRoom(userId, roomname) {
     .then(() => true)
     .catch(() => false);
 }
-export async function removeUserFromRoom(userId, roomname) {
-    let user = await getUserSession(userId);
+export async function removeUserFromRoom(username, roomname) {
+    let user = await getUserSession(username);
     if (user === null) return false;
 
     let room = await getRoom(roomname);
     if (room === null) return false;
 
     user.rooms.delete(roomname);
-    room.members.delete(userId);
+    room.members.delete(username);
 
     return await db.transaction(async (trx) => { // TODO: test this
         await trx("users")
-            .where("id", userId)
+            .where("username", username)
             .update({
                 rooms: JSON.stringify(Array.from(user.rooms))
             });
@@ -136,8 +168,8 @@ export async function removeUserFromRoom(userId, roomname) {
     .catch(() => false);
 }
 
-export async function getUserViews(userId) {
-    let user = await getUserSession(userId);
+export async function getUserViews(username) {
+    let user = await getUserSession(username);
     if (user === null) return false;
 
     let viewers = new Set();
@@ -201,9 +233,9 @@ export async function getRoom(roomname) {
         .catch(() => null);
 }
 
-export async function setUserPublicKey(userId, publicKey) {
+export async function setUserPublicKey(username, publicKey) {
     return await db("users")
-        .where("id", userId)
+        .where("username", username)
         .update({
             publicKey: publicKey // TODO: make sure public key is a blob
         })
@@ -211,9 +243,9 @@ export async function setUserPublicKey(userId, publicKey) {
         .catch(() => false);
 }
 
-export async function getUserPublicKey(userId) {
+export async function getUserPublicKey(username) {
     return await db("users")
-        .where("id", userId)
+        .where("username", username)
         .select("publicKey")
         .first()
         .then((key) => {

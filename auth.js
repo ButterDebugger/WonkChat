@@ -3,8 +3,8 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import crypto from "node:crypto";
 import * as openpgp from "openpgp";
-import { getUserPublicKey, getUserSession, setUserPublicKey, updateUserProfile } from "./data.js";
-import { Fingerprint } from "./identifier.js";
+import { compareUserProfile, createUserProfile, getUserPublicKey, getUserSession, setUserPublicKey, updateUserProfile } from "./data.js";
+import { Fingerprint, Snowflake } from "./identifier.js";
 import { updateUserSubscribers } from "./streams.js";
 
 let loginExpiration = 60_000; // 1 minute
@@ -59,7 +59,7 @@ export function verifyToken(token = null) {
             });
 
             // Check if public key is still available on the server
-            if (await getUserPublicKey(user.id) === null) return resolve({
+            if (await getUserPublicKey(user.username) === null) return resolve({
                 success: false,
                 reset: false,
                 refresh: true,
@@ -94,27 +94,21 @@ function generateColor() {
     return color;
 }
 
-async function sessionToken(username, id) {
-    let userSession = await getUserSession(id);
-    let user = {
-        id: id,
+async function sessionToken(username) {
+    let payload = {
         username: username,
-        color: userSession?.color ?? generateColor(),
+        jti: crypto.randomUUID(),
         iat: Date.now()
     };
-    
-    if (userSession !== null) {
-        await updateUserProfile(id, user.username, user.color);
-    }
 
     return {
-        user: user,
-        token: jwt.sign(user, process.env.TOKEN_SECRET) // Create token
+        payload: payload,
+        token: jwt.sign(payload, process.env.TOKEN_SECRET) // Create token
     };
 }
 
 /*
- *  Account login route
+ *  Account login router
  */
 const authLimiter = rateLimit({
     windowMs: 5 * 60 * 1000, // 5 minutes
@@ -146,9 +140,9 @@ router.get("/logout", (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-    let { username, publicKey } = req.body;
+    let { username, password } = req.body;
 
-    if (typeof username !== "string" || typeof publicKey !== "string") return res.status(400).json({
+    if (typeof username !== "string" || typeof password !== "string") return res.status(400).json({
         error: true,
         message: "Invalid body",
         code: 101
@@ -158,24 +152,71 @@ router.post("/login", async (req, res) => {
     if (
         username.length < 3 ||
         username.length > 16 ||
-        !/^(?! )[\x20-\x7E]{3,16}(?<! )$/g.test(username)
+        !/^(?! )[\x20-\x7E]{3,16}(?<! )$/g.test(username) ||
+        password.length < 6
     ) return res.status(400).json({
         error: true,
         message: "Invalid credentials",
         code: 501
     });
 
-    // Encrypt a random code for the user to verify
-    let code = crypto.randomBytes(256).toString("base64url");
-    let encrypted;
+    // Generate a random nonce for the user to sign
+    let nonce = crypto.randomBytes(256).toString("base64url");
+
+    // Create a user account
+    let color = generateColor();
+    let success = await createUserProfile(username, password, color);
+
+    if (success === null) return res.status(500).json({
+        error: true,
+        message: "Internal server error",
+        code: 106
+    });
+
+    // User account already exists
+    if (success === false) {
+        // Check if password is correct
+        let correct = await compareUserProfile(username, password);
+
+        if (!correct) return res.status(400).json({
+            error: true,
+            message: "Invalid credentials",
+            code: 501
+        });
+    }
+
+
+    // Create temporary login code
+    logins.set(nonce, username);
+
+    setTimeout(() => logins.delete(nonce), loginExpiration);
+    
+    res.status(200).json({
+        success: true,
+        nonce: nonce
+    });
+});
+
+router.post("/verify", async (req, res) => {
+    let { signedNonce, publicKey } = req.body;
+
+    if (typeof signedNonce !== "string" || typeof publicKey !== "string") return res.status(400).json({
+        error: true,
+        message: "Invalid body",
+        code: 101
+    });
+
+    // Verify the signed nonce
+    let nonce;
     let armoredKey;
 
     try {
         armoredKey = await openpgp.readKey({ armoredKey: publicKey });
-        encrypted = await openpgp.encrypt({
-            message: await openpgp.createMessage({ text: code }),
-            encryptionKeys: armoredKey
+        let { data } = await openpgp.verify({
+            message: await openpgp.readMessage({ armoredMessage: signedNonce }),
+            verificationKeys: armoredKey
         });
+        nonce = data;
     } catch (error) {
         return res.status(400).json({
             error: true,
@@ -184,76 +225,46 @@ router.post("/login", async (req, res) => {
         });
     }
 
-    // Create temporary login code
-    let id = Fingerprint.generate(publicKey);
-    let loginId = crypto.randomUUID();
-    
-    logins.set(loginId, {
-        username: username,
-        id: id,
-        publicKey: armoredKey.write(),
-        code: code
-    });
-
-    setTimeout(() => {
-        logins.delete(loginId);
-    }, loginExpiration);
-    
-    res.status(200).json({
-        id: loginId,
-        message: encrypted
-    });
-});
-
-router.post("/verify/:id", async (req, res) => {
-    let { id } = req.params;
-    let { message } = req.body;
-
     // Check if login id exists
-    if (!logins.has(id)) return res.status(400).json({
+    if (!logins.has(nonce)) return res.status(400).json({
         error: true,
         message: "Login code has expired",
         code: 505
     });
 
-    let login = logins.get(id);
+    let username = logins.get(nonce);
 
-    // Check if code is valid
-    if (message !== login.code) {
-        res.status(400).json({
-            error: true,
-            message: "Login code is invalid",
-            code: 506
-        });
-        logins.delete(id);
-        return;
-    }
-
-    logins.delete(id);
+    logins.delete(nonce);
     
     // Generate session token
-    let { user, token } = await sessionToken(login.username, login.id);
+    let { token } = await sessionToken(username);
 
-    // Create the default session user 
-    let success = await updateUserProfile(login.id, user.username, user.color);
+    // Check if the user profile exists 
+    let user = await getUserSession(username);
 
-    if (success === null) return res.status(500).json({
+    if (user === null) return res.status(400).json({
+        error: true,
+        message: "Account does not exist",
+        code: 507
+    });
+    
+    // Save public key
+    let success = await setUserPublicKey(username, armoredKey.write());
+
+    if (!success) return res.status(500).json({
         error: true,
         message: "Internal server error",
         code: 106
     });
-    
-    // Save public key
-    await setUserPublicKey(login.id, login.publicKey);
 
     // Update subscribers
-    let userSession = await getUserSession(login.id);
+    let userSession = await getUserSession(username);
 
-    await updateUserSubscribers(login.id, userSession);
+    await updateUserSubscribers(username, userSession);
 
-    // Send user session token
+    // Send the session token
     res.status(200).json({
-        id: login.id,
+        success: true,
         token: token
     });
 });

@@ -15,7 +15,7 @@ class Stream {
     }
 
     async send(data, event = "unknown") {
-        let key = await getUserPublicKey(this.session.id);
+        let key = await getUserPublicKey(this.session.username);
         let encrypted = await openpgp.encrypt({ // TODO: make binary
             message: await openpgp.createMessage({ text: data }),
             encryptionKeys: await openpgp.readKey({ binaryKey: key })
@@ -71,11 +71,11 @@ class Stream {
         });
         this.session = req.user;
 
-        setOnlineStatus(this.session.id, true);
+        setOnlineStatus(this.session.username, true);
         
         res.on("close", () => {
             res.end();
-            setOnlineStatus(this.session.id, this.isAlive());
+            setOnlineStatus(this.session.username, this.isAlive());
             this.clients = this.clients.filter(client => !client.res.finished);
         });
     }
@@ -90,12 +90,12 @@ export function getStreamRoute(req, res) {
     res.flushHeaders();
 
     let stream;
-    if (clientStreams.has(req.user.id)) {
-        stream = clientStreams.get(req.user.id);
+    if (clientStreams.has(req.user.username)) {
+        stream = clientStreams.get(req.user.username);
         stream.remix(req, res);
     } else {
         stream = new Stream(req, res);
-        clientStreams.set(req.user.id, stream);
+        clientStreams.set(req.user.username, stream);
     }
     
     stream.json({
@@ -105,30 +105,29 @@ export function getStreamRoute(req, res) {
     stream.initPings();
 }
 
-async function setOnlineStatus(id, online) {
-    let userSession = await getUserSession(id);
+async function setOnlineStatus(username, online) {
+    let userSession = await getUserSession(username);
     if (userSession !== null) {
         let changed = userSession.offline !== !online;
 
-        await setUserStatus(id, online);
+        await setUserStatus(username, online);
 
         if (changed) {
-            await updateUserSubscribers(id, userSession);
+            await updateUserSubscribers(username, userSession);
         }
     }
 }
 
-export async function updateUserSubscribers(id, userSession) {
-    let viewers = await getSubscribers(id);
+export async function updateUserSubscribers(username, userSession) {
+    let viewers = await getSubscribers(username);
     
     viewers.forEach(subscriber => {
         let stream = getStream(subscriber);
 
         if (stream !== null) {
             stream.json({
-                id: id,
+                username: userSession.username,
                 data: {
-                    id: userSession.id,
                     username: userSession.username,
                     color: userSession.color,
                     offline: userSession.offline
@@ -139,8 +138,8 @@ export async function updateUserSubscribers(id, userSession) {
     })
 }
 
-export function getStream(id) {
-    let stream = clientStreams.get(id);
+export function getStream(username) {
+    let stream = clientStreams.get(username);
     if (!(stream instanceof Stream)) return null;
     return stream;
 }

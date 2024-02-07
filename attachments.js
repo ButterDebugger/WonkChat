@@ -25,7 +25,7 @@ router.post("/upload", authenticate, async (req, res) => {
     }
 
     let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
-    let data = await saveFiles(files, req.user.id);
+    let data = await saveFiles(files, req.user.username);
 
     res.json(data);
 });

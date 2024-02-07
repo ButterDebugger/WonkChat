@@ -43,6 +43,7 @@
 | 504  | Username has already been taken (Deprecated) |
 | 505  | Login code has expired                       |
 | 506  | Login code is invalid                        |
+| 507  | Account does not exist                       |
 
 ## Stream error codes
 
