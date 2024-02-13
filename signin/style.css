@@ -1,0 +1,142 @@
+html {
+    height: 100%;
+}
+body {
+    height: 100%;
+    font-size: 16px;
+}
+*, *:before, *:after {
+    box-sizing: border-box;
+}
+
+#root {
+    display: flex;
+
+    width: 100%;
+    height: 100%;
+}
+main {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+
+    padding: 48px 36px;
+    max-width: 480px;
+    margin: auto;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-thumb {
+    background: hsla(0, 0%, 100%, 0.2);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+    border-radius: 4px;
+}
+
+/* Input styles */
+input[type="text"], input[type="password"], button, textarea, select {
+    border: 1px solid rgba(127, 127, 127, 0.5);
+    background-color: var(--secondary-background);
+    color: var(--foreground);
+    border-radius: 16px;
+    padding: 8px 16px;
+    outline: none;
+}
+input[type="text"], input[type="password"], textarea {
+    font-size: 17px;
+    width: -webkit-fill-available;
+    width: -moz-available;
+    width: fill-available;
+}
+button {
+    padding: 8px 24px;
+}
+option {
+    background-color: var(--secondary-background);
+    color: var(--foreground);
+}
+input:focus, button:focus {
+    border-color: var(--secondary-color);
+}
+input:disabled, button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Generic styles */
+.step-indicator {
+    align-self: center;
+
+    color: var(--secondary-foreground);
+    margin: 0px 0px 4px 0px;
+}
+.header {
+    align-self: center;
+    
+    font-size: 30px;
+    margin: 0px 0px 16px;
+}
+
+#error-message {
+    margin: 0px 0px 10px;
+    font-size: 13px;
+    text-align: center;
+    color: orangered;
+}
+#error-message:empty {
+    display: none;
+}
+
+.input-container {
+    display: flex;
+    flex-direction: column;
+}
+.field-group {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 8px;
+}
+.field-group.stretch > *:first-child {
+    flex: 1;
+}
+.field-label {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0px 0px 4px 0px;
+}
+
+#step-one, #step-two {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+#previous-step {
+    align-self: flex-start;
+}
+#next-step {
+    align-self: flex-end;
+}
+#submit {
+    align-self: flex-end;
+}
+
+#public-key, #private-key {
+    resize: none;
+}
+#private-key {
+    transition: color 0.2s ease-in-out, text-shadow 0.2s ease-in-out;
+}
+#private-key:not(:focus):not(:placeholder-shown) {
+    color: transparent;
+    text-shadow: 0px 0px 8px var(--foreground);
+}
+
+#generate-key-pair.highlight:not(:hover) {
+    border-color: var(--secondary-color);
+}

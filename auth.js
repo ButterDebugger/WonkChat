@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import crypto from "node:crypto";
+import path from "node:path";
 import * as openpgp from "openpgp";
 import { compareUserProfile, createUserProfile, getUserPublicKey, getUserSession, setUserPublicKey, updateUserProfile } from "./data.js";
 import { Fingerprint, Snowflake } from "./identifier.js";
@@ -126,12 +127,17 @@ const authLimiter = rateLimit({
     }
 });
 
-export const router = express.Router();
+// Authorization routes
+export const authRouter = express.Router();
 const logins = new Map();
 
-router.use(authLimiter);
+authRouter.use("/signin", express.static(path.join(process.cwd(), "signin")));
 
-router.get("/logout", (req, res) => {
+authRouter.use(authLimiter);
+
+// TODO: Add cors
+
+authRouter.get("/logout", (req, res) => {
     res.clearCookie("token");
 
     res.status(200).json({
@@ -139,7 +145,7 @@ router.get("/logout", (req, res) => {
     });
 });
 
-router.post("/login", async (req, res) => {
+authRouter.post("/login", async (req, res) => {
     let { username, password } = req.body;
 
     if (typeof username !== "string" || typeof password !== "string") return res.status(400).json({
@@ -197,7 +203,7 @@ router.post("/login", async (req, res) => {
     });
 });
 
-router.post("/verify", async (req, res) => {
+authRouter.post("/verify", async (req, res) => {
     let { signedNonce, publicKey } = req.body;
 
     if (typeof signedNonce !== "string" || typeof publicKey !== "string") return res.status(400).json({

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Sign In</title>
+		<link
+			rel="stylesheet"
+			href="https://debutter.dev/x/css/style.css@1.1"
+		/>
+		<link rel="stylesheet" href="./style.css" />
+		<script src="https://unpkg.com/axios@1.6.2/dist/axios.min.js"></script>
+		<script defer type="module" src="./main.js"></script>
+	</head>
+	<body class="zero-margin">
+		<div id="root">
+			<main>
+        <h5 class="step-indicator">Step <span id="step-number">1</span> of 2</h5>
+        <h1 class="header">Sign In</h1>
+        <h5 id="error-message"></h5>
+
+        <div id="step-one">
+          <div class="input-container">
+            <span class="field-label">Username</span>
+            <input
+              type="text"
+              name="username"
+              id="username"
+              minlength="3"
+              maxlength="16"
+              pattern="^(?! )[\x20-\x7E]{3,16}(?<! )$"
+              autocomplete="username"
+              spellcheck="false"
+              required
+            />
+          </div>
+          <div class="input-container">
+            <span class="field-label">Password</span>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              minlength="6"
+              autocomplete="current-password"
+              spellcheck="false"
+              required
+            />
+          </div>
+
+          <button id="next-step" disabled>Next</button>
+        </div>
+
+        <div id="step-two" class="hidden">
+          <div class="input-container">
+            <span class="field-label">Generate Key Pair</span>
+
+            <div class="field-group stretch">
+              <select id="key-size">
+                <option value="1024">1024 bits</option>
+                <option value="2048" selected>
+                  2048 bits
+                </option>
+                <option value="4096">4096 bits</option>
+              </select>
+
+              <button id="generate-key-pair">Generate</button>
+            </div>
+          </div>
+
+          <div class="input-container">
+            <span class="field-label">Public Key</span>
+            <textarea
+              name="public-key"
+              id="public-key"
+              rows="4"
+              spellcheck="false"
+              required
+            ></textarea>
+          </div>
+          <div class="input-container">
+            <span class="field-label">Private Key</span>
+            <textarea
+              name="private-key"
+              id="private-key"
+              rows="4"
+              spellcheck="false"
+              required
+            ></textarea>
+          </div>
+
+          <div class="field-group">
+            <button id="previous-step">Back</button>
+            <button id="submit" disabled>Submit</button>
+          </div>
+        </div>
+			</main>
+		</div>
+	</body>
+</html>

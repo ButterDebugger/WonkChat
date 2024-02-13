@@ -7,18 +7,18 @@ import chalk from "chalk";
 import http from "node:http";
 import cors from "cors";
 import dotenv from "dotenv";
-import { router as authRoute, authenticate } from "./auth.js";
+import { authRouter, authenticate } from "./auth.js";
 import { router as gatewayRoute } from "./gateway.js";
 import { createRoom } from "./data.js";
 
 dotenv.config();
-const port = process.env.PORT ?? 5000;
+const port = process.env.PORT ?? 5001;
 const app = express();
 const server = http.createServer({}, app).listen(port);
 
 // Add server log listeners
 server.addListener("listening", () => {
-    console.log(chalk.bgGreen.bold(" LISTENING "), chalk.white(`API server is running`));
+    console.log(chalk.bgGreen.bold(" LISTENING "), chalk.white(`API server is running on port ${port}`));
 });
 server.addListener("close", () => {
     console.log(chalk.bgYellow.bold(" CLOSE "), chalk.white("API server has closed"));
@@ -41,7 +41,7 @@ app.get("/ping", (req, res) => {
 });
 
 // Auth routes
-app.use("/auth", authRoute);
+app.use("/auth", authRouter);
 
 // Handle api gateway
 app.use(authenticate, gatewayRoute);
