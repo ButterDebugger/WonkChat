@@ -28,7 +28,7 @@ function updateStepButtons() {
     } else {
         nextBtn.disabled = true;
     }
-    
+
     // Update submit button
     if (
         usernameEle.validity.valid &&
@@ -135,7 +135,7 @@ async function authenticate(speed = 500) {
         password: passwordEle.value
     }).then(async (res) => {
         let { nonce } = res.data;
-        
+
         submitBtn.innerText = "Verifying";
 
         let signedNonce = await signMessage(nonce, keyPair.privateKey);
@@ -152,7 +152,11 @@ async function authenticate(speed = 500) {
                 privateKey: keyPair.privateKey
             }, "*");
 
-            window.close();
+            document.addEventListener("visibilitychange", () => {
+                if (document.hidden) {
+                    window.close();
+                }
+            });
         }).catch(err => requestErrorHandler(err, "Something went wrong whilst verifying"));
     }).catch(err => requestErrorHandler(err, "Something went wrong whilst authorizing"));
 }
