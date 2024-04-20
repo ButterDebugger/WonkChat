@@ -148,6 +148,7 @@ async function authenticate(speed = 500) {
 
             window?.opener?.postMessage({
                 token,
+                username: usernameEle.value,
                 publicKey: keyPair.publicKey,
                 privateKey: keyPair.privateKey
             }, "*");
