@@ -7,7 +7,7 @@
 		<title>Sign In</title>
 		<link
 			rel="stylesheet"
-			href="https://debutter.dev/x/css/style.css@1.1"
+			href="https://debutter.dev/x/css/style.css@1.2"
 		/>
 		<link rel="stylesheet" href="./style.css" />
 		<script src="https://unpkg.com/axios@1.6.2/dist/axios.min.js"></script>
@@ -22,7 +22,7 @@
 
         <div id="step-one">
           <div class="input-container">
-            <span class="field-label">Username</span>
+            <label class="field-label" for="username">Username</label>
             <input
               type="text"
               name="username"
@@ -36,7 +36,7 @@
             />
           </div>
           <div class="input-container">
-            <span class="field-label">Password</span>
+            <label class="field-label" for="password">Password</label>
             <input
               type="password"
               name="password"
@@ -47,13 +47,22 @@
               required
             />
           </div>
+          <div class="input-container row">
+            <label class="field-label" for="trust">I trust <span id="trusted-host">???</span> to act on my behalf</label>
+            <input
+              type="checkbox"
+              name="trust"
+              id="trust"
+              required
+            />
+          </div>
 
           <button id="next-step" disabled>Next</button>
         </div>
 
         <div id="step-two" class="hidden">
           <div class="input-container">
-            <span class="field-label">Generate Key Pair</span>
+            <label class="field-label" for="key-size">Generate Key Pair</label>
 
             <div class="field-group stretch">
               <select id="key-size">
@@ -69,7 +78,7 @@
           </div>
 
           <div class="input-container">
-            <span class="field-label">Public Key</span>
+            <label class="field-label" for="public-key">Public Key</label>
             <textarea
               name="public-key"
               id="public-key"
@@ -79,7 +88,7 @@
             ></textarea>
           </div>
           <div class="input-container">
-            <span class="field-label">Private Key</span>
+            <label class="field-label" for="private-key">Private Key</label>
             <textarea
               name="private-key"
               id="private-key"

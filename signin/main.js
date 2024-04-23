@@ -7,6 +7,8 @@ const errorMessageEle = document.getElementById("error-message");
 const stepOneEle = document.getElementById("step-one");
 const usernameEle = document.getElementById("username");
 const passwordEle = document.getElementById("password");
+const trustChk = document.getElementById("trust");
+const trustedHostEle = document.getElementById("trusted-host")
 const nextBtn = document.getElementById("next-step");
 
 const stepTwoEle = document.getElementById("step-two");
@@ -21,9 +23,18 @@ if (!window?.opener) {
     errorMessageEle.innerText = "This window cannot be opened directly.";
 }
 
+let parentHost = window?.opener?.location?.host;
+
+if (parentHost) {
+    trustedHostEle.innerText = parentHost;
+} else {
+    trustedHostEle.innerText = "Unknown Host";
+    trustedHostEle.classList.add("error");
+}
+
 function updateStepButtons() {
     // Update next step button
-    if (usernameEle.validity.valid && passwordEle.validity.valid && window?.opener) {
+    if (usernameEle.validity.valid && passwordEle.validity.valid && trustChk.checked && window?.opener) {
         nextBtn.disabled = false;
     } else {
         nextBtn.disabled = true;
@@ -33,6 +44,7 @@ function updateStepButtons() {
     if (
         usernameEle.validity.valid &&
         passwordEle.validity.valid &&
+        trustChk.checked &&
         publicKeyEle.validity.valid &&
         privateKeyEle.validity.valid
     ) {
@@ -52,6 +64,7 @@ function updateGenerateButton() {
 
 usernameEle.addEventListener("input", () => updateStepButtons());
 passwordEle.addEventListener("input", () => updateStepButtons());
+trustChk.addEventListener("input", () => updateStepButtons());
 
 nextBtn.addEventListener("click", () => {
     stepNumberEle.innerText = "2";
@@ -96,6 +109,7 @@ async function authenticate(speed = 500) {
     submitBtn.disabled = true;
     usernameEle.disabled = true;
     passwordEle.disabled = true;
+    trustChk.disabled = true;
     keySizeEle.disabled = true;
     generateKeyPairBtn.disabled = true;
     privateKeyEle.disabled = true;
@@ -106,6 +120,7 @@ async function authenticate(speed = 500) {
         submitBtn.disabled = false;
         usernameEle.disabled = false;
         passwordEle.disabled = false;
+        trustChk.disabled = false;
         keySizeEle.disabled = false;
         generateKeyPairBtn.disabled = false;
         privateKeyEle.disabled = false;
@@ -158,6 +173,8 @@ async function authenticate(speed = 500) {
                     window.close();
                 }
             });
+
+            restoreInputs();
         }).catch(err => requestErrorHandler(err, "Something went wrong whilst verifying"));
     }).catch(err => requestErrorHandler(err, "Something went wrong whilst authorizing"));
 }
