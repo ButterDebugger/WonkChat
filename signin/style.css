@@ -135,9 +135,9 @@ button {
 }
 #private-key:not(:focus):not(:placeholder-shown) {
     color: transparent;
-    text-shadow: 0px 0px 8px var(--foreground);
+    text-shadow: 0px 0px 8px var(--c-text);
 }
 
 #generate-key-pair.highlight:not(:hover) {
-    border-color: var(--secondary-color);
+    border-color: var(--c-secondary);
 }
