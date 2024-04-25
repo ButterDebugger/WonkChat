@@ -103,11 +103,12 @@ button {
     line-height: 1.2lh;
 }
 
-#trusted-host {
+#trusted-origin {
     font-style: italic;
     font-weight: normal;
+    padding: 0px 0.5ch;
 }
-#trusted-host.error {
+#trusted-origin.error {
     font-style: normal;
     color: orangered;
 }

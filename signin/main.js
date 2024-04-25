@@ -8,7 +8,7 @@ const stepOneEle = document.getElementById("step-one");
 const usernameEle = document.getElementById("username");
 const passwordEle = document.getElementById("password");
 const trustChk = document.getElementById("trust");
-const trustedHostEle = document.getElementById("trusted-host")
+const trustedOriginEle = document.getElementById("trusted-origin")
 const nextBtn = document.getElementById("next-step");
 
 const stepTwoEle = document.getElementById("step-two");
@@ -19,22 +19,34 @@ const privateKeyEle = document.getElementById("private-key");
 const previousStepBtn = document.getElementById("previous-step");
 const submitBtn = document.getElementById("submit");
 
+// Check if this window was opened incorrectly
+let brokenSignIn = false;
+
 if (!window?.opener) {
     errorMessageEle.innerText = "This window cannot be opened directly.";
+    brokenSignIn = true;
+} else if (!query.has("origin")) {
+    errorMessageEle.innerText = "This window was opened without a valid origin.";
+    brokenSignIn = true;
 }
 
-let parentHost = window?.opener?.location?.host;
+let origin = new URLSearchParams(location.search).get("origin");
 
-if (parentHost) {
-    trustedHostEle.innerText = parentHost;
-} else {
-    trustedHostEle.innerText = "Unknown Host";
-    trustedHostEle.classList.add("error");
+try {
+    new URL(origin); // Throws an error if the origin is invalid
+
+    trustedOriginEle.innerText = origin;
+} catch (err) {
+    errorMessageEle.innerText = "This window was opened without a valid origin.";
+    brokenSignIn = true;
+
+    trustedOriginEle.innerText = "Unknown Origin";
+    trustedOriginEle.classList.add("error");
 }
 
 function updateStepButtons() {
     // Update next step button
-    if (usernameEle.validity.valid && passwordEle.validity.valid && trustChk.checked && window?.opener) {
+    if (usernameEle.validity.valid && passwordEle.validity.valid && trustChk.checked && !brokenSignIn) {
         nextBtn.disabled = false;
     } else {
         nextBtn.disabled = true;
@@ -166,7 +178,7 @@ async function authenticate(speed = 500) {
                 username: usernameEle.value,
                 publicKey: keyPair.publicKey,
                 privateKey: keyPair.privateKey
-            }, "*");
+            }, origin);
 
             document.addEventListener("visibilitychange", () => {
                 if (document.hidden) {
