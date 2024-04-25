@@ -25,9 +25,6 @@ let brokenSignIn = false;
 if (!window?.opener) {
     errorMessageEle.innerText = "This window cannot be opened directly.";
     brokenSignIn = true;
-} else if (!query.has("origin")) {
-    errorMessageEle.innerText = "This window was opened without a valid origin.";
-    brokenSignIn = true;
 }
 
 let origin = new URLSearchParams(location.search).get("origin");
