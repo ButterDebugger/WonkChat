@@ -17,8 +17,6 @@ const port = process.env.PORT ?? 5001;
 const app = express();
 const server = http.createServer({}, app).listen(port);
 
-console.log(process.env.TOKEN_SECRET);
-
 // Add server log listeners
 server.addListener("listening", () => {
 	console.log(
