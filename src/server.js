@@ -55,7 +55,7 @@ app.get("/ping", (req, res) => {
 app.use("/auth", authRouter);
 
 // Handle api gateway
-app.use(authenticate, gatewayRoute);
+app.use(gatewayRoute);
 
 // Handle stream route
 app.get("/stream", authenticate, getStreamRoute);
