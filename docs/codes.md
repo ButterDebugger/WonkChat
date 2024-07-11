@@ -8,6 +8,7 @@
 | 104  | Invalid encrypted body |
 | 105  | Unknown endpoint       |
 | 106  | Internal server error  |
+| 107  | Unknown public key     |
 
 ## Message error codes
 

@@ -1,13 +1,13 @@
 import express from "express";
 import { getStream } from "../streams.js";
-import { authenticate } from "../auth.js";
+import { authenticate } from "../auth/session.js";
 import {
 	getUserSession,
 	createRoom,
 	getRoom,
 	addUserToRoom,
 	removeUserFromRoom
-} from "../data.js";
+} from "../lib/data.js";
 import * as openpgp from "openpgp";
 
 export const router = new express.Router();

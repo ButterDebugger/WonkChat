@@ -9,11 +9,13 @@ import { getStreamRoute } from "./streams.js";
 import chalk from "chalk";
 import http from "node:http";
 import cors from "cors";
-import { authRouter, authenticate } from "./auth.js";
+import { authenticate } from "./auth/session.js";
 import { router as gatewayRoute } from "./gateway.js";
-import { createRoom } from "./data.js";
+import { createRoom } from "./lib/data.js";
+import { namespace, port } from "./lib/config.js";
+import { router as oauthRoute } from "./auth/oauth.js";
+import { router as keysRoute } from "./keys.js";
 
-const port = process.env.PORT ?? 5001;
 const app = express();
 const server = http.createServer({}, app).listen(port);
 
@@ -43,6 +45,13 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(cors());
 
+// Add info route
+app.get("/", (req, res) => {
+	res.status(200).json({
+		namespace: namespace
+	});
+});
+
 // Ping route
 app.get("/ping", (req, res) => {
 	res.status(200).json({
@@ -52,7 +61,10 @@ app.get("/ping", (req, res) => {
 });
 
 // Auth routes
-app.use("/auth", authRouter);
+app.use("/oauth", oauthRoute);
+
+// Key exchange routes
+app.use("/keys", keysRoute);
 
 // Handle api gateway
 app.use(gatewayRoute);

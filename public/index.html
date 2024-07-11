@@ -16,13 +16,10 @@
 	<body class="zero-margin">
 		<div id="root">
 			<main>
-				<h5 class="step-indicator">
-					Step <span id="step-number">1</span> of 2
-				</h5>
-				<h1 class="header">Sign In</h1>
+				<h1 class="header">Login</h1>
 				<h5 id="error-message"></h5>
 
-				<div id="step-one">
+				<div id="form">
 					<div class="input-container">
 						<label class="field-label" for="username"
 							>Username</label
@@ -66,55 +63,7 @@
 						/>
 					</div>
 
-					<button id="next-step" disabled>Next</button>
-				</div>
-
-				<div id="step-two" class="hidden">
-					<div class="input-container">
-						<label class="field-label" for="key-size"
-							>Generate Key Pair</label
-						>
-
-						<div class="field-group stretch">
-							<select id="key-size">
-								<option value="1024">1024 bits</option>
-								<option value="2048" selected>2048 bits</option>
-								<option value="4096">4096 bits</option>
-							</select>
-
-							<button id="generate-key-pair">Generate</button>
-						</div>
-					</div>
-
-					<div class="input-container">
-						<label class="field-label" for="public-key"
-							>Public Key</label
-						>
-						<textarea
-							name="public-key"
-							id="public-key"
-							rows="4"
-							spellcheck="false"
-							required
-						></textarea>
-					</div>
-					<div class="input-container">
-						<label class="field-label" for="private-key"
-							>Private Key</label
-						>
-						<textarea
-							name="private-key"
-							id="private-key"
-							rows="4"
-							spellcheck="false"
-							required
-						></textarea>
-					</div>
-
-					<div class="field-group">
-						<button id="previous-step">Back</button>
-						<button id="submit" disabled>Submit</button>
-					</div>
+					<button id="submit" disabled>Submit</button>
 				</div>
 			</main>
 		</div>

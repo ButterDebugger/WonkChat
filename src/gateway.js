@@ -1,8 +1,8 @@
 import express from "express";
 import { getStream } from "./streams.js";
-import { authenticate } from "./auth.js";
+import { authenticate } from "./auth/session.js";
 import { router as roomRoute } from "./channels/room.js";
-import { getUserSession, getRoom, getUserViews } from "./data.js";
+import { getUserSession, getRoom, getUserViews } from "./lib/data.js";
 
 export const router = new express.Router();
 
