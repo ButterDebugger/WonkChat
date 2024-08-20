@@ -10,66 +10,6 @@ let userSubscriptions = new Map();
 
 router.use(roomRoute);
 
-/** @deprecated */ // TODO: Remove this in favor of /users/:userid ~> /subscribe /unsubscribe /fetch
-router.get("/users", async (req, res) => {
-	let tokenPayload = await authenticateHandler(req, res);
-	if (tokenPayload === null) return;
-
-	let { usernames, subscribe } = req.query;
-
-	if (typeof usernames !== "string")
-		return res.status(400).json({
-			error: true,
-			message: "Missing query string",
-			code: 102
-		});
-
-	let sessionUsernames = usernames.split(",");
-
-	if (typeof subscribe == "string") {
-		switch (subscribe) {
-			case "yes":
-				sessionUsernames.forEach((username) => {
-					let subscribers =
-						userSubscriptions.get(username) ?? new Set();
-					subscribers.add(tokenPayload.username);
-					userSubscriptions.set(username, subscribers);
-				});
-				break;
-			case "no":
-				sessionUsernames.forEach((username) => {
-					let subscribers =
-						userSubscriptions.get(username) ?? new Set();
-					subscribers.delete(tokenPayload.username);
-					userSubscriptions.set(username, subscribers);
-				});
-				break;
-			default:
-				break;
-		}
-	}
-
-	let userSessions = await Promise.all(
-		sessionUsernames.map((username) => {
-			return getUserSession(username);
-		})
-	);
-
-	let users: any[] = [];
-	for (let user of userSessions) {
-		users.push({
-			username: user.username,
-			color: user.color,
-			offline: user.offline
-		});
-	}
-
-	res.status(200).json({
-		users: users,
-		success: true
-	});
-});
-
 router.post("/users/:userid/subscribe", async (req, res) => {
 	let tokenPayload = await authenticateHandler(req, res);
 	if (tokenPayload === null) return;
