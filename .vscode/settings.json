@@ -1,6 +1,8 @@
 {
     "workbench.iconTheme": "vs-seti",
     "cSpell.words": [
-        "homeserver"
+        "homeserver",
+        "openpgp",
+        "roomname"
     ]
 }
