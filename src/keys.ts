@@ -2,7 +2,7 @@ import express from "express";
 import crypto from "node:crypto";
 import * as openpgp from "openpgp";
 import { setUserPublicKey } from "./lib/data.js";
-import { authenticateMiddleware } from "./auth/session.js";
+import { authenticateHandler } from "./auth/session.js";
 
 export const router = express.Router();
 
@@ -11,12 +11,15 @@ export const router = express.Router();
 // User ids ~> Nonce
 const nonces = new Map();
 
-router.get("/nonce", authenticateMiddleware, async (req, res) => {
+router.get("/nonce", async (req, res) => {
+	let tokenPayload = await authenticateHandler(req, res);
+	if (tokenPayload === null) return;
+
 	// Generate a random nonce for the user to sign
 	let nonce = crypto.randomBytes(256).toString("base64url");
 
 	// Create temporary login code
-	nonces.set(req.user.username, nonce);
+	nonces.set(tokenPayload.username, nonce);
 
 	// setTimeout(() => logins.delete(nonce), loginExpiration); // TODO: readd the expiration
 
@@ -25,7 +28,10 @@ router.get("/nonce", authenticateMiddleware, async (req, res) => {
 		nonce: nonce
 	});
 });
-router.post("/verify", authenticateMiddleware, async (req, res) => {
+router.post("/verify", async (req, res) => {
+	let tokenPayload = await authenticateHandler(req, res);
+	if (tokenPayload === null) return;
+
 	let { signedNonce, publicKey } = req.body;
 
 	if (typeof signedNonce !== "string" || typeof publicKey !== "string")
@@ -36,7 +42,7 @@ router.post("/verify", authenticateMiddleware, async (req, res) => {
 		});
 
 	// Check if login nonce exists
-	if (!nonces.has(req.user.username))
+	if (!nonces.has(tokenPayload.username))
 		return res.status(400).json({
 			error: true,
 			message: "Nonce has expired",
@@ -50,7 +56,9 @@ router.post("/verify", authenticateMiddleware, async (req, res) => {
 	try {
 		armoredKey = await openpgp.readKey({ armoredKey: publicKey });
 		let { data } = await openpgp.verify({
-			message: await openpgp.readMessage({ armoredMessage: signedNonce }),
+			message: await openpgp.readMessage({
+				armoredMessage: signedNonce
+			}),
 			verificationKeys: armoredKey
 		});
 		unsignedNonce = data;
@@ -63,8 +71,8 @@ router.post("/verify", authenticateMiddleware, async (req, res) => {
 	}
 
 	// Match the nonce
-	let nonce = nonces.get(req.user.username);
-	nonces.delete(req.user.username);
+	let nonce = nonces.get(tokenPayload.username);
+	nonces.delete(tokenPayload.username);
 
 	if (unsignedNonce !== nonce)
 		return res.status(400).json({
@@ -73,7 +81,10 @@ router.post("/verify", authenticateMiddleware, async (req, res) => {
 		});
 
 	// Save public key
-	let success = await setUserPublicKey(req.user.username, armoredKey.write());
+	let success = await setUserPublicKey(
+		tokenPayload.username,
+		armoredKey.write()
+	);
 
 	if (!success)
 		return res.status(500).json({

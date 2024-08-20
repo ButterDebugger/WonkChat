@@ -2,10 +2,11 @@
 	"name": "wonk-chat",
 	"version": "1.1.0",
 	"description": "Just another chat room for wonky fellows to chat in",
-	"module": "src/server.js",
 	"scripts": {
-		"start": "node src/server.js",
-		"dev": "node --env-file \".env\" --watch src/server.js"
+		"watch": "tsc -w",
+		"start": "tsc && node dist/server.js",
+		"dev": "tsc -w | node --env-file \".env\" --watch dist/server.js",
+		"build": "tsc"
 	},
 	"author": "ButterDebugger",
 	"license": "MIT",
@@ -29,6 +30,17 @@
 		"knex": "^3.1.0",
 		"openpgp": "^5.11.2",
 		"ws": "^8.18.0"
+	},
+	"devDependencies": {
+		"@types/bcrypt": "^5.0.2",
+		"@types/cookie-parser": "^1.4.7",
+		"@types/cors": "^2.8.17",
+		"@types/express": "^4.17.21",
+		"@types/express-fileupload": "^1.5.0",
+		"@types/jsonwebtoken": "^9.0.6",
+		"@types/node": "^22.4.1",
+		"@types/ws": "^8.5.12",
+		"typescript": "^5.5.4"
 	},
 	"engines": {
 		"node": ">=20.6.1"

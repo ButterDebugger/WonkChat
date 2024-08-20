@@ -1,11 +1,18 @@
 import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
 import { token_secret } from "../lib/config.js";
+import { Request, Response } from "express";
+import { TokenPayload } from "../types.js";
 
 /**
- * Router middleware for authenticating a user's token stored in the headers
+ * Handles request authentication by ending the response if the request is not authenticated,
+ * otherwise the token will be returned
+ * @returns Token payload
  */
-export async function authenticateMiddleware(req, res, next) {
+export async function authenticateHandler(
+	req: Request,
+	res: Response
+): Promise<TokenPayload | null> {
 	let payload = await authenticateRequest(req);
 
 	if (payload === null) {
@@ -15,22 +22,25 @@ export async function authenticateMiddleware(req, res, next) {
 			message: "Invalid credentials",
 			code: 501
 		});
+		res.end();
+		return null;
 	} else {
-		req.user = payload;
-		next();
+		return payload;
 	}
 }
 
 /**
  * Authenticates a user's request
- * @returns {null | object} Token payload
+ * @returns Token payload
  */
-export async function authenticateRequest(req) {
+export async function authenticateRequest(
+	req: Request
+): Promise<TokenPayload | null> {
 	let authHeader = req.headers["authorization"];
 	let wsProtocol = req.headers["sec-websocket-protocol"];
 
 	// Retrieve the token from the request headers
-	let token;
+	let token: string | undefined;
 
 	if (typeof authHeader == "string") {
 		let match = authHeader.match(/Bearer (.*)/);
@@ -50,53 +60,57 @@ export async function authenticateRequest(req) {
 	} else return null;
 
 	// Verify the token and return the payload
+	if (typeof token !== "string") return null;
+
 	return await verifyToken(token);
 }
 
 /**
- * @returns {null | object} Token payload
+ * @returns Token payload
  */
-function verifyToken(token = null) {
-	return new Promise((resolve) => {
-		// A token was not provided
-		if (typeof token !== "string") return resolve(null);
+function verifyToken(token: string): TokenPayload | null {
+	// A token was not provided
+	if (typeof token !== "string") return null;
 
-		jwt.verify(token, token_secret, async (err, user) => {
-			// Token is not valid
-			if (err) return resolve(null);
+	let user: TokenPayload;
+	try {
+		user = jwt.verify(token, token_secret) as TokenPayload;
+	} catch (err) {
+		return null;
+	}
 
-			// Check if token is too old
-			if (Date.now() - user.iat > 1000 * 60 * 60 * 24 * 14)
-				return resolve(null);
+	// Check if token is too old
+	if (Date.now() - user.iat > 1000 * 60 * 60 * 24 * 14) return null;
 
-			// Return the user
-			resolve(user);
-		});
-	});
+	// Return the user
+	return user;
 }
 
-export function generateColor() {
+export function generateColor(): string {
 	const randomInt = (min = 0, max = 1) =>
 		Math.floor(Math.random() * (max - min + 1) + min);
 
-	let color = [255, randomInt(36, 255), randomInt(36, 162)];
+	let color: number[] = [255, randomInt(36, 255), randomInt(36, 162)];
 
 	for (let i = color.length - 1; i > 0; i--) {
 		// Shuffle rgb color array
 		let j = Math.floor(Math.random() * (i + 1));
-		let temp = color[i];
-		color[i] = color[j];
+		let temp = color[i] as number;
+		color[i] = color[j] as number;
 		color[j] = temp;
 	}
 
-	color =
-		"#" + color.map((val) => ("00" + val.toString(16)).slice(-2)).join(""); // Turn array into hex string
-
-	return color;
+	// Return a hex string from the rgb array
+	return `#${color
+		.map((val) => ("00" + val.toString(16)).slice(-2))
+		.join("")}`;
 }
 
-export async function sessionToken(username) {
-	let payload = {
+export async function sessionToken(username: string): Promise<{
+	payload: TokenPayload;
+	token: string;
+}> {
+	let payload: TokenPayload = {
 		username: username,
 		jti: crypto.randomUUID(),
 		iat: Date.now()

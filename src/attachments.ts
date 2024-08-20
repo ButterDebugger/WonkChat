@@ -1,15 +1,15 @@
 import express from "express";
-import fileUpload from "express-fileupload";
+import fileUpload, { UploadedFile } from "express-fileupload";
 import path from "node:path";
 import fs from "node:fs";
-import { authenticateMiddleware } from "./auth/session.js";
+import { authenticateHandler } from "./auth/session.js";
 import { Snowflake } from "./lib/identifier.js";
 
 if (!fs.existsSync(path.join(process.cwd(), "attachments"))) {
 	fs.mkdirSync(path.join(process.cwd(), "attachments"));
 }
 
-export const router = new express.Router();
+export const router = express.Router();
 
 router.use(
 	fileUpload({
@@ -17,7 +17,10 @@ router.use(
 	})
 );
 
-router.post("/upload", authenticateMiddleware, async (req, res) => {
+router.post("/upload", async (req, res) => {
+	let tokenPayload = await authenticateHandler(req, res);
+	if (tokenPayload === null) return;
+
 	if (!req.files || Object.keys(req.files).length === 0) {
 		return res.status(400).json({
 			error: true,
@@ -26,20 +29,21 @@ router.post("/upload", authenticateMiddleware, async (req, res) => {
 		});
 	}
 
-	let files = Array.isArray(req.files.files)
-		? req.files.files
-		: [req.files.files];
-	let data = await saveFiles(files, req.user.username);
+	let hasFiles = Array.isArray(req.files.files);
+	let files = hasFiles
+		? (req.files.files as UploadedFile[])
+		: ([req.files.files] as UploadedFile[]);
+	let data = await saveFiles(files, tokenPayload.username);
 
 	res.json(data);
 });
 router.use("/attachments", (req, res) => {
-	express.static(path.join(process.cwd(), "attachments"))(req, res, () => {
-		res.status(404).end();
-	});
+	express.static(path.join(process.cwd(), "attachments"))(req, res, () =>
+		res.status(404).end()
+	);
 });
 
-function saveFiles(files, uid) {
+function saveFiles(files: UploadedFile[], uid: string) {
 	return new Promise((resolve) => {
 		let uploaded = [];
 

@@ -1,17 +1,20 @@
 import express from "express";
 import { getStream } from "./sockets.js";
-import { authenticateMiddleware } from "./auth/session.js";
+import { authenticateHandler } from "./auth/session.js";
 import { router as roomRoute } from "./channels/room.js";
 import { getUserSession, getRoom, getUserViews } from "./lib/data.js";
 
-export const router = new express.Router();
+export const router = express.Router();
 
 let userSubscriptions = new Map();
 
 router.use(roomRoute);
 
 /** @deprecated */ // TODO: Remove this in favor of /users/:userid ~> /subscribe /unsubscribe /fetch
-router.get("/users", authenticateMiddleware, async (req, res) => {
+router.get("/users", async (req, res) => {
+	let tokenPayload = await authenticateHandler(req, res);
+	if (tokenPayload === null) return;
+
 	let { usernames, subscribe } = req.query;
 
 	if (typeof usernames !== "string")
@@ -29,7 +32,7 @@ router.get("/users", authenticateMiddleware, async (req, res) => {
 				sessionUsernames.forEach((username) => {
 					let subscribers =
 						userSubscriptions.get(username) ?? new Set();
-					subscribers.add(req.user.username);
+					subscribers.add(tokenPayload.username);
 					userSubscriptions.set(username, subscribers);
 				});
 				break;
@@ -37,7 +40,7 @@ router.get("/users", authenticateMiddleware, async (req, res) => {
 				sessionUsernames.forEach((username) => {
 					let subscribers =
 						userSubscriptions.get(username) ?? new Set();
-					subscribers.delete(req.user.username);
+					subscribers.delete(tokenPayload.username);
 					userSubscriptions.set(username, subscribers);
 				});
 				break;
@@ -52,15 +55,14 @@ router.get("/users", authenticateMiddleware, async (req, res) => {
 		})
 	);
 
-	let users = userSessions.reduce((arr, user) => {
-		if (user !== null)
-			arr.push({
-				username: user.username,
-				color: user.color,
-				offline: user.offline
-			});
-		return arr;
-	}, []);
+	let users: any[] = [];
+	for (let user of userSessions) {
+		users.push({
+			username: user.username,
+			color: user.color,
+			offline: user.offline
+		});
+	}
 
 	res.status(200).json({
 		users: users,
@@ -68,70 +70,70 @@ router.get("/users", authenticateMiddleware, async (req, res) => {
 	});
 });
 
-router.post(
-	"/users/:userid/subscribe",
-	authenticateMiddleware,
-	async (req, res) => {
-		let { userid } = req.params;
+router.post("/users/:userid/subscribe", async (req, res) => {
+	let tokenPayload = await authenticateHandler(req, res);
+	if (tokenPayload === null) return;
 
-		// Update list of subscribers
-		let subscribers = userSubscriptions.get(userid) ?? new Set();
-		subscribers.add(req.user.username);
-		userSubscriptions.set(userid, subscribers);
+	let { userid } = req.params;
 
-		res.status(200).json({
-			success: true
+	// Update list of subscribers
+	let subscribers = userSubscriptions.get(userid) ?? new Set();
+	subscribers.add(tokenPayload.username);
+	userSubscriptions.set(userid, subscribers);
+
+	res.status(200).json({
+		success: true
+	});
+});
+
+router.post("/users/:userid/unsubscribe", async (req, res) => {
+	let tokenPayload = await authenticateHandler(req, res);
+	if (tokenPayload === null) return;
+
+	let { userid } = req.params;
+
+	// Update list of subscribers
+	let subscribers = userSubscriptions.get(userid) ?? new Set();
+	subscribers.delete(tokenPayload.username);
+	userSubscriptions.set(userid, subscribers);
+
+	res.status(200).json({
+		success: true
+	});
+});
+
+router.get("/users/:username/fetch", async (req, res) => {
+	let tokenPayload = await authenticateHandler(req, res);
+	if (tokenPayload === null) return;
+
+	let { username } = req.params;
+
+	let session = await getUserSession(username);
+
+	if (!session)
+		return res.status(400).json({
+			error: true,
+			message: "User does not exist",
+			code: 401
 		});
-	}
-);
 
-router.post(
-	"/users/:userid/unsubscribe",
-	authenticateMiddleware,
-	async (req, res) => {
-		let { userid } = req.params;
-
-		// Update list of subscribers
-		let subscribers = userSubscriptions.get(userid) ?? new Set();
-		subscribers.delete(req.user.username);
-		userSubscriptions.set(userid, subscribers);
-
-		res.status(200).json({
-			success: true
-		});
-	}
-);
-
-router.get(
-	"/users/:username/fetch",
-	authenticateMiddleware,
-	async (req, res) => {
-		let { username } = req.params;
-
-		let session = await getUserSession(username);
-
-		if (!session)
-			return res.status(400).json({
-				error: true,
-				message: "User does not exist",
-				code: 401
-			});
-
-		res.status(200).json({
+	res.status(200).json({
+		username: session.username,
+		data: {
 			username: session.username,
-			data: {
-				username: session.username,
-				color: session.color,
-				offline: session.offline
-			},
-			success: true
-		});
-	}
-);
+			color: session.color,
+			offline: session.offline
+		},
+		success: true
+	});
+});
 
-router.get("/sync/client", authenticateMiddleware, async (req, res) => {
-	let session = await getUserSession(req.user.username);
-	let viewableUsers = new Set();
+router.get("/sync/client", async (req, res) => {
+	let tokenPayload = await authenticateHandler(req, res);
+	if (tokenPayload === null) return;
+
+	let session = await getUserSession(tokenPayload.username);
+	let viewableUsers: Set<string> = new Set();
 
 	if (!session)
 		return res.status(400).json({
@@ -144,6 +146,7 @@ router.get("/sync/client", authenticateMiddleware, async (req, res) => {
 	let rooms = [];
 	for (let roomname of session.rooms) {
 		let room = await getRoom(roomname);
+		if (room === null) continue;
 
 		viewableUsers = new Set([...viewableUsers, ...room.members]);
 
@@ -159,13 +162,13 @@ router.get("/sync/client", authenticateMiddleware, async (req, res) => {
 	viewableUsers.delete(session.username);
 
 	let users = await Promise.all(
-		Array.from(viewableUsers).map((username) => {
-			return getUserSession(username).then((session) => ({
+		Array.from(viewableUsers).map((username) =>
+			getUserSession(username).then((session) => ({
 				username: session.username,
 				color: session.color,
 				offline: session.offline
-			}));
-		})
+			}))
+		)
 	);
 
 	res.status(200).json({
@@ -180,8 +183,11 @@ router.get("/sync/client", authenticateMiddleware, async (req, res) => {
 	});
 });
 
-router.get("/sync/memory", authenticateMiddleware, async (req, res) => {
-	let stream = getStream(req.user.username);
+router.get("/sync/memory", async (req, res) => {
+	let tokenPayload = await authenticateHandler(req, res);
+	if (tokenPayload === null) return;
+
+	let stream = getStream(tokenPayload.username);
 	if (stream === null)
 		return res.status(400).json({
 			error: true,
@@ -203,8 +209,8 @@ router.get("/sync/memory", authenticateMiddleware, async (req, res) => {
 	});
 });
 
-export async function getSubscribers(username) {
-	let viewers = await getUserViews(username);
+export async function getSubscribers(username: string): Promise<string[]> {
+	let viewers = (await getUserViews(username)) ?? new Set();
 	let subscriptions = userSubscriptions.get(username) ?? new Set();
 
 	return Array.from(new Set([...viewers, ...subscriptions]));
