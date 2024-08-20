@@ -2,7 +2,7 @@ import express from "express";
 import crypto from "node:crypto";
 import * as openpgp from "openpgp";
 import { setUserPublicKey } from "./lib/data.js";
-import { authenticate } from "./auth/session.js";
+import { authenticateMiddleware } from "./auth/session.js";
 
 export const router = express.Router();
 
@@ -11,7 +11,7 @@ export const router = express.Router();
 // User ids ~> Nonce
 const nonces = new Map();
 
-router.get("/nonce", authenticate, async (req, res) => {
+router.get("/nonce", authenticateMiddleware, async (req, res) => {
 	// Generate a random nonce for the user to sign
 	let nonce = crypto.randomBytes(256).toString("base64url");
 
@@ -25,7 +25,7 @@ router.get("/nonce", authenticate, async (req, res) => {
 		nonce: nonce
 	});
 });
-router.post("/verify", authenticate, async (req, res) => {
+router.post("/verify", authenticateMiddleware, async (req, res) => {
 	let { signedNonce, publicKey } = req.body;
 
 	if (typeof signedNonce !== "string" || typeof publicKey !== "string")

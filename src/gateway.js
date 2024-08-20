@@ -1,6 +1,6 @@
 import express from "express";
-import { getStream } from "./streams.js";
-import { authenticate } from "./auth/session.js";
+import { getStream } from "./sockets.js";
+import { authenticateMiddleware } from "./auth/session.js";
 import { router as roomRoute } from "./channels/room.js";
 import { getUserSession, getRoom, getUserViews } from "./lib/data.js";
 
@@ -11,7 +11,7 @@ let userSubscriptions = new Map();
 router.use(roomRoute);
 
 /** @deprecated */ // TODO: Remove this in favor of /users/:userid ~> /subscribe /unsubscribe /fetch
-router.get("/users", authenticate, async (req, res) => {
+router.get("/users", authenticateMiddleware, async (req, res) => {
 	let { usernames, subscribe } = req.query;
 
 	if (typeof usernames !== "string")
@@ -68,36 +68,70 @@ router.get("/users", authenticate, async (req, res) => {
 	});
 });
 
-router.post("/users/:userid/subscribe", authenticate, async (req, res) => {
-	let { userid } = req.params;
+router.post(
+	"/users/:userid/subscribe",
+	authenticateMiddleware,
+	async (req, res) => {
+		let { userid } = req.params;
 
-	// Update list of subscribers
-	let subscribers = userSubscriptions.get(userid) ?? new Set();
-	subscribers.add(req.user.username);
-	userSubscriptions.set(userid, subscribers);
+		// Update list of subscribers
+		let subscribers = userSubscriptions.get(userid) ?? new Set();
+		subscribers.add(req.user.username);
+		userSubscriptions.set(userid, subscribers);
 
-	res.status(200).json({
-		success: true
-	});
-});
+		res.status(200).json({
+			success: true
+		});
+	}
+);
 
-router.post("/users/:userid/unsubscribe", authenticate, async (req, res) => {
-	let { userid } = req.params;
+router.post(
+	"/users/:userid/unsubscribe",
+	authenticateMiddleware,
+	async (req, res) => {
+		let { userid } = req.params;
 
-	// Update list of subscribers
-	let subscribers = userSubscriptions.get(userid) ?? new Set();
-	subscribers.delete(req.user.username);
-	userSubscriptions.set(userid, subscribers);
+		// Update list of subscribers
+		let subscribers = userSubscriptions.get(userid) ?? new Set();
+		subscribers.delete(req.user.username);
+		userSubscriptions.set(userid, subscribers);
 
-	res.status(200).json({
-		success: true
-	});
-});
+		res.status(200).json({
+			success: true
+		});
+	}
+);
 
-router.get("/users/:username/fetch", authenticate, async (req, res) => {
-	let { username } = req.params;
+router.get(
+	"/users/:username/fetch",
+	authenticateMiddleware,
+	async (req, res) => {
+		let { username } = req.params;
 
-	let session = await getUserSession(username);
+		let session = await getUserSession(username);
+
+		if (!session)
+			return res.status(400).json({
+				error: true,
+				message: "User does not exist",
+				code: 401
+			});
+
+		res.status(200).json({
+			username: session.username,
+			data: {
+				username: session.username,
+				color: session.color,
+				offline: session.offline
+			},
+			success: true
+		});
+	}
+);
+
+router.get("/sync/client", authenticateMiddleware, async (req, res) => {
+	let session = await getUserSession(req.user.username);
+	let viewableUsers = new Set();
 
 	if (!session)
 		return res.status(400).json({
@@ -106,24 +140,9 @@ router.get("/users/:username/fetch", authenticate, async (req, res) => {
 			code: 401
 		});
 
-	res.status(200).json({
-		username: session.username,
-		data: {
-			username: session.username,
-			color: session.color,
-			offline: session.offline
-		},
-		success: true
-	});
-});
-
-router.get("/sync/client", authenticate, async (req, res) => {
-	let userSession = await getUserSession(req.user.username);
-	let viewableUsers = new Set();
-
 	// Get rooms
 	let rooms = [];
-	for (let roomname of userSession.rooms) {
+	for (let roomname of session.rooms) {
 		let room = await getRoom(roomname);
 
 		viewableUsers = new Set([...viewableUsers, ...room.members]);
@@ -137,7 +156,7 @@ router.get("/sync/client", authenticate, async (req, res) => {
 	}
 
 	// Get viewable users
-	viewableUsers.delete(userSession.username);
+	viewableUsers.delete(session.username);
 
 	let users = await Promise.all(
 		Array.from(viewableUsers).map((username) => {
@@ -153,15 +172,15 @@ router.get("/sync/client", authenticate, async (req, res) => {
 		rooms: rooms,
 		users: users,
 		you: {
-			username: userSession.username,
-			color: userSession.color,
-			offline: userSession.offline
+			username: session.username,
+			color: session.color,
+			offline: session.offline
 		},
 		success: true
 	});
 });
 
-router.get("/sync/memory", authenticate, async (req, res) => {
+router.get("/sync/memory", authenticateMiddleware, async (req, res) => {
 	let stream = getStream(req.user.username);
 	if (stream === null)
 		return res.status(400).json({

@@ -2,7 +2,7 @@ import express from "express";
 import fileUpload from "express-fileupload";
 import path from "node:path";
 import fs from "node:fs";
-import { authenticate } from "./auth/session.js";
+import { authenticateMiddleware } from "./auth/session.js";
 import { Snowflake } from "./lib/identifier.js";
 
 if (!fs.existsSync(path.join(process.cwd(), "attachments"))) {
@@ -17,7 +17,7 @@ router.use(
 	})
 );
 
-router.post("/upload", authenticate, async (req, res) => {
+router.post("/upload", authenticateMiddleware, async (req, res) => {
 	if (!req.files || Object.keys(req.files).length === 0) {
 		return res.status(400).json({
 			error: true,

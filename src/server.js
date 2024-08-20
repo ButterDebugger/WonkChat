@@ -5,19 +5,20 @@ import {
 	router as attachmentsRoute,
 	clean as cleanAttachments
 } from "./attachments.js";
-import { getStreamRoute } from "./streams.js";
 import chalk from "chalk";
 import http from "node:http";
 import cors from "cors";
-import { authenticate } from "./auth/session.js";
+import { WebSocketServer } from "ws";
 import { router as gatewayRoute } from "./gateway.js";
 import { createRoom } from "./lib/data.js";
 import { namespace, port } from "./lib/config.js";
 import { router as oauthRoute } from "./auth/oauth.js";
 import { router as keysRoute } from "./keys.js";
+import initStream from "./sockets.js";
 
 const app = express();
 const server = http.createServer({}, app).listen(port);
+const wssStream = new WebSocketServer({ server: server, path: "/stream" });
 
 // Add server log listeners
 server.addListener("listening", () => {
@@ -69,8 +70,8 @@ app.use("/keys", keysRoute);
 // Handle api gateway
 app.use(gatewayRoute);
 
-// Handle stream route
-app.get("/stream", authenticate, getStreamRoute);
+// Initialize stream route
+initStream(wssStream);
 
 // Clear attachments folder and handle attachments route
 app.use(attachmentsRoute);
