@@ -53,15 +53,17 @@ button {
 	font-size: 30px;
 	margin: 0px 0px 16px;
 }
-
-#error-message {
+.subheader {
 	margin: 0px 0px 10px;
 	font-size: 13px;
 	text-align: center;
-	color: orangered;
 }
-#error-message:empty {
+.subheader:empty {
 	display: none;
+}
+
+#error-message {
+	color: orangered;
 }
 
 .input-container {
@@ -100,7 +102,7 @@ button {
 	color: orangered;
 }
 
-#form {
+form {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;

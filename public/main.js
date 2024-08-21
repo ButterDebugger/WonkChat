@@ -1,4 +1,5 @@
 const errorMessageEle = document.getElementById("error-message");
+const formEle = document.querySelector("form");
 const usernameEle = document.getElementById("username");
 const passwordEle = document.getElementById("password");
 const trustChk = document.getElementById("trust");
@@ -44,9 +45,9 @@ usernameEle.addEventListener("input", () => updateSubmitButton());
 passwordEle.addEventListener("input", () => updateSubmitButton());
 trustChk.addEventListener("input", () => updateSubmitButton());
 
-submitBtn.addEventListener("click", () => authenticate());
+formEle.addEventListener("submit", async (event) => {
+	event.preventDefault();
 
-async function authenticate() {
 	let ogText = submitBtn.innerText;
 
 	submitBtn.disabled = true;
@@ -82,9 +83,13 @@ async function authenticate() {
 				return requestErrorHandler(null, res.data.message);
 			}
 
-			location.href = `${callbackUrl}?state=${params.get("state")}`;
+			let redirectUrl = `${callbackUrl}?state=${params.get("state")}`;
+
+			location.href = `./close/?redirect=${encodeURIComponent(
+				redirectUrl
+			)}`;
 		})
 		.catch((err) =>
 			requestErrorHandler(err, "Something went wrong whilst authorizing")
 		);
-}
+});
