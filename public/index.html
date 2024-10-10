@@ -1,67 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Just another chat app for wonky fellows to chat in."/>
-    <meta name="theme-color" content="#5841f7">
-    <meta property="og:image" content="/icon.png">
-    <meta property="og:title" content="Wonk Chat: Home">
-    <meta property="og:site_name" content="Wonk Chat">
-    <meta property="og:type" content="website">
-    <title>Wonk Chat</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./main.css" />
-    <link rel="stylesheet" href="./index.css" />
-  </head>
-  <body class="full-page">
-    <main>
-        <header>
-            <img class="icon no-select no-drag" src="/icon.png" alt="">
-            <span class="title no-select">Wonk Chat</span>
-            <div class="flex-spacer"></div>
-            <a class="button open-app" href="/app/">Open App</a>
-        </header>
-        <div class="page-content">
-            <div class="container">
-                <h1 class="motto-gradient">Wonky Conversations,<br>Wonky Connections ❤️</h1>
-                <p>Just another simplistic and purely anonymous chat app for wonky fellows to chat in.</p>
-            </div>
-            <div class="feature-container">
-                <div>
-                    <h2>Anonymity</h2>
-                    <p>Chat with others without revealing your identity.</p>
-                </div>
-                <div>
-                    <h2>Simplicity</h2>
-                    <p>A straightforward interface for easy communication.</p>
-                </div>
-                <div>
-                    <h2>Real-time</h2>
-                    <p>Instantly send and receive messages.</p>
-                </div>
-            </div>
-        </div>
-        <footer>
-            <div class="footer-column">
-                <span>LEGAL</span>
-                <span>© 2023 ButterDebugger.<br>All Rights Reserved.</span>
-                <span>Icons used from <a href="https://fontawesome.com/">Font Awesome</a>.</span>
-            </div>
-            <div class="footer-column">
-                <span>RESOURCES</span>
-                <a href="https://github.com/ButterDebugger/WonkChat/issues">Issues</a>
-                <a href="https://github.com/ButterDebugger/WonkChat">Source</a>
-            </div>
-            <div class="footer-column">
-                <span>POLICIES</span>
-                <a href="/#">Terms of Service</a>
-                <a href="/privacy">Privacy Policy</a>
-            </div>
-        </footer>
-    </main>
-  </body>
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Sign In</title>
+		<link
+			rel="stylesheet"
+			href="https://debutter.dev/x/css/style.css@1.2"
+		/>
+		<link rel="stylesheet" href="./style.css" />
+		<script src="https://unpkg.com/axios@1.6.2/dist/axios.min.js"></script>
+		<script defer type="module" src="./main.js"></script>
+	</head>
+	<body class="zero-margin">
+		<div id="root">
+			<main>
+				<h1 class="header">Login</h1>
+				<h5 id="error-message" class="subheader"></h5>
+
+				<form autocomplete="on">
+					<div class="input-container">
+						<label class="field-label" for="username"
+							>Username</label
+						>
+						<input
+							type="text"
+							name="username"
+							id="username"
+							minlength="3"
+							maxlength="16"
+							pattern="^(?! )[\x20-\x7E]{3,16}(?<! )$"
+							autocomplete="username"
+							spellcheck="false"
+							required
+						/>
+					</div>
+					<div class="input-container">
+						<label class="field-label" for="password"
+							>Password</label
+						>
+						<input
+							type="password"
+							name="password"
+							id="password"
+							minlength="6"
+							autocomplete="current-password"
+							spellcheck="false"
+							required
+						/>
+					</div>
+					<div class="input-container row">
+						<label class="field-label" for="trust"
+							>I trust <span id="trusted-origin">???</span> to act
+							on my behalf</label
+						>
+						<input
+							type="checkbox"
+							name="trust"
+							id="trust"
+							required
+						/>
+					</div>
+
+					<button type="submit" id="submit" disabled>Submit</button>
+				</form>
+			</main>
+		</div>
+	</body>
 </html>
