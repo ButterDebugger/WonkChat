@@ -20,9 +20,9 @@ const rateLimiter = rateLimit({
 		res.json({
 			error: true,
 			message: options.message,
-			code: 502
+			code: 502,
 		});
-	}
+	},
 });
 
 router.use("/login", express.static(path.join(process.cwd(), "public")));
@@ -30,17 +30,17 @@ router.use("/login", express.static(path.join(process.cwd(), "public")));
 router.use(rateLimiter);
 
 router.post("/token", (req, res) => {
-	let { verifier } = req.body;
+	const { verifier } = req.body;
 
 	if (typeof verifier !== "string")
 		return res.status(400).json({
 			error: true,
 			message: "Invalid body",
-			code: 101
+			code: 101,
 		});
 
 	// Hash verifier
-	let challenge = crypto
+	const challenge = crypto
 		.createHash("sha256")
 		.update(verifier)
 		.digest("base64url");
@@ -49,21 +49,21 @@ router.post("/token", (req, res) => {
 		return res.status(400).json({
 			error: true,
 			message: "Invalid verifier",
-			code: 501
+			code: 501,
 		});
 	}
 
 	// Return token to the user
-	let token = accessUsers.get(challenge);
+	const token = accessUsers.get(challenge);
 	accessUsers.delete(challenge);
 
 	res.status(200).json({
 		success: true,
-		token: token
+		token: token,
 	});
 });
 router.post("/authorize", async (req, res) => {
-	let { username, password, challenge } = req.body;
+	const { username, password, challenge } = req.body;
 
 	if (
 		typeof username !== "string" ||
@@ -73,41 +73,38 @@ router.post("/authorize", async (req, res) => {
 		return res.status(400).json({
 			error: true,
 			message: "Invalid body",
-			code: 101
+			code: 101,
 		});
 
 	// Check if credentials are invalid
-	if (
-		!/^(?! )[\x20-\x7E]{3,16}(?<! )$/g.test(username) ||
-		password.length < 6
-	)
+	if (!/^(?! )[\x20-\x7E]{3,16}(?<! )$/g.test(username) || password.length < 6)
 		return res.status(400).json({
 			error: true,
 			message: "Invalid credentials",
-			code: 501
+			code: 501,
 		});
 
 	// Create a user account
-	let color = generateColor();
-	let success = await createUserProfile(username, password, color);
+	const color = generateColor();
+	const success = await createUserProfile(username, password, color);
 
 	if (success === null)
 		return res.status(500).json({
 			error: true,
 			message: "Internal server error",
-			code: 106
+			code: 106,
 		});
 
 	// User account already exists
 	if (success === false) {
 		// Check if password is correct
-		let correct = await compareUserProfile(username, password);
+		const correct = await compareUserProfile(username, password);
 
 		if (!correct)
 			return res.status(400).json({
 				error: true,
 				message: "Invalid credentials",
-				code: 501
+				code: 501,
 			});
 	}
 
@@ -116,6 +113,6 @@ router.post("/authorize", async (req, res) => {
 	setTimeout(() => accessUsers.delete(challenge), accessExpiration);
 
 	res.status(200).json({
-		success: true
+		success: true,
 	});
 });

@@ -2,11 +2,11 @@ import { authenticateRequest } from "./auth/session.js";
 import { getUserPublicKey, getUserSession, setUserStatus } from "./lib/data.js";
 import { getSubscribers } from "./gateway.js";
 import * as openpgp from "openpgp";
-import { WebSocket, WebSocketServer } from "ws";
-import { Request } from "express";
-import { TokenPayload } from "./types.js";
+import type { WebSocket, WebSocketServer } from "ws";
+import type { Request } from "express";
+import type { TokenPayload, UserSession } from "./types.js";
 
-let clientStreams = new Map();
+const clientStreams = new Map();
 
 class Stream {
 	sockets: WebSocket[];
@@ -24,17 +24,18 @@ class Stream {
 		this.memory = [];
 	}
 
-	async send(data: any) {
-		let key = await getUserPublicKey(this.session.username);
-		let encrypted = await openpgp.encrypt({
+	async send(data: object | string) {
+		// TODO: Figure out the proper type of the data
+		const key = await getUserPublicKey(this.session.username);
+		const encrypted = await openpgp.encrypt({
 			// TODO: make binary
 			message: await openpgp.createMessage({ text: data }),
-			encryptionKeys: await openpgp.readKey({ binaryKey: key })
+			encryptionKeys: await openpgp.readKey({ binaryKey: key }),
 		});
-		let message = JSON.stringify(encrypted);
+		const message = JSON.stringify(encrypted);
 
 		if (this.isAlive()) {
-			for (let ws of this.sockets) {
+			for (const ws of this.sockets) {
 				ws.send(message);
 			}
 		} else {
@@ -49,19 +50,18 @@ class Stream {
 
 		this.pingInterval = setInterval(() => {
 			if (!this.isAlive()) {
-				if (this.pingInterval !== null)
-					clearInterval(this.pingInterval);
+				if (this.pingInterval !== null) clearInterval(this.pingInterval);
 				return;
 			}
 
 			this.json({
 				event: "ping",
-				ping: this.pings++
+				ping: this.pings++,
 			});
 		}, 40_000);
 	}
 	isAlive() {
-		for (let ws of this.sockets) {
+		for (const ws of this.sockets) {
 			if (ws.readyState === ws.OPEN) return true;
 		}
 		return false;
@@ -69,11 +69,11 @@ class Stream {
 	flushMemory() {
 		if (!this.isAlive()) return false;
 
-		this.memory.forEach((msg) => {
-			for (let ws of this.sockets) {
+		for (const msg of this.memory) {
+			for (const ws of this.sockets) {
 				ws.send(msg);
 			}
-		});
+		}
 		this.memory = [];
 		return true;
 	}
@@ -85,7 +85,7 @@ class Stream {
 		ws.on("close", () => {
 			setOnlineStatus(this.session.username, this.isAlive());
 			this.sockets = this.sockets.filter(
-				(sock) => sock.readyState === sock.OPEN
+				(sock) => sock.readyState === sock.OPEN,
 			);
 		});
 	}
@@ -97,15 +97,15 @@ class Stream {
 export default function (wss: WebSocketServer) {
 	wss.on("connection", async (ws: WebSocket, req: Request) => {
 		// Authenticate connection
-		let payload = await authenticateRequest(req);
+		const payload = await authenticateRequest(req);
 
 		if (payload === null) {
 			ws.send(
 				JSON.stringify({
 					error: true,
 					message: "Invalid credentials",
-					code: 501
-				})
+					code: 501,
+				}),
 			);
 			ws.close();
 			return;
@@ -117,15 +117,15 @@ export default function (wss: WebSocketServer) {
 				JSON.stringify({
 					error: true,
 					message: "Unknown public key",
-					code: 107
-				})
+					code: 107,
+				}),
 			);
 			ws.close();
 			return;
 		}
 
 		// Initialize the stream
-		let stream;
+		let stream: Stream;
 		if (clientStreams.has(payload.username)) {
 			stream = clientStreams.get(payload.username);
 			stream.remix(ws);
@@ -136,7 +136,7 @@ export default function (wss: WebSocketServer) {
 
 		stream.json({
 			event: "connect",
-			opened: true
+			opened: true,
 		});
 
 		stream.initPings();
@@ -144,15 +144,15 @@ export default function (wss: WebSocketServer) {
 }
 
 export function getStream(username: string) {
-	let stream = clientStreams.get(username);
+	const stream = clientStreams.get(username);
 	if (!(stream instanceof Stream)) return null;
 	return stream;
 }
 
 async function setOnlineStatus(username: string, online: boolean) {
-	let userSession = await getUserSession(username);
+	const userSession = await getUserSession(username);
 	if (userSession !== null) {
-		let changed = userSession.offline !== !online;
+		const changed = userSession.offline !== !online;
 
 		await setUserStatus(username, online);
 
@@ -162,11 +162,14 @@ async function setOnlineStatus(username: string, online: boolean) {
 	}
 }
 
-async function updateUserSubscribers(username: string, userSession: any) {
-	let viewers = await getSubscribers(username);
+async function updateUserSubscribers(
+	username: string,
+	userSession: UserSession,
+) {
+	const viewers = await getSubscribers(username);
 
-	viewers.forEach((subscriber) => {
-		let stream = getStream(subscriber);
+	for (const subscriber of viewers) {
+		const stream = getStream(subscriber);
 
 		if (stream !== null) {
 			stream.json({
@@ -175,10 +178,10 @@ async function updateUserSubscribers(username: string, userSession: any) {
 				data: {
 					username: userSession.username,
 					color: userSession.color,
-					offline: userSession.offline
+					offline: userSession.offline,
 				},
-				timestamp: Date.now()
+				timestamp: Date.now(),
 			});
 		}
-	});
+	}
 }

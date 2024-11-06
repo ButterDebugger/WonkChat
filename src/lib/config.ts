@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { Secret } from "jsonwebtoken";
+import type { Secret } from "jsonwebtoken";
 
 export const port = process.env.PORT ?? 5000;
 export const token_secret: Secret =

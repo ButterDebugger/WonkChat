@@ -3,7 +3,7 @@ import path from "node:path";
 import * as openpgp from "openpgp";
 import knex from "knex";
 import bcrypt from "bcrypt";
-import { Room, UserSession } from "../types.js";
+import type { Room, UserSession } from "../types.js";
 
 // Create storage directory
 if (!fs.existsSync(path.join(process.cwd(), "storage"))) {
@@ -14,9 +14,9 @@ if (!fs.existsSync(path.join(process.cwd(), "storage"))) {
 const db = knex({
 	client: "better-sqlite3", // TODO: add different client type configurations
 	connection: {
-		filename: path.join(process.cwd(), "storage", "data.sqlite")
+		filename: path.join(process.cwd(), "storage", "data.sqlite"),
 	},
-	useNullAsDefault: true
+	useNullAsDefault: true,
 });
 
 // Initialize database tables
@@ -44,7 +44,7 @@ await Promise.all([
 				table.binary("privateKey");
 			});
 		}
-	})
+	}),
 ]);
 
 // Interface functions:
@@ -66,7 +66,7 @@ export async function getUserSession(username: string): Promise<UserSession> {
 export async function createUserProfile(
 	username: string,
 	password: string,
-	color: string
+	color: string,
 ) {
 	return await db("users")
 		.where("username", username)
@@ -79,7 +79,7 @@ export async function createUserProfile(
 				.insert({
 					username: username,
 					password: await bcrypt.hash(password, 10),
-					color: color
+					color: color,
 				})
 				.then(() => true)
 				.catch(() => null);
@@ -104,7 +104,7 @@ export async function updateUserProfile(username: string, color: string) {
 		.where("username", username)
 		.update({
 			username: username,
-			color: color
+			color: color,
 		})
 		.then(() => true)
 		.catch(() => false);
@@ -114,17 +114,17 @@ export async function setUserStatus(username: string, online: boolean) {
 	return await db("users")
 		.where("username", username)
 		.update({
-			online: online
+			online: online,
 		})
 		.then(() => true)
 		.catch(() => false);
 }
 
 export async function addUserToRoom(username: string, roomname: string) {
-	let user = await getUserSession(username);
+	const user = await getUserSession(username);
 	if (user === null) return false;
 
-	let room = await getRoom(roomname);
+	const room = await getRoom(roomname);
 	if (room === null) return false;
 
 	user.rooms.add(roomname);
@@ -136,23 +136,23 @@ export async function addUserToRoom(username: string, roomname: string) {
 			await trx("users")
 				.where("username", username)
 				.update({
-					rooms: JSON.stringify(Array.from(user.rooms))
+					rooms: JSON.stringify(Array.from(user.rooms)),
 				});
 
 			await trx("rooms")
 				.where("name", roomname)
 				.update({
-					members: JSON.stringify(Array.from(room.members))
+					members: JSON.stringify(Array.from(room.members)),
 				});
 		})
 		.then(() => true)
 		.catch(() => false);
 }
 export async function removeUserFromRoom(username: string, roomname: string) {
-	let user = await getUserSession(username);
+	const user = await getUserSession(username);
 	if (user === null) return false;
 
-	let room = await getRoom(roomname);
+	const room = await getRoom(roomname);
 	if (room === null) return false;
 
 	user.rooms.delete(roomname);
@@ -164,13 +164,13 @@ export async function removeUserFromRoom(username: string, roomname: string) {
 			await trx("users")
 				.where("username", username)
 				.update({
-					rooms: JSON.stringify(Array.from(user.rooms))
+					rooms: JSON.stringify(Array.from(user.rooms)),
 				});
 
 			await trx("rooms")
 				.where("name", roomname)
 				.update({
-					members: JSON.stringify(Array.from(room.members))
+					members: JSON.stringify(Array.from(room.members)),
 				});
 		})
 		.then(() => true)
@@ -178,18 +178,18 @@ export async function removeUserFromRoom(username: string, roomname: string) {
 }
 
 export async function getUserViews(
-	username: string
+	username: string,
 ): Promise<Set<string> | null> {
-	let user = await getUserSession(username);
+	const user = await getUserSession(username);
 	if (user === null) return null;
 
-	let viewers: Set<string> = new Set();
+	const viewers: Set<string> = new Set();
 
-	for (let roomname of user.rooms) {
-		let room = await getRoom(roomname);
+	for (const roomname of user.rooms) {
+		const room = await getRoom(roomname);
 		if (room === null) continue;
 
-		room.members.forEach((viewer) => viewers.add(viewer));
+		for (const viewer of room.members) viewers.add(viewer);
 	}
 
 	return viewers;
@@ -205,19 +205,19 @@ export async function existsRoom(roomname: string) {
 
 export async function createRoom(
 	roomname: string,
-	description: string | null = null
+	description: string | null = null,
 ) {
 	if (await existsRoom(roomname)) return false;
 
-	let { publicKey, privateKey } = await openpgp.generateKey({
+	const { publicKey, privateKey } = await openpgp.generateKey({
 		type: "rsa",
 		rsaBits: 2048,
 		userIDs: [
 			{
-				name: roomname
-			}
+				name: roomname,
+			},
 		],
-		format: "binary"
+		format: "binary",
 	});
 
 	return await db("rooms")
@@ -225,7 +225,7 @@ export async function createRoom(
 			name: roomname.toLowerCase(),
 			description: description,
 			publicKey: publicKey,
-			privateKey: privateKey
+			privateKey: privateKey,
 		})
 		.onConflict("name")
 		.merge()
@@ -244,7 +244,7 @@ export async function getRoom(roomname: string): Promise<Room | null> {
 			room.armoredPublicKey = await openpgp
 				.readKey({
 					// Convert the public key to armored format NOTE: only here for legacy reasons
-					binaryKey: room.publicKey
+					binaryKey: room.publicKey,
 				})
 				.then((key) => key.armor());
 			return room;
@@ -254,12 +254,12 @@ export async function getRoom(roomname: string): Promise<Room | null> {
 
 export async function setUserPublicKey(
 	username: string,
-	publicKey: Uint8Array
+	publicKey: Uint8Array,
 ) {
 	return await db("users")
 		.where("username", username)
 		.update({
-			publicKey: publicKey
+			publicKey: publicKey,
 		})
 		.then(() => true)
 		.catch(() => false);

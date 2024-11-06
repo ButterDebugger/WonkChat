@@ -1,6 +1,6 @@
-import { UUID } from "crypto";
-import { JwtPayload } from "jsonwebtoken";
-import { Key } from "openpgp";
+import type { UUID } from "node:crypto";
+import type { JwtPayload } from "jsonwebtoken";
+import type { Key } from "openpgp";
 
 export interface TokenPayload extends JwtPayload {
 	username: string;
@@ -21,4 +21,23 @@ export interface Room {
 	members: Set<string>;
 	privateKey: Uint8Array;
 	armoredPublicKey: Key;
+}
+export interface Message {
+	content: string;
+	attachments: string[];
+}
+export function isMessage(value: Message): value is Message {
+	if (typeof value !== "object") return false;
+	if (typeof value?.content !== "string") return false;
+	if (!Array.isArray(value?.attachments)) return false;
+	if (!value?.attachments.every((value) => typeof value === "string"))
+		return false;
+	return true;
+}
+export interface Upload {
+	filename: string;
+	size: number;
+	hash: string;
+	path: string;
+	success: boolean;
 }

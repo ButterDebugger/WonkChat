@@ -12,11 +12,11 @@ export const router = express.Router();
 const nonces = new Map();
 
 router.get("/nonce", async (req, res) => {
-	let tokenPayload = await authenticateHandler(req, res);
+	const tokenPayload = await authenticateHandler(req, res);
 	if (tokenPayload === null) return;
 
 	// Generate a random nonce for the user to sign
-	let nonce = crypto.randomBytes(256).toString("base64url");
+	const nonce = crypto.randomBytes(256).toString("base64url");
 
 	// Create temporary login code
 	nonces.set(tokenPayload.username, nonce);
@@ -25,20 +25,20 @@ router.get("/nonce", async (req, res) => {
 
 	res.status(200).json({
 		success: true,
-		nonce: nonce
+		nonce: nonce,
 	});
 });
 router.post("/verify", async (req, res) => {
-	let tokenPayload = await authenticateHandler(req, res);
+	const tokenPayload = await authenticateHandler(req, res);
 	if (tokenPayload === null) return;
 
-	let { signedNonce, publicKey } = req.body;
+	const { signedNonce, publicKey } = req.body;
 
 	if (typeof signedNonce !== "string" || typeof publicKey !== "string")
 		return res.status(400).json({
 			error: true,
 			message: "Invalid body",
-			code: 101
+			code: 101,
 		});
 
 	// Check if login nonce exists
@@ -46,54 +46,54 @@ router.post("/verify", async (req, res) => {
 		return res.status(400).json({
 			error: true,
 			message: "Nonce has expired",
-			code: 505
+			code: 505,
 		});
 
 	// Verify the signed nonce
-	let unsignedNonce;
-	let armoredKey;
+	let unsignedNonce: object;
+	let armoredKey: openpgp.Key;
 
 	try {
 		armoredKey = await openpgp.readKey({ armoredKey: publicKey });
-		let { data } = await openpgp.verify({
+		const { data } = await openpgp.verify({
 			message: await openpgp.readMessage({
-				armoredMessage: signedNonce
+				armoredMessage: signedNonce,
 			}),
-			verificationKeys: armoredKey
+			verificationKeys: armoredKey,
 		});
 		unsignedNonce = data;
 	} catch (error) {
 		return res.status(400).json({
 			error: true,
 			message: "Invalid public key",
-			code: 503
+			code: 503,
 		});
 	}
 
 	// Match the nonce
-	let nonce = nonces.get(tokenPayload.username);
+	const nonce = nonces.get(tokenPayload.username);
 	nonces.delete(tokenPayload.username);
 
 	if (unsignedNonce !== nonce)
 		return res.status(400).json({
-			error: true
+			error: true,
 			// TODO: write an error message
 		});
 
 	// Save public key
-	let success = await setUserPublicKey(
+	const success = await setUserPublicKey(
 		tokenPayload.username,
-		armoredKey.write()
+		armoredKey.write(),
 	);
 
 	if (!success)
 		return res.status(500).json({
 			error: true,
 			message: "Internal server error",
-			code: 106
+			code: 106,
 		});
 
 	res.status(200).json({
-		success: true
+		success: true,
 	});
 });
