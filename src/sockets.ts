@@ -5,63 +5,69 @@ import * as openpgp from "openpgp";
 import type { WebSocket, WebSocketServer } from "ws";
 import type { Request } from "express";
 import type { TokenPayload, UserSession } from "./types.js";
+import * as JsBin from "@debutter/jsbin";
 
-const clientStreams = new Map();
+/** Usernames mapped to streams */
+const clientStreams: Map<string, Stream> = new Map();
 
 class Stream {
-	sockets: WebSocket[];
-	session: TokenPayload;
-	pings: number;
-	pingInterval: NodeJS.Timeout | null;
-	memory: string[];
+	#sockets: WebSocket[];
+	#session: TokenPayload;
+	#pings: number;
+	#pingInterval: NodeJS.Timeout | null;
+	#memory: Uint8Array[];
 
 	constructor(ws: WebSocket, session: TokenPayload) {
-		this.sockets = [];
-		this.session = session;
+		this.#sockets = [];
+		this.#session = session;
 		this.remix(ws);
-		this.pings = 0;
-		this.pingInterval = null;
-		this.memory = [];
+		this.#pings = 0;
+		this.#pingInterval = null;
+		this.#memory = [];
+		this.#initPings();
 	}
 
-	async send(data: object | string) {
+	async send(data: Uint8Array) {
 		// TODO: Figure out the proper type of the data
-		const key = await getUserPublicKey(this.session.username);
+		const key = await getUserPublicKey(this.#session.username);
 		const encrypted = await openpgp.encrypt({
-			// TODO: make binary
-			message: await openpgp.createMessage({ text: data }),
-			encryptionKeys: await openpgp.readKey({ binaryKey: key }),
+			message: await openpgp.createMessage({
+				binary: data,
+			}),
+			encryptionKeys: await openpgp.readKey({
+				binaryKey: key,
+			}),
+			format: "binary",
 		});
-		const message = JSON.stringify(encrypted);
 
 		if (this.isAlive()) {
-			for (const ws of this.sockets) {
-				ws.send(message);
+			for (const ws of this.#sockets) {
+				ws.send(encrypted);
 			}
 		} else {
-			this.memory.push(message);
+			this.#memory.push(encrypted);
 		}
 	}
 	async json(data: object) {
-		await this.send(JSON.stringify(data));
+		await this.send(JsBin.encode(data));
 	}
-	initPings() {
-		if (this.pingInterval !== null) clearInterval(this.pingInterval);
+	#initPings() {
+		if (this.#pingInterval !== null) clearInterval(this.#pingInterval);
 
-		this.pingInterval = setInterval(() => {
+		this.#pingInterval = setInterval(() => {
 			if (!this.isAlive()) {
-				if (this.pingInterval !== null) clearInterval(this.pingInterval);
+				if (this.#pingInterval !== null) clearInterval(this.#pingInterval);
 				return;
 			}
 
 			this.json({
 				event: "ping",
-				ping: this.pings++,
+				ping: this.#pings++,
 			});
 		}, 40_000);
 	}
 	isAlive() {
-		for (const ws of this.sockets) {
+		for (const ws of this.#sockets) {
 			if (ws.readyState === ws.OPEN) return true;
 		}
 		return false;
@@ -69,22 +75,23 @@ class Stream {
 	flushMemory() {
 		if (!this.isAlive()) return false;
 
-		for (const msg of this.memory) {
-			for (const ws of this.sockets) {
+		for (const msg of this.#memory) {
+			for (const ws of this.#sockets) {
 				ws.send(msg);
 			}
 		}
-		this.memory = [];
+		this.#memory = [];
 		return true;
 	}
 	remix(ws: WebSocket) {
-		this.sockets.push(ws);
+		this.#sockets.push(ws);
 
-		setOnlineStatus(this.session.username, true);
+		setOnlineStatus(this.#session.username, true);
 
 		ws.on("close", () => {
-			setOnlineStatus(this.session.username, this.isAlive());
-			this.sockets = this.sockets.filter(
+			setOnlineStatus(this.#session.username, this.isAlive());
+
+			this.#sockets = this.#sockets.filter(
 				(sock) => sock.readyState === sock.OPEN,
 			);
 		});
@@ -126,8 +133,11 @@ export default function (wss: WebSocketServer) {
 
 		// Initialize the stream
 		let stream: Stream;
-		if (clientStreams.has(payload.username)) {
-			stream = clientStreams.get(payload.username);
+
+		const existingStream = clientStreams.get(payload.username);
+
+		if (existingStream instanceof Stream) {
+			stream = existingStream;
 			stream.remix(ws);
 		} else {
 			stream = new Stream(ws, payload);
@@ -138,8 +148,6 @@ export default function (wss: WebSocketServer) {
 			event: "connect",
 			opened: true,
 		});
-
-		stream.initPings();
 	});
 }
 
