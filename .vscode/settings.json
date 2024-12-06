@@ -4,5 +4,6 @@
         "homeserver",
         "openpgp",
         "roomname"
-    ]
+    ],
+    "deno.enable": true
 }

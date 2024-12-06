@@ -1,45 +1,59 @@
-import type { Request, Response } from "express";
-import { getStream } from "../../sockets.js";
-import { authenticateHandler } from "../../auth/session.js";
-import { getUserSession, getRoom, removeUserFromRoom } from "../../lib/data.js";
+import { getStream } from "../../sockets.ts";
+import { authMiddleware } from "../../auth/session.ts";
+import { getUserSession, getRoom, removeUserFromRoom } from "../../lib/data.ts";
+import { Hono } from "hono";
 
-export default async (
-	req: Request<{
-		roomname: string;
-	}>,
-	res: Response,
-) => {
-	const tokenPayload = await authenticateHandler(req, res);
-	if (tokenPayload === null) return;
+const router = new Hono();
 
-	const { roomname } = req.params;
+router.post("/:roomname/leave", authMiddleware, async (ctx) => {
+	const tokenPayload = ctx.var.session;
+	const { roomname } = ctx.req.param();
 
 	const userSession = await getUserSession(tokenPayload.username);
 
+	if (!userSession)
+		return ctx.json(
+			{
+				error: true,
+				message: "User does not exist",
+				code: 401,
+			},
+			400,
+		);
+
 	if (!userSession.rooms.has(roomname))
-		return res.status(400).json({
-			error: true,
-			message: "Cannot leave a room that you are already not in",
-			code: 306,
-		});
+		return ctx.json(
+			{
+				error: true,
+				message: "Cannot leave a room that you are already not in",
+				code: 306,
+			},
+			400,
+		);
 
 	const room = await getRoom(roomname);
 
 	if (room === null)
-		return res.status(400).json({
-			error: true,
-			message: "Room doesn't exist",
-			code: 303,
-		});
+		return ctx.json(
+			{
+				error: true,
+				message: "Room doesn't exist",
+				code: 303,
+			},
+			400,
+		);
 
 	const success = await removeUserFromRoom(tokenPayload.username, roomname);
 
 	if (success === null)
-		return res.status(500).json({
-			error: true,
-			message: "Internal server error",
-			code: 106,
-		});
+		return ctx.json(
+			{
+				error: true,
+				message: "Internal server error",
+				code: 106,
+			},
+			500,
+		);
 
 	for (const username of room.members) {
 		if (username === tokenPayload.username) continue;
@@ -56,7 +70,12 @@ export default async (
 		});
 	}
 
-	res.status(200).json({
-		success: true,
-	});
-};
+	return ctx.json(
+		{
+			success: true,
+		},
+		200,
+	);
+});
+
+export default router;

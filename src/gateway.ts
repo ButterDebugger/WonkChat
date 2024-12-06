@@ -1,86 +1,93 @@
-import express from "express";
-import { getStream } from "./sockets.js";
-import { authenticateHandler } from "./auth/session.js";
-import { router as roomRoute } from "./channels/room.js";
-import { getUserSession, getRoom, getUserViews } from "./lib/data.js";
+import { Hono } from "hono";
+import { getStream } from "./sockets.ts";
+import { authMiddleware } from "./auth/session.ts";
+import { router as roomRoute } from "./channels/room.ts";
+import { getUserSession, getRoom, getUserViews } from "./lib/data.ts";
 
-export const router = express.Router();
+export const router = new Hono();
 
 const userSubscriptions = new Map();
 
-router.use(roomRoute);
+router.route("/room/", roomRoute);
 
-router.post("/users/:userid/subscribe", async (req, res) => {
-	const tokenPayload = await authenticateHandler(req, res);
-	if (tokenPayload === null) return;
-
-	const { userid } = req.params;
+router.post("/users/:userid/subscribe", authMiddleware, (ctx) => {
+	const tokenPayload = ctx.var.session;
+	const { userid } = ctx.req.param();
 
 	// Update list of subscribers
 	const subscribers = userSubscriptions.get(userid) ?? new Set();
 	subscribers.add(tokenPayload.username);
 	userSubscriptions.set(userid, subscribers);
 
-	res.status(200).json({
-		success: true,
-	});
+	return ctx.json(
+		{
+			success: true,
+		},
+		200,
+	);
 });
 
-router.post("/users/:userid/unsubscribe", async (req, res) => {
-	const tokenPayload = await authenticateHandler(req, res);
-	if (tokenPayload === null) return;
-
-	const { userid } = req.params;
+router.post("/users/:userid/unsubscribe", authMiddleware, (ctx) => {
+	const tokenPayload = ctx.var.session;
+	const { userid } = ctx.req.param();
 
 	// Update list of subscribers
 	const subscribers = userSubscriptions.get(userid) ?? new Set();
 	subscribers.delete(tokenPayload.username);
 	userSubscriptions.set(userid, subscribers);
 
-	res.status(200).json({
-		success: true,
-	});
+	return ctx.json(
+		{
+			success: true,
+		},
+		200,
+	);
 });
 
-router.get("/users/:username/fetch", async (req, res) => {
-	const tokenPayload = await authenticateHandler(req, res);
-	if (tokenPayload === null) return;
-
-	const { username } = req.params;
+router.get("/users/:username/fetch", authMiddleware, async (ctx) => {
+	const { username } = ctx.req.param();
 
 	const session = await getUserSession(username);
 
 	if (!session)
-		return res.status(400).json({
-			error: true,
-			message: "User does not exist",
-			code: 401,
-		});
+		return ctx.json(
+			{
+				error: true,
+				message: "User does not exist",
+				code: 401,
+			},
+			400,
+		);
 
-	res.status(200).json({
-		username: session.username,
-		data: {
+	return ctx.json(
+		{
 			username: session.username,
-			color: session.color,
-			offline: session.offline,
+			data: {
+				username: session.username,
+				color: session.color,
+				offline: session.offline,
+			},
+			success: true,
 		},
-		success: true,
-	});
+		200,
+	);
 });
 
-router.get("/sync/client", async (req, res) => {
-	const tokenPayload = await authenticateHandler(req, res);
-	if (tokenPayload === null) return;
+router.get("/sync/client", authMiddleware, async (ctx) => {
+	const tokenPayload = ctx.var.session;
 
 	const session = await getUserSession(tokenPayload.username);
 	let viewableUsers: Set<string> = new Set();
 
 	if (!session)
-		return res.status(400).json({
-			error: true,
-			message: "User does not exist",
-			code: 401,
-		});
+		return ctx.json(
+			{
+				error: true,
+				message: "User does not exist",
+				code: 401,
+			},
+			400,
+		);
 
 	// Get rooms
 	const rooms = [];
@@ -93,7 +100,7 @@ router.get("/sync/client", async (req, res) => {
 		rooms.push({
 			name: room.name,
 			description: room.description,
-			key: room.armoredPublicKey,
+			key: room.publicKey,
 			members: Array.from(room.members),
 		});
 	}
@@ -104,49 +111,60 @@ router.get("/sync/client", async (req, res) => {
 	const users = await Promise.all(
 		Array.from(viewableUsers).map((username) =>
 			getUserSession(username).then((session) => ({
-				username: session.username,
-				color: session.color,
-				offline: session.offline,
+				username: session?.username ?? username,
+				color: session?.color ?? "#ffffff",
+				offline: session?.offline ?? true,
 			})),
 		),
 	);
 
-	res.status(200).json({
-		rooms: rooms,
-		users: users,
-		you: {
-			username: session.username,
-			color: session.color,
-			offline: session.offline,
+	return ctx.json(
+		{
+			rooms: rooms,
+			users: users,
+			you: {
+				username: session.username,
+				color: session.color,
+				offline: session.offline,
+			},
+			success: true,
 		},
-		success: true,
-	});
+		200,
+	);
 });
 
-router.get("/sync/memory", async (req, res) => {
-	const tokenPayload = await authenticateHandler(req, res);
-	if (tokenPayload === null) return;
+router.get("/sync/memory", authMiddleware, (ctx) => {
+	const tokenPayload = ctx.var.session;
 
 	const stream = getStream(tokenPayload.username);
 	if (stream === null)
-		return res.status(400).json({
-			error: true,
-			message: "Could not find an active stream",
-			code: 601,
-		});
+		return ctx.json(
+			{
+				error: true,
+				message: "Could not find an active stream",
+				code: 601,
+			},
+			400,
+		);
 
 	const result = stream.flushMemory();
 
 	if (!result)
-		return res.status(400).json({
-			error: true,
-			message: "Stream is currently inactive",
-			code: 602,
-		});
+		return ctx.json(
+			{
+				error: true,
+				message: "Stream is currently inactive",
+				code: 602,
+			},
+			400,
+		);
 
-	res.status(200).json({
-		success: true,
-	});
+	return ctx.json(
+		{
+			success: true,
+		},
+		200,
+	);
 });
 
 export async function getSubscribers(username: string): Promise<string[]> {

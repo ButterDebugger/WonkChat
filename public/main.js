@@ -22,7 +22,7 @@ if (!params.has("state") || !params.has("challenge")) brokeLogin();
 try {
 	callbackUrl = decodeURIComponent(params.get("callback"));
 
-	let url = new URL(callbackUrl); // NOTE: Throws an error if the callback url is invalid
+	const url = new URL(callbackUrl); // NOTE: Throws an error if the callback url is invalid
 
 	trustedOriginEle.innerText = url.origin;
 } catch {
@@ -45,10 +45,10 @@ usernameEle.addEventListener("input", () => updateSubmitButton());
 passwordEle.addEventListener("input", () => updateSubmitButton());
 trustChk.addEventListener("input", () => updateSubmitButton());
 
-formEle.addEventListener("submit", async (event) => {
+formEle.addEventListener("submit", (event) => {
 	event.preventDefault();
 
-	let ogText = submitBtn.innerText;
+	const ogText = submitBtn.innerText;
 
 	submitBtn.disabled = true;
 	usernameEle.disabled = true;
@@ -65,8 +65,7 @@ formEle.addEventListener("submit", async (event) => {
 	}
 
 	function requestErrorHandler(err, defaultMessage = "Something went wrong") {
-		errorMessageEle.innerText =
-			err?.response?.data?.message ?? defaultMessage;
+		errorMessageEle.innerText = err?.response?.data?.message ?? defaultMessage;
 		restoreInputs();
 	}
 
@@ -76,20 +75,18 @@ formEle.addEventListener("submit", async (event) => {
 		.post("/oauth/authorize", {
 			username: usernameEle.value,
 			password: passwordEle.value,
-			challenge: params.get("challenge")
+			challenge: params.get("challenge"),
 		})
-		.then(async (res) => {
+		.then((res) => {
 			if (res.status !== 200 || res?.data?.error) {
 				return requestErrorHandler(null, res.data.message);
 			}
 
-			let redirectUrl = `${callbackUrl}?state=${params.get("state")}`;
+			const redirectUrl = `${callbackUrl}?state=${params.get("state")}`;
 
-			location.href = `./close/?redirect=${encodeURIComponent(
-				redirectUrl
-			)}`;
+			location.href = `./close/?redirect=${encodeURIComponent(redirectUrl)}`;
 		})
 		.catch((err) =>
-			requestErrorHandler(err, "Something went wrong whilst authorizing")
+			requestErrorHandler(err, "Something went wrong whilst authorizing"),
 		);
 });

@@ -1,10 +1,10 @@
+import type { JWTPayload } from "hono/utils/jwt/types";
 import type { UUID } from "node:crypto";
-import type { JwtPayload } from "jsonwebtoken";
-import type { Key } from "openpgp";
 
-export interface TokenPayload extends JwtPayload {
+export interface TokenPayload extends JWTPayload {
 	username: string;
 	jti: UUID;
+	/** Unix timestamp in seconds when the token was issued */
 	iat: number;
 }
 export interface UserSession {
@@ -19,8 +19,8 @@ export interface Room {
 	description: string;
 	/** Set of usernames */
 	members: Set<string>;
-	privateKey: Uint8Array;
-	armoredPublicKey: Key;
+	privateKey: string;
+	publicKey: string;
 }
 export interface Message {
 	content: string;

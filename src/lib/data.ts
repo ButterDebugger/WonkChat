@@ -1,64 +1,66 @@
-import fs from "node:fs";
-import path from "node:path";
 import * as openpgp from "openpgp";
-import knex from "knex";
-import bcrypt from "bcrypt";
-import type { Room, UserSession } from "../types.js";
+import { hash, verify } from "bcrypt";
+import type { Room, UserSession } from "../types.ts";
+import { db } from "./database.ts";
 
-// Create storage directory
-if (!fs.existsSync(path.join(process.cwd(), "storage"))) {
-	fs.mkdirSync(path.join(process.cwd(), "storage"));
-}
+// Create tables
+await db.introspection.getTables().then(async (tables) => {
+	const tableNames = tables.map((table) => table.name);
 
-// Setup database client
-const db = knex({
-	client: "better-sqlite3", // TODO: add different client type configurations
-	connection: {
-		filename: path.join(process.cwd(), "storage", "data.sqlite"),
-	},
-	useNullAsDefault: true,
+	if (!tableNames.includes("users")) {
+		// Users table doesn't exist, so create it
+		console.log("Creating users table");
+
+		await db.schema
+			.createTable("users")
+			.addColumn("username", "text", (col) => col.primaryKey())
+			.addColumn("displayName", "text", (col) => col.notNull())
+			.addColumn("password", "text", (col) => col.notNull())
+			.addColumn("color", "text", (col) => col.notNull())
+			.addColumn("rooms", "jsonb", (col) => col.notNull())
+			.addColumn("online", "boolean", (col) => col.notNull())
+			.addColumn("publicKey", "text")
+			.execute();
+
+		console.log("Created users table");
+	}
+
+	if (!tableNames.includes("rooms")) {
+		// Rooms table doesn't exist, so create it
+		console.log("Creating rooms table");
+
+		await db.schema
+			.createTable("rooms")
+			.addColumn("name", "text", (col) => col.primaryKey())
+			.addColumn("description", "text", (col) => col.notNull())
+			.addColumn("members", "jsonb", (col) => col.notNull())
+			.addColumn("publicKey", "text", (col) => col.notNull())
+			.addColumn("privateKey", "text", (col) => col.notNull())
+			.execute();
+
+		console.log("Created rooms table");
+	}
 });
 
-// Initialize database tables
-await Promise.all([
-	db.schema.hasTable("users").then((exists) => {
-		if (!exists) {
-			return db.schema.createTable("users", (table) => {
-				table.text("username").primary();
-				table.text("displayName");
-				table.text("password");
-				table.text("color");
-				table.text("rooms").defaultTo("[]"); // TODO: Use a different data type that sql supports
-				table.boolean("online").defaultTo(false);
-				table.binary("publicKey");
-			});
-		}
-	}),
-	db.schema.hasTable("rooms").then((exists) => {
-		if (!exists) {
-			return db.schema.createTable("rooms", (table) => {
-				table.text("name").primary();
-				table.text("description").defaultTo("");
-				table.text("members").defaultTo("[]"); // TODO: Use a different data type that sql supports
-				table.binary("publicKey");
-				table.binary("privateKey");
-			});
-		}
-	}),
-]);
-
 // Interface functions:
-export async function getUserSession(username: string): Promise<UserSession> {
-	return await db("users")
-		.where("username", username)
-		.first()
+export async function getUserSession(
+	username: string,
+): Promise<UserSession | null> {
+	return await db
+		.selectFrom("users")
+		.selectAll()
+		.where("username", "=", username)
+		.executeTakeFirst()
 		.then((user) => {
 			if (!user) return null;
 
-			user.online = !!user.online; // Convert to boolean
-			user.offline = !user.online; // NOTE: Legacy key name
-			user.rooms = new Set(JSON.parse(user.rooms)); // Convert to set
-			return user;
+			return {
+				username: user.username,
+				color: user.color,
+				offline: !user.online, // NOTE: Legacy key name
+				online: !!user.online, // Convert to boolean
+				rooms: new Set(user.rooms), // Convert to set
+			} as UserSession;
 		})
 		.catch(() => null);
 }
@@ -67,20 +69,26 @@ export async function createUserProfile(
 	username: string,
 	password: string,
 	color: string,
-) {
-	return await db("users")
-		.where("username", username)
-		.first()
+): Promise<boolean | null> {
+	return await db
+		.selectFrom("users")
+		.where("username", "=", username)
+		.executeTakeFirst()
 		.then(async (user) => {
 			// Check if user already exists
 			if (user) return false;
 
-			return db("users")
-				.insert({
+			return db
+				.insertInto("users")
+				.values({
 					username: username,
-					password: await bcrypt.hash(password, 10),
+					password: await hash(password), // NOTE: did have cost of 10
 					color: color,
+					online: false,
+					rooms: "[]", // TODO: test this
+					displayName: username,
 				})
+				.executeTakeFirst()
 				.then(() => true)
 				.catch(() => null);
 		})
@@ -88,34 +96,40 @@ export async function createUserProfile(
 }
 
 export async function compareUserProfile(username: string, password: string) {
-	return await db("users")
-		.where("username", username)
-		.first()
+	return await db
+		.selectFrom("users")
+		.select("password")
+		.where("username", "=", username)
+		.executeTakeFirst()
 		.then(async (user) => {
 			if (!user) return false;
 
-			return await bcrypt.compare(password, user.password);
+			return await verify(password, user.password);
 		})
 		.catch(() => false);
 }
 
 export async function updateUserProfile(username: string, color: string) {
-	return await db("users")
-		.where("username", username)
-		.update({
+	return await db
+		.updateTable("users")
+		.where("username", "=", username)
+		.set({
 			username: username,
 			color: color,
 		})
+		.executeTakeFirst()
 		.then(() => true)
 		.catch(() => false);
 }
 
 export async function setUserStatus(username: string, online: boolean) {
-	return await db("users")
-		.where("username", username)
-		.update({
+	return await db
+		.updateTable("users")
+		.where("username", "=", username)
+		.set({
 			online: online,
 		})
+		.executeTakeFirst()
 		.then(() => true)
 		.catch(() => false);
 }
@@ -131,19 +145,24 @@ export async function addUserToRoom(username: string, roomname: string) {
 	room.members.add(username);
 
 	return await db
-		.transaction(async (trx) => {
+		.transaction()
+		.execute(async (trx) => {
 			// TODO: test this
-			await trx("users")
-				.where("username", username)
-				.update({
+			await trx
+				.updateTable("users")
+				.where("username", "=", username)
+				.set({
 					rooms: JSON.stringify(Array.from(user.rooms)),
-				});
+				})
+				.executeTakeFirst();
 
-			await trx("rooms")
-				.where("name", roomname)
-				.update({
+			await trx
+				.updateTable("rooms")
+				.where("name", "=", roomname)
+				.set({
 					members: JSON.stringify(Array.from(room.members)),
-				});
+				})
+				.executeTakeFirst();
 		})
 		.then(() => true)
 		.catch(() => false);
@@ -159,19 +178,24 @@ export async function removeUserFromRoom(username: string, roomname: string) {
 	room.members.delete(username);
 
 	return await db
-		.transaction(async (trx) => {
+		.transaction()
+		.execute(async (trx) => {
 			// TODO: test this
-			await trx("users")
-				.where("username", username)
-				.update({
+			await trx
+				.updateTable("users")
+				.where("username", "=", username)
+				.set({
 					rooms: JSON.stringify(Array.from(user.rooms)),
-				});
+				})
+				.executeTakeFirst();
 
-			await trx("rooms")
-				.where("name", roomname)
-				.update({
+			await trx
+				.updateTable("rooms")
+				.where("name", "=", roomname)
+				.set({
 					members: JSON.stringify(Array.from(room.members)),
-				});
+				})
+				.executeTakeFirst();
 		})
 		.then(() => true)
 		.catch(() => false);
@@ -196,16 +220,17 @@ export async function getUserViews(
 }
 
 export async function existsRoom(roomname: string) {
-	return await db("rooms")
-		.where("name", roomname.toLowerCase())
-		.first()
+	return await db
+		.selectFrom("rooms")
+		.where("name", "=", roomname.toLowerCase())
+		.executeTakeFirst()
 		.then((room) => !!room)
 		.catch(() => true); // Assume the room exists if an error occurs
 }
 
 export async function createRoom(
 	roomname: string,
-	description: string | null = null,
+	description = "No description provided",
 ) {
 	if (await existsRoom(roomname)) return false;
 
@@ -217,63 +242,66 @@ export async function createRoom(
 				name: roomname,
 			},
 		],
-		format: "binary",
 	});
 
-	return await db("rooms")
-		.insert({
+	return await db
+		.insertInto("rooms")
+		.values({
 			name: roomname.toLowerCase(),
 			description: description,
+			members: "[]", // TODO: test this
 			publicKey: publicKey,
 			privateKey: privateKey,
 		})
-		.onConflict("name")
-		.merge()
+		.executeTakeFirst()
 		.then(() => true)
 		.catch(() => false);
 }
 
 export async function getRoom(roomname: string): Promise<Room | null> {
-	return await db("rooms")
-		.where("name", roomname.toLowerCase())
-		.first()
-		.then(async (room) => {
+	return await db
+		.selectFrom("rooms")
+		.selectAll()
+		.where("name", "=", roomname.toLowerCase())
+		.executeTakeFirst()
+		.then((room) => {
 			if (!room) return null;
 
-			room.members = new Set(JSON.parse(room.members)); // Convert to set
-			room.armoredPublicKey = await openpgp
-				.readKey({
-					// Convert the public key to armored format NOTE: only here for legacy reasons
-					binaryKey: room.publicKey,
-				})
-				.then((key) => key.armor());
-			return room;
+			return {
+				name: room.name,
+				description: room.description,
+				members: new Set(room.members), // Convert to set
+				privateKey: room.privateKey,
+				publicKey: room.publicKey,
+			} as Room;
 		})
 		.catch(() => null);
 }
 
-export async function setUserPublicKey(
-	username: string,
-	publicKey: Uint8Array,
-) {
-	return await db("users")
-		.where("username", username)
-		.update({
+export async function setUserPublicKey(username: string, publicKey: string) {
+	return await db
+		.updateTable("users")
+		.where("username", "=", username)
+		.set({
 			publicKey: publicKey,
 		})
+		.executeTakeFirst()
 		.then(() => true)
 		.catch(() => false);
 }
 
-export async function getUserPublicKey(username: string) {
-	return await db("users")
-		.where("username", username)
+export async function getUserPublicKey(
+	username: string,
+): Promise<string | null> {
+	return await db
+		.selectFrom("users")
+		.where("username", "=", username)
 		.select("publicKey")
-		.first()
-		.then((key) => {
-			if (!key || !key.publicKey) return null;
+		.executeTakeFirst()
+		.then((user) => {
+			if (!user || !user.publicKey) return null;
 
-			return key.publicKey;
+			return user.publicKey;
 		})
 		.catch(() => null);
 }
