@@ -62,7 +62,7 @@ router.post("/:roomname/message", authMiddleware, async (ctx) => {
 		const { data } = await openpgp.decrypt({
 			message: await openpgp.readMessage({ armoredMessage: message }),
 			decryptionKeys: await openpgp.readPrivateKey({
-				binaryKey: room.privateKey,
+				armoredKey: room.privateKey,
 			}),
 		});
 
