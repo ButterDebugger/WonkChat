@@ -18,9 +18,12 @@
     /* Type Checking */
     "strict": true,
     "noUncheckedIndexedAccess": true,
+    "types": [
+      "node"
+    ],
 
     /* Completeness */
-    "skipLibCheck": true
+    "skipLibCheck": true,
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules/*", "public/*"]
