@@ -49,8 +49,6 @@ export default async (
 			code: 101
 		});
 
-	console.log(2);
-
 	let decrypted: Message;
 	try {
 		const { data } = await openpgp.decrypt({
