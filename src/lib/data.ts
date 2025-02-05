@@ -1,153 +1,178 @@
-import fs from "node:fs";
-import path from "node:path";
 import * as openpgp from "openpgp";
-import knex from "knex";
 import bcrypt from "bcrypt";
-import type { Room, UserSession } from "../types.js";
+import { createClient } from "@libsql/client";
+import type { User, Room, UserRow, RoomRow } from "../types.js";
 
-// Create storage directory
-if (!fs.existsSync(path.join(process.cwd(), "storage"))) {
-	fs.mkdirSync(path.join(process.cwd(), "storage"));
-}
-
-// Setup database client
-const db = knex({
-	client: "better-sqlite3", // TODO: add different client type configurations
-	connection: {
-		filename: path.join(process.cwd(), "storage", "data.sqlite"),
-	},
-	useNullAsDefault: true,
+export const turso = createClient({
+	url: process.env.DATABASE_URL ?? "file:local.db",
+	syncUrl: process.env.DATABASE_SYNC_URL,
+	authToken: process.env.DATABASE_AUTH_TOKEN,
+	syncInterval: 60 // Sync every minute
 });
 
-// Initialize database tables
-await Promise.all([
-	db.schema.hasTable("users").then((exists) => {
-		if (!exists) {
-			return db.schema.createTable("users", (table) => {
-				table.text("username").primary();
-				table.text("displayName");
-				table.text("password");
-				table.text("color");
-				table.text("rooms").defaultTo("[]"); // TODO: Use a different data type that sql supports
-				table.boolean("online").defaultTo(false);
-				table.binary("publicKey");
-			});
-		}
-	}),
-	db.schema.hasTable("rooms").then((exists) => {
-		if (!exists) {
-			return db.schema.createTable("rooms", (table) => {
-				table.text("name").primary();
-				table.text("description").defaultTo("");
-				table.text("members").defaultTo("[]"); // TODO: Use a different data type that sql supports
-				table.binary("publicKey");
-				table.binary("privateKey");
-			});
-		}
-	}),
-]);
+export async function initTables() {
+	// Create tables if they do not already exist
+	await turso.batch(
+		[
+			// Users table
+			"CREATE TABLE IF NOT EXISTS users (" +
+				"username TEXT PRIMARY KEY, " +
+				"displayName TEXT, " +
+				"password TEXT, " +
+				"color TEXT, " +
+				"rooms TEXT DEFAULT '[]', " +
+				"online BOOLEAN, " +
+				"publicKey BLOB" +
+				")",
+			// Rooms table
+			"CREATE TABLE IF NOT EXISTS rooms (" +
+				"name TEXT PRIMARY KEY, " +
+				"description TEXT DEFAULT '', " +
+				"members TEXT DEFAULT '[]', " +
+				"publicKey BLOB, " +
+				"privateKey BLOB" +
+				")"
+		],
+		"write"
+	);
+}
 
 // Interface functions:
-export async function getUserSession(username: string): Promise<UserSession> {
-	return await db("users")
-		.where("username", username)
-		.first()
-		.then((user) => {
-			if (!user) return null;
+export async function getUserSession(username: string): Promise<User | null> {
+	const result = await turso.execute({
+		sql: "SELECT * FROM users WHERE username = ? LIMIT 1",
+		args: [username]
+	});
 
-			user.online = !!user.online; // Convert to boolean
-			user.offline = !user.online; // NOTE: Legacy key name
-			user.rooms = new Set(JSON.parse(user.rooms)); // Convert to set
-			return user;
-		})
-		.catch(() => null);
+	const row = result.rows[0];
+	if (!row) return null;
+
+	const user = row as unknown as UserRow; // Cast row to a user
+
+	return {
+		username: user.username,
+		displayName: user.displayName,
+		password: user.password,
+		color: user.color,
+		rooms: new Set(JSON.parse(user.rooms)), // Convert to set
+		offline: !user.online, // NOTE: Legacy key name
+		online: !!user.online, // Convert to boolean
+		publicKey: user.publicKey
+	} as User;
 }
 
 export async function createUserProfile(
 	username: string,
 	password: string,
-	color: string,
+	color: string
 ) {
-	return await db("users")
-		.where("username", username)
-		.first()
-		.then(async (user) => {
-			// Check if user already exists
-			if (user) return false;
+	const result = await turso.execute({
+		sql: "SELECT * FROM users WHERE username = ? LIMIT 1",
+		args: [username]
+	});
 
-			return db("users")
-				.insert({
-					username: username,
-					password: await bcrypt.hash(password, 10),
-					color: color,
-				})
-				.then(() => true)
-				.catch(() => null);
-		})
-		.catch(() => null);
+	if (result.rows.length > 0) return false;
+
+	try {
+		await turso.execute({
+			sql: "INSERT INTO users (username, password, color) VALUES (?, ?, ?)",
+			args: [username, await bcrypt.hash(password, 10), color]
+		});
+		return true;
+	} catch {
+		return null;
+	}
 }
 
-export async function compareUserProfile(username: string, password: string) {
-	return await db("users")
-		.where("username", username)
-		.first()
-		.then(async (user) => {
-			if (!user) return false;
+export async function compareUserProfile(
+	username: string,
+	password: string
+): Promise<boolean> {
+	const result = await turso.execute({
+		sql: "SELECT password FROM users WHERE username = ? LIMIT 1",
+		args: [username]
+	});
 
-			return await bcrypt.compare(password, user.password);
-		})
-		.catch(() => false);
+	const row = result.rows[0];
+	if (!row) return false;
+
+	// Cast row to a user
+	const user = row as unknown as UserRow;
+
+	return await bcrypt.compare(password, user.password);
 }
 
-export async function updateUserProfile(username: string, color: string) {
-	return await db("users")
-		.where("username", username)
-		.update({
-			username: username,
-			color: color,
-		})
-		.then(() => true)
-		.catch(() => false);
+export async function updateUserProfile(
+	username: string,
+	color: string
+): Promise<boolean> {
+	try {
+		await turso.execute({
+			sql: "UPDATE users SET color = ? WHERE username = ?",
+			args: [color, username]
+		});
+		return true;
+	} catch {
+		return false;
+	}
 }
 
 export async function setUserStatus(username: string, online: boolean) {
-	return await db("users")
-		.where("username", username)
-		.update({
-			online: online,
-		})
-		.then(() => true)
-		.catch(() => false);
+	try {
+		await turso.execute({
+			sql: "UPDATE users SET online = ? WHERE username = ?", // NOTE: is this efficient?
+			args: [online, username]
+		});
+		return true;
+	} catch {
+		return false;
+	}
 }
 
-export async function addUserToRoom(username: string, roomname: string) {
+export async function addUserToRoom(
+	username: string,
+	roomname: string
+): Promise<boolean> {
 	const user = await getUserSession(username);
 	if (user === null) return false;
 
 	const room = await getRoom(roomname);
 	if (room === null) return false;
 
-	user.rooms.add(roomname);
+	const trx = await turso.transaction("write");
+	try {
+		await trx.execute({
+			sql: "UPDATE users SET rooms = ? WHERE username = ?",
+			args: [
+				JSON.stringify(Array.from(new Set(user.rooms).add(roomname))),
+				username
+			]
+		});
+
+		await trx.execute({
+			sql: "UPDATE rooms SET members = ? WHERE name = ?",
+			args: [
+				JSON.stringify(Array.from(new Set(room.members).add(username))),
+				roomname.toLowerCase()
+			]
+		});
+
+		// Commit the transaction
+		await trx.commit();
+	} catch (err) {
+		// Something went wrong, rollback the transaction
+		await trx.rollback();
+		return false;
+	}
+
+	// Apply the changes to the cache
+	user.rooms.add(roomname.toLowerCase());
 	room.members.add(username);
 
-	return await db
-		.transaction(async (trx) => {
-			// TODO: test this
-			await trx("users")
-				.where("username", username)
-				.update({
-					rooms: JSON.stringify(Array.from(user.rooms)),
-				});
-
-			await trx("rooms")
-				.where("name", roomname)
-				.update({
-					members: JSON.stringify(Array.from(room.members)),
-				});
-		})
-		.then(() => true)
-		.catch(() => false);
+	trx.close();
+	return true;
 }
+
 export async function removeUserFromRoom(username: string, roomname: string) {
 	const user = await getUserSession(username);
 	if (user === null) return false;
@@ -155,30 +180,45 @@ export async function removeUserFromRoom(username: string, roomname: string) {
 	const room = await getRoom(roomname);
 	if (room === null) return false;
 
-	user.rooms.delete(roomname);
+	const userRoomsCopy = new Set(user.rooms);
+	const roomMembersCopy = new Set(room.members);
+
+	userRoomsCopy.delete(roomname);
+	roomMembersCopy.delete(username);
+
+	const trx = await turso.transaction("write");
+	try {
+		await trx.execute({
+			sql: "UPDATE users SET rooms = ? WHERE username = ?",
+			args: [JSON.stringify(Array.from(userRoomsCopy)), username]
+		});
+
+		await trx.execute({
+			sql: "UPDATE rooms SET members = ? WHERE name = ?",
+			args: [
+				JSON.stringify(Array.from(roomMembersCopy)),
+				roomname.toLowerCase()
+			]
+		});
+
+		// Commit the transaction
+		await trx.commit();
+	} catch (err) {
+		// Something went wrong, rollback the transaction
+		await trx.rollback();
+		return false;
+	}
+
+	// Apply the changes to the cache
+	user.rooms.delete(roomname.toLowerCase());
 	room.members.delete(username);
 
-	return await db
-		.transaction(async (trx) => {
-			// TODO: test this
-			await trx("users")
-				.where("username", username)
-				.update({
-					rooms: JSON.stringify(Array.from(user.rooms)),
-				});
-
-			await trx("rooms")
-				.where("name", roomname)
-				.update({
-					members: JSON.stringify(Array.from(room.members)),
-				});
-		})
-		.then(() => true)
-		.catch(() => false);
+	trx.close();
+	return true;
 }
 
 export async function getUserViews(
-	username: string,
+	username: string
 ): Promise<Set<string> | null> {
 	const user = await getUserSession(username);
 	if (user === null) return null;
@@ -196,16 +236,18 @@ export async function getUserViews(
 }
 
 export async function existsRoom(roomname: string) {
-	return await db("rooms")
-		.where("name", roomname.toLowerCase())
-		.first()
-		.then((room) => !!room)
+	return await turso
+		.execute({
+			sql: "SELECT 1 FROM rooms WHERE name = ? LIMIT 1",
+			args: [roomname.toLowerCase()]
+		})
+		.then((result) => result.rows.length > 0)
 		.catch(() => true); // Assume the room exists if an error occurs
 }
 
 export async function createRoom(
 	roomname: string,
-	description: string | null = null,
+	description: string | null = null
 ) {
 	if (await existsRoom(roomname)) return false;
 
@@ -214,66 +256,85 @@ export async function createRoom(
 		rsaBits: 2048,
 		userIDs: [
 			{
-				name: roomname,
-			},
+				name: roomname
+			}
 		],
-		format: "binary",
+		format: "binary"
 	});
 
-	return await db("rooms")
-		.insert({
-			name: roomname.toLowerCase(),
-			description: description,
-			publicKey: publicKey,
-			privateKey: privateKey,
+	return await turso
+		.execute({
+			sql: "INSERT OR IGNORE INTO rooms (name, description, publicKey, privateKey) VALUES (?, ?, ?, ?)",
+			args: [
+				roomname.toLowerCase(),
+				description ?? "",
+				publicKey,
+				privateKey
+			]
 		})
-		.onConflict("name")
-		.merge()
 		.then(() => true)
 		.catch(() => false);
 }
 
 export async function getRoom(roomname: string): Promise<Room | null> {
-	return await db("rooms")
-		.where("name", roomname.toLowerCase())
-		.first()
-		.then(async (room) => {
-			if (!room) return null;
-
-			room.members = new Set(JSON.parse(room.members)); // Convert to set
-			room.armoredPublicKey = await openpgp
-				.readKey({
-					// Convert the public key to armored format NOTE: only here for legacy reasons
-					binaryKey: room.publicKey,
-				})
-				.then((key) => key.armor());
-			return room;
+	const result = await turso
+		.execute({
+			sql: "SELECT * FROM rooms WHERE name = ? LIMIT 1",
+			args: [roomname.toLowerCase()]
 		})
 		.catch(() => null);
+
+	if (!result) return null;
+
+	const row = result.rows[0];
+	if (!row) return null;
+
+	const room = row as unknown as RoomRow; // Cast row to a room
+
+	return {
+		name: room.name,
+		description: room.description,
+		members: new Set(JSON.parse(room.members)), // Convert to set
+		armoredPublicKey: await openpgp
+			.readKey({
+				// Convert the public key to armored format NOTE: only here for legacy reasons
+				binaryKey: new Uint8Array(room.publicKey)
+			})
+			.then((key) => key.armor()),
+		privateKey: new Uint8Array(room.privateKey)
+	} as Room;
 }
 
 export async function setUserPublicKey(
 	username: string,
-	publicKey: Uint8Array,
+	publicKey: Uint8Array
 ) {
-	return await db("users")
-		.where("username", username)
-		.update({
-			publicKey: publicKey,
+	return await turso
+		.execute({
+			sql: "UPDATE users SET publicKey = ? WHERE username = ?",
+			args: [publicKey, username]
 		})
 		.then(() => true)
 		.catch(() => false);
 }
 
-export async function getUserPublicKey(username: string) {
-	return await db("users")
-		.where("username", username)
-		.select("publicKey")
-		.first()
-		.then((key) => {
-			if (!key || !key.publicKey) return null;
+export async function getUserPublicKey(
+	username: string
+): Promise<Uint8Array | null> {
+	return await turso
+		.execute({
+			sql: "SELECT publicKey FROM users WHERE username = ? LIMIT 1",
+			args: [username]
+		})
+		.then((result) => {
+			const row = result.rows[0];
+			if (!row) return null;
 
-			return key.publicKey;
+			const user = row as unknown as UserRow; // Cast row to a user
+
+			if (!user.publicKey) return null;
+
+			return new Uint8Array(user.publicKey);
 		})
 		.catch(() => null);
 }

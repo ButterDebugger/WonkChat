@@ -9,7 +9,7 @@ export default async (
 	req: Request<{
 		roomname: string;
 	}>,
-	res: Response,
+	res: Response
 ) => {
 	const tokenPayload = await authenticateHandler(req, res);
 	if (tokenPayload === null) return;
@@ -17,12 +17,18 @@ export default async (
 	const { roomname } = req.params;
 
 	const userSession = await getUserSession(tokenPayload.username);
+	if (userSession === null)
+		return res.status(400).json({
+			error: true,
+			message: "User session does not exist",
+			code: 507
+		});
 
 	if (!userSession.rooms.has(roomname))
 		return res.status(400).json({
 			error: true,
 			message: "Cannot send a message in a room that you are not in",
-			code: 304,
+			code: 304
 		});
 
 	const room = await getRoom(roomname);
@@ -31,7 +37,7 @@ export default async (
 		return res.status(400).json({
 			error: true,
 			message: "Room doesn't exist",
-			code: 303,
+			code: 303
 		});
 
 	const { message } = req.body;
@@ -40,23 +46,25 @@ export default async (
 		return res.status(400).json({
 			error: true,
 			message: "Invalid body",
-			code: 101,
+			code: 101
 		});
+
+	console.log(2);
 
 	let decrypted: Message;
 	try {
 		const { data } = await openpgp.decrypt({
 			message: await openpgp.readMessage({ armoredMessage: message }),
 			decryptionKeys: await openpgp.readPrivateKey({
-				binaryKey: room.privateKey,
-			}),
+				binaryKey: room.privateKey
+			})
 		});
 
 		if (typeof data !== "string" || !data.startsWith("{"))
 			return res.status(400).json({
 				error: true,
 				message: "Invalid body",
-				code: 101,
+				code: 101
 			});
 
 		decrypted = JSON.parse(data);
@@ -64,7 +72,7 @@ export default async (
 		return res.status(400).json({
 			error: true,
 			message: "Invalid encrypted body",
-			code: 104,
+			code: 104
 		});
 	}
 
@@ -72,7 +80,7 @@ export default async (
 		return res.status(400).json({
 			error: true,
 			message: "Invalid encrypted body",
-			code: 104,
+			code: 104
 		});
 
 	const { content, attachments } = decrypted;
@@ -81,7 +89,7 @@ export default async (
 		return res.status(400).json({
 			error: true,
 			message: "Invalid message content",
-			code: 201,
+			code: 201
 		});
 
 	for (const username of room.members) {
@@ -93,16 +101,16 @@ export default async (
 			author: {
 				username: userSession.username,
 				color: userSession.color,
-				offline: userSession.offline,
+				offline: userSession.offline
 			},
 			room: roomname,
 			content: content,
 			attachments: attachments,
-			timestamp: Date.now(),
+			timestamp: Date.now()
 		});
 	}
 
 	res.status(200).json({
-		success: true,
+		success: true
 	});
 };

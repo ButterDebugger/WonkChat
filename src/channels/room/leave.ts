@@ -7,7 +7,7 @@ export default async (
 	req: Request<{
 		roomname: string;
 	}>,
-	res: Response,
+	res: Response
 ) => {
 	const tokenPayload = await authenticateHandler(req, res);
 	if (tokenPayload === null) return;
@@ -15,12 +15,18 @@ export default async (
 	const { roomname } = req.params;
 
 	const userSession = await getUserSession(tokenPayload.username);
+	if (userSession === null)
+		return res.status(400).json({
+			error: true,
+			message: "User session does not exist",
+			code: 507
+		});
 
 	if (!userSession.rooms.has(roomname))
 		return res.status(400).json({
 			error: true,
 			message: "Cannot leave a room that you are already not in",
-			code: 306,
+			code: 306
 		});
 
 	const room = await getRoom(roomname);
@@ -29,7 +35,7 @@ export default async (
 		return res.status(400).json({
 			error: true,
 			message: "Room doesn't exist",
-			code: 303,
+			code: 303
 		});
 
 	const success = await removeUserFromRoom(tokenPayload.username, roomname);
@@ -38,7 +44,7 @@ export default async (
 		return res.status(500).json({
 			error: true,
 			message: "Internal server error",
-			code: 106,
+			code: 106
 		});
 
 	for (const username of room.members) {
@@ -52,11 +58,11 @@ export default async (
 			room: roomname,
 			username: tokenPayload.username,
 			timestamp: Date.now(),
-			state: "leave",
+			state: "leave"
 		});
 	}
 
 	res.status(200).json({
-		success: true,
+		success: true
 	});
 };

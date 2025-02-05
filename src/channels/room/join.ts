@@ -8,7 +8,7 @@ export default async (
 	req: Request<{
 		roomname: string;
 	}>,
-	res: Response,
+	res: Response
 ) => {
 	const tokenPayload = await authenticateHandler(req, res);
 	if (tokenPayload === null) return;
@@ -16,19 +16,25 @@ export default async (
 	const { roomname } = req.params;
 
 	const userSession = await getUserSession(tokenPayload.username);
+	if (userSession === null)
+		return res.status(400).json({
+			error: true,
+			message: "User session does not exist",
+			code: 507
+		});
 
 	if (!isValidRoomName(roomname))
 		return res.status(400).json({
 			error: true,
 			message: "Invalid room name",
-			code: 301,
+			code: 301
 		});
 
 	if (userSession.rooms.has(roomname))
 		return res.status(400).json({
 			error: true,
 			message: "Already joined this room",
-			code: 302,
+			code: 302
 		});
 
 	const room = await getRoom(roomname);
@@ -37,7 +43,7 @@ export default async (
 		return res.status(400).json({
 			error: true,
 			message: "Room doesn't exist",
-			code: 303,
+			code: 303
 		});
 
 	const success = await addUserToRoom(tokenPayload.username, roomname);
@@ -46,7 +52,7 @@ export default async (
 		return res.status(500).json({
 			error: true,
 			message: "Internal server error",
-			code: 106,
+			code: 106
 		});
 
 	for (const username of room.members) {
@@ -60,7 +66,7 @@ export default async (
 			room: roomname,
 			username: tokenPayload.username,
 			timestamp: Date.now(),
-			state: "join",
+			state: "join"
 		});
 	}
 
@@ -69,6 +75,6 @@ export default async (
 		description: room.description,
 		key: room.armoredPublicKey,
 		members: Array.from(room.members),
-		success: true,
+		success: true
 	});
 };

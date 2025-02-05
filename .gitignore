@@ -1,5 +1,6 @@
 attachments/
 storage/
+local.db
 
 # Logs
 logs

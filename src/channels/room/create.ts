@@ -7,7 +7,7 @@ export default async (
 	req: Request<{
 		roomname: string;
 	}>,
-	res: Response,
+	res: Response
 ) => {
 	const tokenPayload = await authenticateHandler(req, res);
 	if (tokenPayload === null) return;
@@ -18,7 +18,7 @@ export default async (
 		return res.status(400).json({
 			error: true,
 			message: "Invalid room name",
-			code: 301,
+			code: 301
 		});
 
 	const room = await createRoom(roomname);
@@ -27,10 +27,10 @@ export default async (
 		return res.status(400).json({
 			error: true,
 			message: "Room already exist",
-			code: 305,
+			code: 305
 		});
 
 	res.status(200).json({
-		success: true,
+		success: true
 	});
 };

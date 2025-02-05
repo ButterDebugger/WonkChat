@@ -17,6 +17,7 @@
 	"type": "module",
 	"dependencies": {
 		"@debutter/jsbin": "npm:@jsr/debutter__jsbin@^1.1.0",
+		"@libsql/client": "^0.14.0",
 		"bcrypt": "^5.1.1",
 		"better-sqlite3": "^9.6.0",
 		"body-parser": "^1.20.2",

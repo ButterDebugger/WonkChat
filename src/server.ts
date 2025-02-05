@@ -3,18 +3,20 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import {
 	router as attachmentsRoute,
-	clean as cleanAttachments,
+	clean as cleanAttachments
 } from "./attachments.js";
 import chalk from "chalk";
 import http from "node:http";
 import cors from "cors";
 import { WebSocketServer } from "ws";
 import { router as gatewayRoute } from "./gateway.js";
-import { createRoom } from "./lib/data.js";
+import { createRoom, initTables } from "./lib/data.js";
 import { namespace, port } from "./lib/config.js";
 import { router as oauthRoute } from "./auth/oauth.js";
 import { router as keysRoute } from "./keys.js";
 import initStream from "./sockets.js";
+
+initTables();
 
 const app = express();
 const server = http.createServer({}, app).listen(port);
@@ -24,20 +26,20 @@ const wssStream = new WebSocketServer({ server: server, path: "/stream" });
 server.addListener("listening", () => {
 	console.log(
 		chalk.bgGreen.bold(" LISTENING "),
-		chalk.white(`API server is running on port ${port}`),
+		chalk.white(`API server is running on port ${port}`)
 	);
 });
 server.addListener("close", () => {
 	console.log(
 		chalk.bgYellow.bold(" CLOSE "),
-		chalk.white("API server has closed"),
+		chalk.white("API server has closed")
 	);
 });
 server.addListener("error", (err) => {
 	console.error(
 		chalk.bgRed.bold(" ERROR "),
 		chalk.white("API server has encountered an error:"),
-		err,
+		err
 	);
 });
 
@@ -52,7 +54,7 @@ app.set("trust proxy", 1);
 // Add info route
 app.get("/", (req, res) => {
 	res.status(200).json({
-		namespace: namespace,
+		namespace: namespace
 	});
 });
 
@@ -60,7 +62,7 @@ app.get("/", (req, res) => {
 app.get("/ping", (req, res) => {
 	res.status(200).json({
 		message: "Pong!",
-		success: true,
+		success: true
 	});
 });
 
@@ -88,6 +90,6 @@ app.use((req, res, next) => {
 	res.status(400).json({
 		error: true,
 		message: "Unknown endpoint",
-		code: 105,
+		code: 105
 	});
 });

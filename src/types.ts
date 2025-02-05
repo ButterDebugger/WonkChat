@@ -14,6 +14,17 @@ export interface UserSession {
 	online: boolean;
 	rooms: Set<string>;
 }
+export interface User extends UserSession {
+	username: string;
+	color: string;
+	offline: boolean;
+	online: boolean;
+	rooms: Set<string>;
+	// Added fields
+	displayName: string;
+	password: string;
+	publicKey: Uint8Array;
+}
 export interface Room {
 	name: string;
 	description: string;
@@ -40,4 +51,22 @@ export interface Upload {
 	hash: string;
 	path: string;
 	success: boolean;
+}
+
+// Database types:
+export interface UserRow {
+	username: string;
+	displayName: string;
+	password: string;
+	color: string;
+	rooms: string;
+	online: boolean;
+	publicKey: Uint8Array;
+}
+export interface RoomRow {
+	name: string;
+	description: string;
+	members: string;
+	publicKey: Uint8Array;
+	privateKey: Uint8Array;
 }

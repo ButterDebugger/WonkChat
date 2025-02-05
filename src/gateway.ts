@@ -22,7 +22,7 @@ router.post("/users/:userid/subscribe", async (req, res) => {
 	userSubscriptions.set(userid, subscribers);
 
 	res.status(200).json({
-		success: true,
+		success: true
 	});
 });
 
@@ -38,7 +38,7 @@ router.post("/users/:userid/unsubscribe", async (req, res) => {
 	userSubscriptions.set(userid, subscribers);
 
 	res.status(200).json({
-		success: true,
+		success: true
 	});
 });
 
@@ -54,7 +54,7 @@ router.get("/users/:username/fetch", async (req, res) => {
 		return res.status(400).json({
 			error: true,
 			message: "User does not exist",
-			code: 401,
+			code: 401
 		});
 
 	res.status(200).json({
@@ -62,9 +62,9 @@ router.get("/users/:username/fetch", async (req, res) => {
 		data: {
 			username: session.username,
 			color: session.color,
-			offline: session.offline,
+			offline: session.offline
 		},
-		success: true,
+		success: true
 	});
 });
 
@@ -79,7 +79,7 @@ router.get("/sync/client", async (req, res) => {
 		return res.status(400).json({
 			error: true,
 			message: "User does not exist",
-			code: 401,
+			code: 401
 		});
 
 	// Get rooms
@@ -94,7 +94,7 @@ router.get("/sync/client", async (req, res) => {
 			name: room.name,
 			description: room.description,
 			key: room.armoredPublicKey,
-			members: Array.from(room.members),
+			members: Array.from(room.members)
 		});
 	}
 
@@ -102,14 +102,17 @@ router.get("/sync/client", async (req, res) => {
 	viewableUsers.delete(session.username);
 
 	const users = await Promise.all(
-		Array.from(viewableUsers).map((username) =>
-			getUserSession(username).then((session) => ({
+		Array.from(viewableUsers).map(async (username) => {
+			const session = await getUserSession(username);
+			if (session === null) return null;
+
+			return {
 				username: session.username,
 				color: session.color,
-				offline: session.offline,
-			})),
-		),
-	);
+				offline: session.offline
+			};
+		})
+	).then((arr) => arr.filter((item) => item !== null));
 
 	res.status(200).json({
 		rooms: rooms,
@@ -117,9 +120,9 @@ router.get("/sync/client", async (req, res) => {
 		you: {
 			username: session.username,
 			color: session.color,
-			offline: session.offline,
+			offline: session.offline
 		},
-		success: true,
+		success: true
 	});
 });
 
@@ -132,7 +135,7 @@ router.get("/sync/memory", async (req, res) => {
 		return res.status(400).json({
 			error: true,
 			message: "Could not find an active stream",
-			code: 601,
+			code: 601
 		});
 
 	const result = stream.flushMemory();
@@ -141,11 +144,11 @@ router.get("/sync/memory", async (req, res) => {
 		return res.status(400).json({
 			error: true,
 			message: "Stream is currently inactive",
-			code: 602,
+			code: 602
 		});
 
 	res.status(200).json({
-		success: true,
+		success: true
 	});
 });
 

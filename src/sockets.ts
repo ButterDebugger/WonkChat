@@ -30,14 +30,16 @@ class Stream {
 	async send(data: Uint8Array) {
 		// TODO: Figure out the proper type of the data
 		const key = await getUserPublicKey(this.#session.username);
+		if (key === null) return; // TODO: Save the message instead of dropping it
+
 		const encrypted = await openpgp.encrypt({
 			message: await openpgp.createMessage({
-				binary: data,
+				binary: data
 			}),
 			encryptionKeys: await openpgp.readKey({
-				binaryKey: key,
+				binaryKey: key
 			}),
-			format: "binary",
+			format: "binary"
 		});
 
 		if (this.isAlive()) {
@@ -56,13 +58,14 @@ class Stream {
 
 		this.#pingInterval = setInterval(() => {
 			if (!this.isAlive()) {
-				if (this.#pingInterval !== null) clearInterval(this.#pingInterval);
+				if (this.#pingInterval !== null)
+					clearInterval(this.#pingInterval);
 				return;
 			}
 
 			this.json({
 				event: "ping",
-				ping: this.#pings++,
+				ping: this.#pings++
 			});
 		}, 40_000);
 	}
@@ -92,7 +95,7 @@ class Stream {
 			setOnlineStatus(this.#session.username, this.isAlive());
 
 			this.#sockets = this.#sockets.filter(
-				(sock) => sock.readyState === sock.OPEN,
+				(sock) => sock.readyState === sock.OPEN
 			);
 		});
 	}
@@ -111,8 +114,8 @@ export default function (wss: WebSocketServer) {
 				JSON.stringify({
 					error: true,
 					message: "Invalid credentials",
-					code: 501,
-				}),
+					code: 501
+				})
 			);
 			ws.close();
 			return;
@@ -124,8 +127,8 @@ export default function (wss: WebSocketServer) {
 				JSON.stringify({
 					error: true,
 					message: "Unknown public key",
-					code: 107,
-				}),
+					code: 107
+				})
 			);
 			ws.close();
 			return;
@@ -146,7 +149,7 @@ export default function (wss: WebSocketServer) {
 
 		stream.json({
 			event: "connect",
-			opened: true,
+			opened: true
 		});
 	});
 }
@@ -172,7 +175,7 @@ async function setOnlineStatus(username: string, online: boolean) {
 
 async function updateUserSubscribers(
 	username: string,
-	userSession: UserSession,
+	userSession: UserSession
 ) {
 	const viewers = await getSubscribers(username);
 
@@ -186,9 +189,9 @@ async function updateUserSubscribers(
 				data: {
 					username: userSession.username,
 					color: userSession.color,
-					offline: userSession.offline,
+					offline: userSession.offline
 				},
-				timestamp: Date.now(),
+				timestamp: Date.now()
 			});
 		}
 	}
