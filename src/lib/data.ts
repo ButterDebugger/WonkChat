@@ -44,7 +44,7 @@ await db.introspection.getTables().then(async (tables) => {
 
 // Interface functions:
 export async function getUserSession(
-	username: string,
+	username: string
 ): Promise<UserSession | null> {
 	return await db
 		.selectFrom("users")
@@ -59,19 +59,23 @@ export async function getUserSession(
 				color: user.color,
 				offline: !user.online, // NOTE: Legacy key name
 				online: !!user.online, // Convert to boolean
-				rooms: new Set(user.rooms), // Convert to set
+				rooms: new Set(user.rooms) // Convert to set
 			} as UserSession;
 		})
-		.catch(() => null);
+		.catch((err) => {
+			console.error("Failed to fetch user", err);
+			return null;
+		});
 }
 
 export async function createUserProfile(
 	username: string,
 	password: string,
-	color: string,
+	color: string
 ): Promise<boolean | null> {
 	return await db
 		.selectFrom("users")
+		.selectAll()
 		.where("username", "=", username)
 		.executeTakeFirst()
 		.then(async (user) => {
@@ -86,13 +90,19 @@ export async function createUserProfile(
 					color: color,
 					online: false,
 					rooms: "[]", // TODO: test this
-					displayName: username,
+					displayName: username
 				})
 				.executeTakeFirst()
 				.then(() => true)
-				.catch(() => null);
+				.catch((err) => {
+					console.error("Failed to create user", err);
+					return null;
+				});
 		})
-		.catch(() => null);
+		.catch((err) => {
+			console.error("Failed to check if user exists", err);
+			return null;
+		});
 }
 
 export async function compareUserProfile(username: string, password: string) {
@@ -106,7 +116,10 @@ export async function compareUserProfile(username: string, password: string) {
 
 			return await verify(password, user.password);
 		})
-		.catch(() => false);
+		.catch((err) => {
+			console.error("Failed to fetch users credentials", err);
+			return false;
+		});
 }
 
 export async function updateUserProfile(username: string, color: string) {
@@ -115,11 +128,14 @@ export async function updateUserProfile(username: string, color: string) {
 		.where("username", "=", username)
 		.set({
 			username: username,
-			color: color,
+			color: color
 		})
 		.executeTakeFirst()
 		.then(() => true)
-		.catch(() => false);
+		.catch((err) => {
+			console.error("Failed to update users username and color", err);
+			return false;
+		});
 }
 
 export async function setUserStatus(username: string, online: boolean) {
@@ -127,11 +143,14 @@ export async function setUserStatus(username: string, online: boolean) {
 		.updateTable("users")
 		.where("username", "=", username)
 		.set({
-			online: online,
+			online: online
 		})
 		.executeTakeFirst()
 		.then(() => true)
-		.catch(() => false);
+		.catch((err) => {
+			console.error("Failed to update users status", err);
+			return false;
+		});
 }
 
 export async function addUserToRoom(username: string, roomname: string) {
@@ -152,7 +171,7 @@ export async function addUserToRoom(username: string, roomname: string) {
 				.updateTable("users")
 				.where("username", "=", username)
 				.set({
-					rooms: JSON.stringify(Array.from(user.rooms)),
+					rooms: JSON.stringify(Array.from(user.rooms))
 				})
 				.executeTakeFirst();
 
@@ -160,12 +179,15 @@ export async function addUserToRoom(username: string, roomname: string) {
 				.updateTable("rooms")
 				.where("name", "=", roomname)
 				.set({
-					members: JSON.stringify(Array.from(room.members)),
+					members: JSON.stringify(Array.from(room.members))
 				})
 				.executeTakeFirst();
 		})
 		.then(() => true)
-		.catch(() => false);
+		.catch((err) => {
+			console.error("Failed to add user to room", err);
+			return false;
+		});
 }
 export async function removeUserFromRoom(username: string, roomname: string) {
 	const user = await getUserSession(username);
@@ -185,7 +207,7 @@ export async function removeUserFromRoom(username: string, roomname: string) {
 				.updateTable("users")
 				.where("username", "=", username)
 				.set({
-					rooms: JSON.stringify(Array.from(user.rooms)),
+					rooms: JSON.stringify(Array.from(user.rooms))
 				})
 				.executeTakeFirst();
 
@@ -193,16 +215,19 @@ export async function removeUserFromRoom(username: string, roomname: string) {
 				.updateTable("rooms")
 				.where("name", "=", roomname)
 				.set({
-					members: JSON.stringify(Array.from(room.members)),
+					members: JSON.stringify(Array.from(room.members))
 				})
 				.executeTakeFirst();
 		})
 		.then(() => true)
-		.catch(() => false);
+		.catch((err) => {
+			console.error("Failed to remove user from room", err);
+			return false;
+		});
 }
 
 export async function getUserViews(
-	username: string,
+	username: string
 ): Promise<Set<string> | null> {
 	const user = await getUserSession(username);
 	if (user === null) return null;
@@ -230,18 +255,17 @@ export async function existsRoom(roomname: string) {
 
 export async function createRoom(
 	roomname: string,
-	description = "No description provided",
+	description = "No description provided"
 ) {
 	if (await existsRoom(roomname)) return false;
 
 	const { publicKey, privateKey } = await openpgp.generateKey({
-		type: "rsa",
-		rsaBits: 2048,
+		type: "curve25519",
 		userIDs: [
 			{
-				name: roomname,
-			},
-		],
+				name: roomname
+			}
+		]
 	});
 
 	return await db
@@ -251,11 +275,14 @@ export async function createRoom(
 			description: description,
 			members: "[]", // TODO: test this
 			publicKey: publicKey,
-			privateKey: privateKey,
+			privateKey: privateKey
 		})
 		.executeTakeFirst()
 		.then(() => true)
-		.catch(() => false);
+		.catch((err) => {
+			console.error("Failed to create room", err);
+			return false;
+		});
 }
 
 export async function getRoom(roomname: string): Promise<Room | null> {
@@ -272,10 +299,13 @@ export async function getRoom(roomname: string): Promise<Room | null> {
 				description: room.description,
 				members: new Set(room.members), // Convert to set
 				privateKey: room.privateKey,
-				publicKey: room.publicKey,
+				publicKey: room.publicKey
 			} as Room;
 		})
-		.catch(() => null);
+		.catch((err) => {
+			console.error("Failed to fetch room", err);
+			return null;
+		});
 }
 
 export async function setUserPublicKey(username: string, publicKey: string) {
@@ -283,15 +313,18 @@ export async function setUserPublicKey(username: string, publicKey: string) {
 		.updateTable("users")
 		.where("username", "=", username)
 		.set({
-			publicKey: publicKey,
+			publicKey: publicKey
 		})
 		.executeTakeFirst()
 		.then(() => true)
-		.catch(() => false);
+		.catch((err) => {
+			console.error("Failed to update users public key", err);
+			return false;
+		});
 }
 
 export async function getUserPublicKey(
-	username: string,
+	username: string
 ): Promise<string | null> {
 	return await db
 		.selectFrom("users")
@@ -303,5 +336,8 @@ export async function getUserPublicKey(
 
 			return user.publicKey;
 		})
-		.catch(() => null);
+		.catch((err) => {
+			console.error("Failed to fetch users public key", err);
+			return null;
+		});
 }

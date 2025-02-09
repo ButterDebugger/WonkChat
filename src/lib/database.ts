@@ -1,26 +1,19 @@
-import Pool from "pg-pool";
+import { Kysely, type Generated, type JSONColumnType } from "kysely";
+import { LibsqlDialect } from "@libsql/kysely-libsql";
 import {
-	Kysely,
-	PostgresDialect,
-	type Generated,
-	type JSONColumnType,
-} from "kysely";
-import { database_url } from "./config.ts";
+	database_auth_Token,
+	database_sync_url,
+	database_url
+} from "./config.ts";
 
 // Setup database client
-const params = new URL(database_url);
-const dialect = new PostgresDialect({
-	pool: new Pool({
-		user: params.username,
-		password: params.password,
-		host: params.hostname,
-		port: params.port,
-		database: params.pathname.split("/")[1],
-	}),
-});
-
 export const db = new Kysely<Database>({
-	dialect,
+	dialect: new LibsqlDialect({
+		url: database_url,
+		syncUrl: database_sync_url,
+		authToken: database_auth_Token,
+		syncInterval: 60 // Sync every minute
+	})
 });
 
 // Declare database types

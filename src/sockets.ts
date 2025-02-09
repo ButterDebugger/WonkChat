@@ -37,16 +37,16 @@ class Stream {
 
 		try {
 			const encryptionKey = await openpgp.readKey({
-				armoredKey: key,
+				armoredKey: key
 			});
 			const messageBody = await openpgp.createMessage({
-				binary: data,
+				binary: data
 			});
 
 			encrypted = await openpgp.encrypt({
 				message: messageBody,
 				encryptionKeys: encryptionKey,
-				format: "binary",
+				format: "binary"
 			});
 		} catch (error) {
 			console.error("Failed to encrypt message", error);
@@ -69,13 +69,14 @@ class Stream {
 
 		this.#pingInterval = setInterval(() => {
 			if (!this.isAlive()) {
-				if (this.#pingInterval !== null) clearInterval(this.#pingInterval);
+				if (this.#pingInterval !== null)
+					clearInterval(this.#pingInterval);
 				return;
 			}
 
 			this.json({
 				event: "ping",
-				ping: this.#pings++,
+				ping: this.#pings++
 			});
 		}, 40_000);
 	}
@@ -119,8 +120,8 @@ export const route = upgradeWebSocket(
 					JSON.stringify({
 						error: true,
 						message: "Unknown public key",
-						code: 107,
-					}),
+						code: 107
+					})
 				);
 				ws.close();
 				return;
@@ -141,7 +142,7 @@ export const route = upgradeWebSocket(
 
 			stream.json({
 				event: "connect",
-				opened: true,
+				opened: true
 			});
 		},
 		onClose: () => {
@@ -152,8 +153,8 @@ export const route = upgradeWebSocket(
 				stream.onClose();
 			}
 		},
-		onError: (error) => console.error("Websocket error", error),
-	}),
+		onError: (error) => console.error("Websocket error", error)
+	})
 );
 
 export function getStream(username: string) {
@@ -177,7 +178,7 @@ async function setOnlineStatus(username: string, online: boolean) {
 
 async function updateUserSubscribers(
 	username: string,
-	userSession: UserSession,
+	userSession: UserSession
 ) {
 	const viewers = await getSubscribers(username);
 
@@ -191,9 +192,9 @@ async function updateUserSubscribers(
 				data: {
 					username: userSession.username,
 					color: userSession.color,
-					offline: userSession.offline,
+					offline: userSession.offline
 				},
-				timestamp: Date.now(),
+				timestamp: Date.now()
 			});
 		}
 	}

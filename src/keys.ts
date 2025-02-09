@@ -25,9 +25,9 @@ router.get("/nonce", authMiddleware, (ctx) => {
 	return ctx.json(
 		{
 			success: true,
-			nonce: nonce,
+			nonce: nonce
 		},
-		200,
+		200
 	);
 });
 router.post("/verify", authMiddleware, async (ctx) => {
@@ -39,9 +39,9 @@ router.post("/verify", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Invalid body",
-				code: 101,
+				code: 101
 			},
-			400,
+			400
 		);
 
 	// Check if login nonce exists
@@ -50,9 +50,9 @@ router.post("/verify", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Nonce has expired",
-				code: 505,
+				code: 505
 			},
-			400,
+			400
 		);
 
 	// Verify the signed nonce
@@ -63,9 +63,9 @@ router.post("/verify", authMiddleware, async (ctx) => {
 		armoredKey = await openpgp.readKey({ armoredKey: publicKey });
 		const { data } = await openpgp.verify({
 			message: await openpgp.readMessage({
-				armoredMessage: signedNonce,
+				armoredMessage: signedNonce
 			}),
-			verificationKeys: armoredKey,
+			verificationKeys: armoredKey
 		});
 		unsignedNonce = data;
 	} catch (_err) {
@@ -73,9 +73,9 @@ router.post("/verify", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Invalid public key",
-				code: 503,
+				code: 503
 			},
-			400,
+			400
 		);
 	}
 
@@ -86,16 +86,16 @@ router.post("/verify", authMiddleware, async (ctx) => {
 	if (unsignedNonce !== nonce)
 		return ctx.json(
 			{
-				error: true,
+				error: true
 				// TODO: write an error message
 			},
-			400,
+			400
 		);
 
 	// Save public key
 	const success = await setUserPublicKey(
 		tokenPayload.username,
-		armoredKey.armor(),
+		armoredKey.armor()
 	);
 
 	if (!success)
@@ -103,15 +103,15 @@ router.post("/verify", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Internal server error",
-				code: 106,
+				code: 106
 			},
-			500,
+			500
 		);
 
 	return ctx.json(
 		{
-			success: true,
+			success: true
 		},
-		200,
+		200
 	);
 });

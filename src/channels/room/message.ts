@@ -18,9 +18,9 @@ router.post("/:roomname/message", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "User does not exist",
-				code: 401,
+				code: 401
 			},
-			400,
+			400
 		);
 
 	if (!userSession.rooms.has(roomname))
@@ -28,9 +28,9 @@ router.post("/:roomname/message", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Cannot send a message in a room that you are not in",
-				code: 304,
+				code: 304
 			},
-			400,
+			400
 		);
 
 	const room = await getRoom(roomname);
@@ -40,9 +40,9 @@ router.post("/:roomname/message", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Room doesn't exist",
-				code: 303,
+				code: 303
 			},
-			400,
+			400
 		);
 
 	const { message } = await ctx.req.json();
@@ -52,9 +52,9 @@ router.post("/:roomname/message", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Invalid body",
-				code: 101,
+				code: 101
 			},
-			400,
+			400
 		);
 
 	let decrypted: Message;
@@ -62,8 +62,8 @@ router.post("/:roomname/message", authMiddleware, async (ctx) => {
 		const { data } = await openpgp.decrypt({
 			message: await openpgp.readMessage({ armoredMessage: message }),
 			decryptionKeys: await openpgp.readPrivateKey({
-				armoredKey: room.privateKey,
-			}),
+				armoredKey: room.privateKey
+			})
 		});
 
 		if (typeof data !== "string" || !data.startsWith("{"))
@@ -71,9 +71,9 @@ router.post("/:roomname/message", authMiddleware, async (ctx) => {
 				{
 					error: true,
 					message: "Invalid body",
-					code: 101,
+					code: 101
 				},
-				400,
+				400
 			);
 
 		decrypted = JSON.parse(data);
@@ -82,9 +82,9 @@ router.post("/:roomname/message", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Invalid encrypted body",
-				code: 104,
+				code: 104
 			},
-			400,
+			400
 		);
 	}
 
@@ -93,9 +93,9 @@ router.post("/:roomname/message", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Invalid encrypted body",
-				code: 104,
+				code: 104
 			},
-			400,
+			400
 		);
 
 	const { content, attachments } = decrypted;
@@ -105,9 +105,9 @@ router.post("/:roomname/message", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Invalid message content",
-				code: 201,
+				code: 201
 			},
-			400,
+			400
 		);
 
 	for (const username of room.members) {
@@ -119,20 +119,20 @@ router.post("/:roomname/message", authMiddleware, async (ctx) => {
 			author: {
 				username: userSession.username,
 				color: userSession.color,
-				offline: userSession.offline,
+				offline: userSession.offline
 			},
 			room: roomname,
 			content: content,
 			attachments: attachments,
-			timestamp: Date.now(),
+			timestamp: Date.now()
 		});
 	}
 
 	return ctx.json(
 		{
-			success: true,
+			success: true
 		},
-		200,
+		200
 	);
 });
 
