@@ -252,8 +252,7 @@ export async function createRoom(
 	if (await existsRoom(roomname)) return false;
 
 	const { publicKey, privateKey } = await openpgp.generateKey({
-		type: "rsa",
-		rsaBits: 2048,
+		type: "curve25519",
 		userIDs: [
 			{
 				name: roomname
