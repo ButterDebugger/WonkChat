@@ -19,7 +19,7 @@ await db.introspection.getTables().then(async (tables) => {
 			.addColumn("color", "text", (col) => col.notNull())
 			.addColumn("rooms", "jsonb", (col) => col.notNull())
 			.addColumn("online", "boolean", (col) => col.notNull())
-			.addColumn("publicKey", "text")
+			.addColumn("publicKey", "blob")
 			.execute();
 
 		console.log("Created users table");
@@ -34,8 +34,8 @@ await db.introspection.getTables().then(async (tables) => {
 			.addColumn("name", "text", (col) => col.primaryKey())
 			.addColumn("description", "text", (col) => col.notNull())
 			.addColumn("members", "jsonb", (col) => col.notNull())
-			.addColumn("publicKey", "text", (col) => col.notNull())
-			.addColumn("privateKey", "text", (col) => col.notNull())
+			.addColumn("publicKey", "blob", (col) => col.notNull())
+			.addColumn("privateKey", "blob", (col) => col.notNull())
 			.execute();
 
 		console.log("Created rooms table");
@@ -265,17 +265,26 @@ export async function createRoom(
 			{
 				name: roomname
 			}
-		]
+		],
+		format: "binary"
 	});
 
+	// Convert Uint8Array keys to ArrayBuffer
+	const publicKeyBuffer = new ArrayBuffer(publicKey.length);
+	new Uint8Array(publicKeyBuffer).set(publicKey);
+
+	const privateKeyBuffer = new ArrayBuffer(privateKey.length);
+	new Uint8Array(privateKeyBuffer).set(privateKey);
+
+	// Insert room
 	return await db
 		.insertInto("rooms")
 		.values({
 			name: roomname.toLowerCase(),
 			description: description,
 			members: "[]", // TODO: test this
-			publicKey: publicKey,
-			privateKey: privateKey
+			publicKey: publicKeyBuffer,
+			privateKey: privateKeyBuffer
 		})
 		.executeTakeFirst()
 		.then(() => true)
@@ -298,8 +307,8 @@ export async function getRoom(roomname: string): Promise<Room | null> {
 				name: room.name,
 				description: room.description,
 				members: new Set(room.members), // Convert to set
-				privateKey: room.privateKey,
-				publicKey: room.publicKey
+				privateKey: new Uint8Array(room.privateKey),
+				publicKey: new Uint8Array(room.publicKey)
 			} as Room;
 		})
 		.catch((err) => {
@@ -308,12 +317,20 @@ export async function getRoom(roomname: string): Promise<Room | null> {
 		});
 }
 
-export async function setUserPublicKey(username: string, publicKey: string) {
+export async function setUserPublicKey(
+	username: string,
+	publicKey: Uint8Array
+) {
+	// Convert Uint8Array to ArrayBuffer
+	const buffer = new ArrayBuffer(publicKey.length);
+	new Uint8Array(buffer).set(publicKey);
+
+	// Update users table
 	return await db
 		.updateTable("users")
 		.where("username", "=", username)
 		.set({
-			publicKey: publicKey
+			publicKey: buffer
 		})
 		.executeTakeFirst()
 		.then(() => true)
@@ -325,7 +342,7 @@ export async function setUserPublicKey(username: string, publicKey: string) {
 
 export async function getUserPublicKey(
 	username: string
-): Promise<string | null> {
+): Promise<Uint8Array | null> {
 	return await db
 		.selectFrom("users")
 		.where("username", "=", username)
@@ -334,7 +351,7 @@ export async function getUserPublicKey(
 		.then((user) => {
 			if (!user || !user.publicKey) return null;
 
-			return user.publicKey;
+			return new Uint8Array(user.publicKey);
 		})
 		.catch((err) => {
 			console.error("Failed to fetch users public key", err);

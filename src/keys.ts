@@ -95,7 +95,7 @@ router.post("/verify", authMiddleware, async (ctx) => {
 	// Save public key
 	const success = await setUserPublicKey(
 		tokenPayload.username,
-		armoredKey.armor()
+		armoredKey.write()
 	);
 
 	if (!success)

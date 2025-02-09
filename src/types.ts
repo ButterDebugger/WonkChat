@@ -19,8 +19,8 @@ export interface Room {
 	description: string;
 	/** Set of usernames */
 	members: Set<string>;
-	privateKey: string;
-	publicKey: string;
+	privateKey: Uint8Array;
+	publicKey: Uint8Array;
 }
 export interface Message {
 	content: string;

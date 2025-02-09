@@ -37,7 +37,7 @@ class Stream {
 
 		try {
 			const encryptionKey = await openpgp.readKey({
-				armoredKey: key
+				binaryKey: key
 			});
 			const messageBody = await openpgp.createMessage({
 				binary: data

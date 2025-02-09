@@ -29,13 +29,13 @@ export interface UserTable {
 	color: string;
 	rooms: JSONColumnType<string[]>;
 	online: boolean;
-	publicKey: string | undefined;
+	publicKey: (ArrayBuffer & { buffer?: undefined }) | undefined;
 }
 
 export interface RoomTable {
 	name: Generated<string>;
 	description: string;
 	members: JSONColumnType<string[]>;
-	publicKey: string;
-	privateKey: string;
+	publicKey: ArrayBuffer & { buffer?: undefined };
+	privateKey: ArrayBuffer & { buffer?: undefined };
 }
