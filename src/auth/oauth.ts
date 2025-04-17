@@ -1,5 +1,5 @@
 import { Hono, type Context, type Env, type Input } from "hono";
-import { getConnInfo } from "hono/deno";
+import { getConnInfo } from "hono/bun";
 import { rateLimiter } from "hono-rate-limiter";
 import crypto from "node:crypto";
 import { createMiddleware } from "hono/factory";
@@ -26,11 +26,11 @@ const limiter = rateLimiter({
 			{
 				error: true,
 				message: options.message,
-				code: 502,
+				code: 502
 			},
-			options.statusCode,
+			options.statusCode
 		);
-	},
+	}
 });
 // @ts-ignore: Works despite the type error
 const limiterMiddleware = createMiddleware((ctx, next) => limiter(ctx, next));
@@ -45,9 +45,9 @@ router.post("/token", limiterMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Invalid body",
-				code: 101,
+				code: 101
 			},
-			400,
+			400
 		);
 
 	// Hash verifier
@@ -61,9 +61,9 @@ router.post("/token", limiterMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Invalid verifier",
-				code: 501,
+				code: 501
 			},
-			400,
+			400
 		);
 
 	// Return token to the user
@@ -73,9 +73,9 @@ router.post("/token", limiterMiddleware, async (ctx) => {
 	return ctx.json(
 		{
 			success: true,
-			token: token,
+			token: token
 		},
-		200,
+		200
 	);
 });
 router.post("/authorize", limiterMiddleware, async (ctx) => {
@@ -90,20 +90,23 @@ router.post("/authorize", limiterMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Invalid body",
-				code: 101,
+				code: 101
 			},
-			400,
+			400
 		);
 
 	// Check if credentials are invalid
-	if (!/^(?! )[\x20-\x7E]{3,16}(?<! )$/g.test(username) || password.length < 6)
+	if (
+		!/^(?! )[\x20-\x7E]{3,16}(?<! )$/g.test(username) ||
+		password.length < 6
+	)
 		return ctx.json(
 			{
 				error: true,
 				message: "Invalid credentials",
-				code: 501,
+				code: 501
 			},
-			400,
+			400
 		);
 
 	// Create a user account
@@ -115,9 +118,9 @@ router.post("/authorize", limiterMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Internal server error",
-				code: 106,
+				code: 106
 			},
-			500,
+			500
 		);
 
 	// User account already exists
@@ -130,9 +133,9 @@ router.post("/authorize", limiterMiddleware, async (ctx) => {
 				{
 					error: true,
 					message: "Invalid credentials",
-					code: 501,
+					code: 501
 				},
-				400,
+				400
 			);
 	}
 
@@ -142,8 +145,8 @@ router.post("/authorize", limiterMiddleware, async (ctx) => {
 
 	return ctx.json(
 		{
-			success: true,
+			success: true
 		},
-		200,
+		200
 	);
 });

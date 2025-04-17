@@ -4,5 +4,5 @@
         "openpgp",
         "roomname"
     ],
-    "deno.enable": true
+    "deno.enable": false
 }

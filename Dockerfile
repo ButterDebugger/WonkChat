@@ -1,5 +1,5 @@
-# Use a base image with Deno installed
-FROM denoland/deno:alpine-2.1.9
+# Use a base image with Bun installed
+FROM oven/bun:1.2.9-alpine
 
 # Set the working directory
 WORKDIR /app
@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . .
 
 # Install projects dependencies
-RUN deno install
+RUN bun install
 
-# Run the Deno app using the start task
-CMD ["task", "start"]
+# Run the Bun app using the start task
+CMD ["bun", "start"]

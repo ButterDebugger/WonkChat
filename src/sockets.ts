@@ -2,11 +2,11 @@ import type { SessionEnv } from "./auth/session.ts";
 import { getUserPublicKey, getUserSession, setUserStatus } from "./lib/data.ts";
 import { getSubscribers } from "./gateway.ts";
 import * as openpgp from "openpgp";
-import { upgradeWebSocket } from "hono/deno";
 import type { TokenPayload, UserSession } from "./types.ts";
 import * as JsBin from "@debutter/jsbin";
 import type { Context, Input } from "hono";
-import type { WSContext } from "hono/ws";
+import type { WSContext, WSEvents } from "hono/ws";
+import type { ServerWebSocket } from "bun";
 
 /** Usernames mapped to streams */
 const clientStreams: Map<string, Stream> = new Map();
@@ -15,7 +15,7 @@ class Stream {
 	#sockets: WSContext<WebSocket>[];
 	#session: TokenPayload;
 	#pings: number;
-	#pingInterval: number | null;
+	#pingInterval: NodeJS.Timeout | null;
 	#memory: Uint8Array[];
 
 	constructor(ws: WSContext<WebSocket>, session: TokenPayload) {
@@ -109,8 +109,8 @@ class Stream {
 	}
 }
 
-export const route = upgradeWebSocket(
-	(ctx: Context<SessionEnv, string, Input>) => ({
+export const route = (ctx: Context<SessionEnv, string, Input>) =>
+	({
 		async onOpen(_event, ws) {
 			const payload = ctx.var.session;
 
@@ -154,8 +154,7 @@ export const route = upgradeWebSocket(
 			}
 		},
 		onError: (error) => console.error("Websocket error", error)
-	})
-);
+	} as WSEvents<ServerWebSocket<undefined>>);
 
 export function getStream(username: string) {
 	const stream = clientStreams.get(username);

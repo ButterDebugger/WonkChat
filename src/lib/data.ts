@@ -1,5 +1,5 @@
 import * as openpgp from "openpgp";
-import { hash, verify } from "bcrypt";
+import bcrypt from "bcrypt";
 import type { Room, UserSession } from "../types.ts";
 import { db } from "./database.ts";
 
@@ -86,7 +86,7 @@ export async function createUserProfile(
 				.insertInto("users")
 				.values({
 					username: username,
-					password: await hash(password), // NOTE: did have cost of 10
+					password: await bcrypt.hash(password, 10), // NOTE: did have cost of 10
 					color: color,
 					online: false,
 					rooms: "[]", // TODO: test this
@@ -114,7 +114,7 @@ export async function compareUserProfile(username: string, password: string) {
 		.then(async (user) => {
 			if (!user) return false;
 
-			return await verify(password, user.password);
+			return await bcrypt.compare(password, user.password);
 		})
 		.catch((err) => {
 			console.error("Failed to fetch users credentials", err);

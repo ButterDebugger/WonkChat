@@ -2,26 +2,28 @@
   "compilerOptions": {
     /* Language and Environment */
     "target": "ES2022",
-
     /* Modules */
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     /* Emit */
     "sourceMap": true,
     "outDir": "dist",
-
     /* Interop Constraints */
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-
     /* Type Checking */
     "strict": true,
     "noUncheckedIndexedAccess": true,
-
     /* Completeness */
     "skipLibCheck": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules/*", "public/*"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules/*",
+    "public/*"
+  ]
 }

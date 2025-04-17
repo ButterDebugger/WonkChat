@@ -2,6 +2,8 @@ import { type Context, Hono } from "hono";
 import { stream } from "hono/streaming";
 // import type { FC } from "hono/jsx";
 import path from "node:path";
+import process from "node:process";
+import fs from "node:fs";
 
 const router = new Hono();
 
@@ -50,29 +52,33 @@ const router = new Hono();
 router.get("/close/redirect.js", (ctx) =>
 	streamFile(
 		ctx,
-		path.join(Deno.cwd(), "./public/close/redirect.js"),
+		path.join(process.cwd(), "./public/close/redirect.js"),
 		"application/javascript"
 	)
 );
 router.get("/close/", (ctx) =>
 	streamFile(
 		ctx,
-		path.join(Deno.cwd(), "./public/close/index.html"),
+		path.join(process.cwd(), "./public/close/index.html"),
 		"text/html"
 	)
 );
 router.get("/style.css", (ctx) =>
-	streamFile(ctx, path.join(Deno.cwd(), "./public/style.css"), "text/css")
+	streamFile(ctx, path.join(process.cwd(), "./public/style.css"), "text/css")
 );
 router.get("/main.js", (ctx) =>
 	streamFile(
 		ctx,
-		path.join(Deno.cwd(), "./public/main.js"),
+		path.join(process.cwd(), "./public/main.js"),
 		"application/javascript"
 	)
 );
 router.get("/", (ctx) =>
-	streamFile(ctx, path.join(Deno.cwd(), "./public/login.html"), "text/html")
+	streamFile(
+		ctx,
+		path.join(process.cwd(), "./public/login.html"),
+		"text/html"
+	)
 );
 router.get("*", (ctx) => {
 	return ctx.text("404 Not Found", 404);
@@ -82,8 +88,9 @@ function streamFile(ctx: Context, filePath: string, type: string) {
 	ctx.header("Content-Type", type);
 
 	return stream(ctx, async (stream) => {
-		const file = await Deno.open(filePath);
-		await stream.pipe(file.readable);
+		const file = Bun.file(filePath);
+		const arrayBuffer = await file.arrayBuffer();
+		stream.write(new Uint8Array(arrayBuffer));
 	});
 }
 

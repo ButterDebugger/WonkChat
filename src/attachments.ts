@@ -1,13 +1,14 @@
 import { Hono } from "hono";
 import path from "node:path";
 import fs from "node:fs";
+import process from "node:process";
 import { authMiddleware } from "./auth/session.ts";
 // import { Snowflake } from "./lib/identifier.ts";
 // import type { Upload } from "./types.ts";
-import { serveStatic } from "hono/deno";
+import { serveStatic } from "hono/bun";
 
-if (!fs.existsSync(path.join(Deno.cwd(), "attachments"))) {
-	fs.mkdirSync(path.join(Deno.cwd(), "attachments"));
+if (!fs.existsSync(path.join(process.cwd(), "attachments"))) {
+	fs.mkdirSync(path.join(process.cwd(), "attachments"));
 }
 
 export const router = new Hono();
@@ -31,9 +32,9 @@ router.post("/upload", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Missing files",
-				code: 103,
+				code: 103
 			},
-			400,
+			400
 		);
 	}
 
@@ -50,7 +51,7 @@ router.post("/upload", authMiddleware, async (ctx) => {
 
 router.use(
 	"/attachments/*",
-	serveStatic({ root: path.join(Deno.cwd(), "attachments") }),
+	serveStatic({ root: path.join(process.cwd(), "attachments") })
 );
 
 // function saveFiles(files: UploadedFile[], uid: string): Promise<Upload[]> {
@@ -91,10 +92,10 @@ router.use(
 
 export function clean() {
 	// Clear attachments folder
-	for (const f of fs.readdirSync(path.join(Deno.cwd(), "attachments"))) {
-		fs.rmSync(path.join(Deno.cwd(), "attachments", f), {
+	for (const f of fs.readdirSync(path.join(process.cwd(), "attachments"))) {
+		fs.rmSync(path.join(process.cwd(), "attachments", f), {
 			recursive: true,
-			force: true,
+			force: true
 		});
 	}
 }
