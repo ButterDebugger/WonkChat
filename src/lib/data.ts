@@ -250,7 +250,10 @@ export async function existsRoom(roomname: string) {
 		.where("name", "=", roomname.toLowerCase())
 		.executeTakeFirst()
 		.then((room) => !!room)
-		.catch(() => true); // Assume the room exists if an error occurs
+		.catch((err) => {
+			console.error("Failed to check if room exists", err);
+			return true; // Assume the room exists if an error occurs
+		});
 }
 
 export async function createRoom(

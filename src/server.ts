@@ -15,13 +15,13 @@ import { namespace, port } from "./lib/config.ts";
 import { router as oauthRoute } from "./auth/oauth.ts";
 import { router as keysRoute } from "./keys.ts";
 import { route as streamRoute } from "./sockets.ts";
-import type { SessionEnv } from "./auth/session.ts";
+import { authMiddleware, type SessionEnv } from "./auth/session.ts";
 
 const app = new Hono<SessionEnv>();
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
 
 // Initialize stream route
-app.get("/stream", upgradeWebSocket(streamRoute));
+app.get("/stream", authMiddleware, upgradeWebSocket(streamRoute));
 
 // Add middleware
 app.use(prettyJSON());

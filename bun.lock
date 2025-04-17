@@ -4,7 +4,7 @@
     "": {
       "name": "wonkchat",
       "dependencies": {
-        "@debutter/jsbin": "npm:@jsr/debutter__jsbin",
+        "@debutter/jsbin": "npm:@jsr/debutter__jsbin@1.1.0",
         "@hono/zod-validator": "^0.4.3",
         "@libsql/kysely-libsql": "^0.4.1",
         "bcrypt": "^5.1.1",
@@ -25,7 +25,7 @@
     },
   },
   "packages": {
-    "@debutter/jsbin": ["@jsr/debutter__jsbin@1.2.0", "https://npm.jsr.io/~/11/@jsr/debutter__jsbin/1.2.0.tgz", { "dependencies": { "@jsr/debutter__helper": "^1.0.0" } }, "sha512-rB39AZOSO0wtUtGX71Y3ckONRzeWq8pJ59qw6OsvSZU6KkxrWI6QaHjmI4yzwlW+T7P5B8IzQmWiTZFLUgYGIw=="],
+    "@debutter/jsbin": ["@jsr/debutter__jsbin@1.1.0", "https://npm.jsr.io/~/11/@jsr/debutter__jsbin/1.1.0.tgz", { "dependencies": { "@jsr/debutter__helper": "^1.0.0" } }, "sha512-nY8k3eA6KAoX6zdWEcdMV7gl64mw0MUgv7WhhS730PlGYi0b01Cfx/Uj2zqUc0WZmga/U2Xecp1lA0jMze2YBA=="],
 
     "@hono/zod-validator": ["@hono/zod-validator@0.4.3", "", { "peerDependencies": { "hono": ">=3.9.0", "zod": "^3.19.1" } }, "sha512-xIgMYXDyJ4Hj6ekm9T9Y27s080Nl9NXHcJkOvkXPhubOLj8hZkOL8pDnnXfvCf5xEE8Q4oMFenQUZZREUY2gqQ=="],
 
