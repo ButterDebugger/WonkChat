@@ -1,36 +1,41 @@
-import type { Request, Response } from "express";
-import { authenticateHandler } from "../../auth/session.js";
-import { createRoom } from "../../lib/data.js";
-import { isValidRoomName } from "../room.js";
+import { authMiddleware } from "../../auth/session.ts";
+import { createRoom } from "../../lib/data.ts";
+import { isValidRoomName } from "../room.ts";
+import { Hono } from "hono";
 
-export default async (
-	req: Request<{
-		roomname: string;
-	}>,
-	res: Response
-) => {
-	const tokenPayload = await authenticateHandler(req, res);
-	if (tokenPayload === null) return;
+const router = new Hono();
 
-	const { roomname } = req.params;
+router.post("/:roomname/create", authMiddleware, async (ctx) => {
+	const { roomname } = ctx.req.param();
 
 	if (!isValidRoomName(roomname))
-		return res.status(400).json({
-			error: true,
-			message: "Invalid room name",
-			code: 301
-		});
+		return ctx.json(
+			{
+				error: true,
+				message: "Invalid room name",
+				code: 301
+			},
+			400
+		);
 
 	const room = await createRoom(roomname);
 
 	if (room === false)
-		return res.status(400).json({
-			error: true,
-			message: "Room already exist",
-			code: 305
-		});
+		return ctx.json(
+			{
+				error: true,
+				message: "Room already exist",
+				code: 305
+			},
+			400
+		);
 
-	res.status(200).json({
-		success: true
-	});
-};
+	return ctx.json(
+		{
+			success: true
+		},
+		200
+	);
+});
+
+export default router;

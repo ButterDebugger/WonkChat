@@ -1,132 +1,156 @@
 import * as openpgp from "openpgp";
 import bcrypt from "bcrypt";
-import { createClient } from "@libsql/client";
-import type { User, Room, UserRow, RoomRow } from "../types.js";
+import { Room, type UserSession } from "../types.ts";
+import { db } from "./database.ts";
 
-export const turso = createClient({
-	url: process.env.DATABASE_URL ?? "file:local.db",
-	syncUrl: process.env.DATABASE_SYNC_URL,
-	authToken: process.env.DATABASE_AUTH_TOKEN,
-	syncInterval: 60 // Sync every minute
+// Create tables
+await db.introspection.getTables().then(async (tables) => {
+	const tableNames = tables.map((table) => table.name);
+
+	if (!tableNames.includes("users")) {
+		// Users table doesn't exist, so create it
+		console.log("Creating users table");
+
+		await db.schema
+			.createTable("users")
+			.addColumn("username", "text", (col) => col.primaryKey())
+			.addColumn("displayName", "text", (col) => col.notNull())
+			.addColumn("password", "text", (col) => col.notNull())
+			.addColumn("color", "text", (col) => col.notNull())
+			.addColumn("rooms", "jsonb", (col) => col.notNull())
+			.addColumn("online", "boolean", (col) => col.notNull())
+			.addColumn("publicKey", "blob")
+			.execute();
+
+		console.log("Created users table");
+	}
+
+	if (!tableNames.includes("rooms")) {
+		// Rooms table doesn't exist, so create it
+		console.log("Creating rooms table");
+
+		await db.schema
+			.createTable("rooms")
+			.addColumn("name", "text", (col) => col.primaryKey())
+			.addColumn("description", "text", (col) => col.notNull())
+			.addColumn("members", "jsonb", (col) => col.notNull())
+			.addColumn("publicKey", "blob", (col) => col.notNull())
+			.addColumn("privateKey", "blob", (col) => col.notNull())
+			.execute();
+
+		console.log("Created rooms table");
+	}
 });
 
-export async function initTables() {
-	// Create tables if they do not already exist
-	await turso.batch(
-		[
-			// Users table
-			"CREATE TABLE IF NOT EXISTS users (" +
-				"username TEXT PRIMARY KEY, " +
-				"displayName TEXT, " +
-				"password TEXT, " +
-				"color TEXT, " +
-				"rooms TEXT DEFAULT '[]', " +
-				"online BOOLEAN, " +
-				"publicKey BLOB" +
-				")",
-			// Rooms table
-			"CREATE TABLE IF NOT EXISTS rooms (" +
-				"name TEXT PRIMARY KEY, " +
-				"description TEXT DEFAULT '', " +
-				"members TEXT DEFAULT '[]', " +
-				"publicKey BLOB, " +
-				"privateKey BLOB" +
-				")"
-		],
-		"write"
-	);
-}
-
 // Interface functions:
-export async function getUserSession(username: string): Promise<User | null> {
-	const result = await turso.execute({
-		sql: "SELECT * FROM users WHERE username = ? LIMIT 1",
-		args: [username]
-	});
+export async function getUserSession(
+	username: string
+): Promise<UserSession | null> {
+	return await db
+		.selectFrom("users")
+		.selectAll()
+		.where("username", "=", username)
+		.executeTakeFirst()
+		.then((user) => {
+			if (!user) return null;
 
-	const row = result.rows[0];
-	if (!row) return null;
-
-	const user = row as unknown as UserRow; // Cast row to a user
-
-	return {
-		username: user.username,
-		displayName: user.displayName,
-		password: user.password,
-		color: user.color,
-		rooms: new Set(JSON.parse(user.rooms)), // Convert to set
-		offline: !user.online, // NOTE: Legacy key name
-		online: !!user.online, // Convert to boolean
-		publicKey: user.publicKey
-	} as User;
+			return {
+				username: user.username,
+				color: user.color,
+				offline: !user.online, // NOTE: Legacy key name
+				online: !!user.online, // Convert to boolean
+				rooms: new Set(JSON.parse(user.rooms)) // Convert to set
+			} as UserSession;
+		})
+		.catch((err) => {
+			console.error("Failed to fetch user", err);
+			return null;
+		});
 }
 
 export async function createUserProfile(
 	username: string,
 	password: string,
 	color: string
-) {
-	const result = await turso.execute({
-		sql: "SELECT * FROM users WHERE username = ? LIMIT 1",
-		args: [username]
-	});
+): Promise<boolean | null> {
+	return await db
+		.selectFrom("users")
+		.selectAll()
+		.where("username", "=", username)
+		.executeTakeFirst()
+		.then(async (user) => {
+			// Check if user already exists
+			if (user) return false;
 
-	if (result.rows.length > 0) return false;
-
-	try {
-		await turso.execute({
-			sql: "INSERT INTO users (username, password, color) VALUES (?, ?, ?)",
-			args: [username, await bcrypt.hash(password, 10), color]
+			return db
+				.insertInto("users")
+				.values({
+					username: username,
+					password: await bcrypt.hash(password, 10),
+					color: color,
+					online: false,
+					rooms: "[]",
+					displayName: username
+				})
+				.executeTakeFirst()
+				.then(() => true)
+				.catch((err) => {
+					console.error("Failed to create user", err);
+					return null;
+				});
+		})
+		.catch((err) => {
+			console.error("Failed to check if user exists", err);
+			return null;
 		});
-		return true;
-	} catch {
-		return null;
-	}
 }
 
-export async function compareUserProfile(
-	username: string,
-	password: string
-): Promise<boolean> {
-	const result = await turso.execute({
-		sql: "SELECT password FROM users WHERE username = ? LIMIT 1",
-		args: [username]
-	});
+export async function compareUserProfile(username: string, password: string) {
+	return await db
+		.selectFrom("users")
+		.select("password")
+		.where("username", "=", username)
+		.executeTakeFirst()
+		.then(async (user) => {
+			if (!user) return false;
 
-	const row = result.rows[0];
-	if (!row) return false;
-
-	// Cast row to a user
-	const user = row as unknown as UserRow;
-
-	return await bcrypt.compare(password, user.password);
+			return await bcrypt.compare(password, user.password);
+		})
+		.catch((err) => {
+			console.error("Failed to fetch users credentials", err);
+			return false;
+		});
 }
 
-export async function updateUserProfile(
-	username: string,
-	color: string
-): Promise<boolean> {
-	try {
-		await turso.execute({
-			sql: "UPDATE users SET color = ? WHERE username = ?",
-			args: [color, username]
+export async function updateUserProfile(username: string, color: string) {
+	return await db
+		.updateTable("users")
+		.where("username", "=", username)
+		.set({
+			username: username,
+			color: color
+		})
+		.executeTakeFirst()
+		.then(() => true)
+		.catch((err) => {
+			console.error("Failed to update users username and color", err);
+			return false;
 		});
-		return true;
-	} catch {
-		return false;
-	}
 }
 
 export async function setUserStatus(username: string, online: boolean) {
-	try {
-		await turso.execute({
-			sql: "UPDATE users SET online = ? WHERE username = ?", // NOTE: is this efficient?
-			args: [online, username]
+	return await db
+		.updateTable("users")
+		.where("username", "=", username)
+		.set({
+			online: online
+		})
+		.executeTakeFirst()
+		.then(() => true)
+		.catch((err) => {
+			console.error("Failed to update users status", err);
+			return false;
 		});
-		return true;
-	} catch {
-		return false;
-	}
 }
 
 export async function addUserToRoom(
@@ -169,8 +193,31 @@ export async function addUserToRoom(
 	user.rooms.add(roomname.toLowerCase());
 	room.members.add(username);
 
-	trx.close();
-	return true;
+	return await db
+		.transaction()
+		.execute(async (trx) => {
+			// TODO: test this
+			await trx
+				.updateTable("users")
+				.where("username", "=", username)
+				.set({
+					rooms: JSON.stringify(Array.from(user.rooms))
+				})
+				.executeTakeFirst();
+
+			await trx
+				.updateTable("rooms")
+				.where("name", "=", roomname)
+				.set({
+					members: JSON.stringify(Array.from(room.members))
+				})
+				.executeTakeFirst();
+		})
+		.then(() => true)
+		.catch((err) => {
+			console.error("Failed to add user to room", err);
+			return false;
+		});
 }
 
 export async function removeUserFromRoom(username: string, roomname: string) {
@@ -213,8 +260,31 @@ export async function removeUserFromRoom(username: string, roomname: string) {
 	user.rooms.delete(roomname.toLowerCase());
 	room.members.delete(username);
 
-	trx.close();
-	return true;
+	return await db
+		.transaction()
+		.execute(async (trx) => {
+			// TODO: test this
+			await trx
+				.updateTable("users")
+				.where("username", "=", username)
+				.set({
+					rooms: JSON.stringify(Array.from(user.rooms))
+				})
+				.executeTakeFirst();
+
+			await trx
+				.updateTable("rooms")
+				.where("name", "=", roomname)
+				.set({
+					members: JSON.stringify(Array.from(room.members))
+				})
+				.executeTakeFirst();
+		})
+		.then(() => true)
+		.catch((err) => {
+			console.error("Failed to remove user from room", err);
+			return false;
+		});
 }
 
 export async function getUserViews(
@@ -236,18 +306,23 @@ export async function getUserViews(
 }
 
 export async function existsRoom(roomname: string) {
-	return await turso
-		.execute({
-			sql: "SELECT 1 FROM rooms WHERE name = ? LIMIT 1",
-			args: [roomname.toLowerCase()]
-		})
-		.then((result) => result.rows.length > 0)
-		.catch(() => true); // Assume the room exists if an error occurs
+	if (!roomname) return false;
+
+	return await db
+		.selectFrom("rooms")
+		.select(["name"])
+		.where("name", "=", roomname.toLowerCase())
+		.executeTakeFirst()
+		.then((room) => !!room)
+		.catch((err) => {
+			console.error("Failed to check if room exists", err);
+			return true; // Assume the room exists if an error occurs
+		});
 }
 
 export async function createRoom(
 	roomname: string,
-	description: string | null = null
+	description = "No description provided"
 ) {
 	if (await existsRoom(roomname)) return false;
 
@@ -261,79 +336,92 @@ export async function createRoom(
 		format: "binary"
 	});
 
-	return await turso
-		.execute({
-			sql: "INSERT OR IGNORE INTO rooms (name, description, publicKey, privateKey) VALUES (?, ?, ?, ?)",
-			args: [
-				roomname.toLowerCase(),
-				description ?? "",
-				publicKey,
-				privateKey
-			]
+	// Convert Uint8Array keys to ArrayBuffer
+	const publicKeyBuffer = new ArrayBuffer(publicKey.length);
+	new Uint8Array(publicKeyBuffer).set(publicKey);
+
+	const privateKeyBuffer = new ArrayBuffer(privateKey.length);
+	new Uint8Array(privateKeyBuffer).set(privateKey);
+
+	// Insert room
+	return await db
+		.insertInto("rooms")
+		.values({
+			name: roomname.toLowerCase(),
+			description: description,
+			members: "[]",
+			publicKey: publicKeyBuffer,
+			privateKey: privateKeyBuffer
 		})
+		.executeTakeFirst()
 		.then(() => true)
-		.catch(() => false);
+		.catch((err) => {
+			console.error("Failed to create room", err);
+			return false;
+		});
 }
 
 export async function getRoom(roomname: string): Promise<Room | null> {
-	const result = await turso
-		.execute({
-			sql: "SELECT * FROM rooms WHERE name = ? LIMIT 1",
-			args: [roomname.toLowerCase()]
+	return await db
+		.selectFrom("rooms")
+		.selectAll()
+		.where("name", "=", roomname.toLowerCase())
+		.executeTakeFirst()
+		.then((room) => {
+			if (!room) return null;
+
+			return new Room(
+				room.name,
+				room.description,
+				new Set(JSON.parse(room.members)), // Convert to set
+				new Uint8Array(room.privateKey),
+				new Uint8Array(room.publicKey)
+			);
 		})
-		.catch(() => null);
-
-	if (!result) return null;
-
-	const row = result.rows[0];
-	if (!row) return null;
-
-	const room = row as unknown as RoomRow; // Cast row to a room
-
-	return {
-		name: room.name,
-		description: room.description,
-		members: new Set(JSON.parse(room.members)), // Convert to set
-		armoredPublicKey: await openpgp
-			.readKey({
-				// Convert the public key to armored format NOTE: only here for legacy reasons
-				binaryKey: new Uint8Array(room.publicKey)
-			})
-			.then((key) => key.armor()),
-		privateKey: new Uint8Array(room.privateKey)
-	} as Room;
+		.catch((err) => {
+			console.error("Failed to fetch room", err);
+			return null;
+		});
 }
 
 export async function setUserPublicKey(
 	username: string,
 	publicKey: Uint8Array
 ) {
-	return await turso
-		.execute({
-			sql: "UPDATE users SET publicKey = ? WHERE username = ?",
-			args: [publicKey, username]
+	// Convert Uint8Array to ArrayBuffer
+	const buffer = new ArrayBuffer(publicKey.length);
+	new Uint8Array(buffer).set(publicKey);
+
+	// Update users table
+	return await db
+		.updateTable("users")
+		.where("username", "=", username)
+		.set({
+			publicKey: buffer
 		})
+		.executeTakeFirst()
 		.then(() => true)
-		.catch(() => false);
+		.catch((err) => {
+			console.error("Failed to update users public key", err);
+			return false;
+		});
 }
 
 export async function getUserPublicKey(
 	username: string
 ): Promise<Uint8Array | null> {
-	return await turso
-		.execute({
-			sql: "SELECT publicKey FROM users WHERE username = ? LIMIT 1",
-			args: [username]
-		})
-		.then((result) => {
-			const row = result.rows[0];
-			if (!row) return null;
-
-			const user = row as unknown as UserRow; // Cast row to a user
-
-			if (!user.publicKey) return null;
+	return await db
+		.selectFrom("users")
+		.where("username", "=", username)
+		.select("publicKey")
+		.executeTakeFirst()
+		.then((user) => {
+			if (!user || !user.publicKey) return null;
 
 			return new Uint8Array(user.publicKey);
 		})
-		.catch(() => null);
+		.catch((err) => {
+			console.error("Failed to fetch users public key", err);
+			return null;
+		});
 }

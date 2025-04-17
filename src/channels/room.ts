@@ -1,19 +1,18 @@
-import express from "express";
-import info from "./room/info.js";
-import typing from "./room/typing.js";
-import message from "./room/message.js";
-import create from "./room/create.js";
-import leave from "./room/leave.js";
-import join from "./room/join.js";
+import { Hono } from "hono";
+import info from "./room/info.ts";
+import message from "./room/message.ts";
+import create from "./room/create.ts";
+import leave from "./room/leave.ts";
+import join from "./room/join.ts";
 
-export const router = express.Router();
+export const router = new Hono();
 
-router.post("/room/:roomname/join", join);
-router.post("/room/:roomname/leave", leave);
-router.post("/room/:roomname/create", create);
-router.post("/room/:roomname/message", message);
-router.get("/room/:roomname/info", info);
-router.post("/room/:roomname/typing", typing);
+router.route("/", join);
+router.route("/", leave);
+router.route("/", create);
+router.route("/", message);
+router.route("/", info);
+// TODO: add typing route
 
 export function isValidRoomName(roomname: string) {
 	if (typeof roomname !== "string") return false;

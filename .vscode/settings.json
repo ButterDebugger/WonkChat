@@ -1,8 +1,8 @@
 {
-    "workbench.iconTheme": "vs-seti",
     "cSpell.words": [
         "homeserver",
         "openpgp",
         "roomname"
-    ]
+    ],
+    "deno.enable": false
 }

@@ -1,4 +1,5 @@
 import crypto, { type BinaryLike } from "node:crypto";
+import process from "node:process";
 
 const epoch = 1640995200000n; // First second of 2023
 let sequence = 0n;

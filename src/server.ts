@@ -1,95 +1,99 @@
-import express from "express";
-import bodyParser from "body-parser";
-import cookieParser from "cookie-parser";
+import { Context, Hono } from "hono";
+import { cors } from "hono/cors";
+import { prettyJSON } from "hono/pretty-json";
+import { trimTrailingSlash } from "hono/trailing-slash";
+import { createBunWebSocket } from "hono/bun";
+import type { ServerWebSocket } from "bun";
 import {
 	router as attachmentsRoute,
 	clean as cleanAttachments
-} from "./attachments.js";
+} from "./attachments.ts";
 import chalk from "chalk";
-import http from "node:http";
-import cors from "cors";
-import { WebSocketServer } from "ws";
-import { router as gatewayRoute } from "./gateway.js";
-import { createRoom, initTables } from "./lib/data.js";
-import { namespace, port } from "./lib/config.js";
-import { router as oauthRoute } from "./auth/oauth.js";
-import { router as keysRoute } from "./keys.js";
-import initStream from "./sockets.js";
+import { router as gatewayRoute } from "./gateway.ts";
+import { createRoom } from "./lib/data.ts";
+import { namespace, port } from "./lib/config.ts";
+import { router as oauthRoute } from "./auth/oauth.ts";
+import { router as keysRoute } from "./keys.ts";
+import { route as streamRoute } from "./sockets.ts";
+import { authMiddleware, type SessionEnv } from "./auth/session.ts";
 
-initTables();
+const app = new Hono<SessionEnv>();
+const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
 
-const app = express();
-const server = http.createServer({}, app).listen(port);
-const wssStream = new WebSocketServer({ server: server, path: "/stream" });
-
-// Add server log listeners
-server.addListener("listening", () => {
-	console.log(
-		chalk.bgGreen.bold(" LISTENING "),
-		chalk.white(`API server is running on port ${port}`)
-	);
-});
-server.addListener("close", () => {
-	console.log(
-		chalk.bgYellow.bold(" CLOSE "),
-		chalk.white("API server has closed")
-	);
-});
-server.addListener("error", (err) => {
-	console.error(
-		chalk.bgRed.bold(" ERROR "),
-		chalk.white("API server has encountered an error:"),
-		err
-	);
-});
+// Initialize stream route
+app.get("/stream", authMiddleware, upgradeWebSocket(streamRoute));
 
 // Add middleware
-app.use(cookieParser());
-app.use(bodyParser.json());
+app.use(prettyJSON());
+app.use(trimTrailingSlash());
 app.use(cors());
 
-// Configure express
-app.set("trust proxy", 1);
-
 // Add info route
-app.get("/", (req, res) => {
-	res.status(200).json({
-		namespace: namespace
-	});
+app.get("/", (ctx) => {
+	return ctx.json(
+		{
+			namespace: namespace
+		},
+		200
+	);
 });
 
 // Ping route
-app.get("/ping", (req, res) => {
-	res.status(200).json({
-		message: "Pong!",
-		success: true
-	});
+app.get("/ping", (ctx) => {
+	return ctx.json(
+		{
+			message: "Pong!",
+			success: true
+		},
+		200
+	);
 });
 
 // Auth routes
-app.use("/oauth", oauthRoute);
+app.route("/oauth", oauthRoute);
 
 // Key exchange routes
-app.use("/keys", keysRoute);
+app.route("/keys", keysRoute);
 
 // Handle api gateway
-app.use(gatewayRoute);
-
-// Initialize stream route
-initStream(wssStream);
+app.route("/", gatewayRoute);
 
 // Clear attachments folder and handle attachments route
-app.use(attachmentsRoute);
+app.route("/", attachmentsRoute);
 cleanAttachments();
 
 // Create starting room
 createRoom("wonk", "Welcome to Wonk Chat!");
 
 // Unknown endpoint handler
-app.use((req, res, next) => {
-	res.status(400).json({
-		error: true,
-		message: "Unknown endpoint",
-		code: 105
-	});
+app.all((ctx) => {
+	return ctx.json(
+		{
+			error: true,
+			message: "Unknown endpoint",
+			code: 105
+		},
+		400
+	);
 });
+
+Bun.serve({
+	port: port,
+	fetch: app.fetch,
+	websocket,
+	error(error) {
+		console.error(
+			chalk.bgRed.bold(" ERROR "),
+			chalk.white("API server has encountered an error:"),
+			error
+		);
+		return new Response("500 Internal server error", {
+			status: 500
+		});
+	}
+});
+
+console.log(
+	chalk.bgGreen.bold(" LISTENING "),
+	chalk.white(`API server is running on port ${port}`)
+);

@@ -1,23 +1,24 @@
-import { authenticateRequest } from "./auth/session.js";
-import { getUserPublicKey, getUserSession, setUserStatus } from "./lib/data.js";
-import { getSubscribers } from "./gateway.js";
+import type { SessionEnv } from "./auth/session.ts";
+import { getUserPublicKey, getUserSession, setUserStatus } from "./lib/data.ts";
+import { getSubscribers } from "./gateway.ts";
 import * as openpgp from "openpgp";
-import type { WebSocket, WebSocketServer } from "ws";
-import type { Request } from "express";
-import type { TokenPayload, UserSession } from "./types.js";
+import type { TokenPayload, UserSession } from "./types.ts";
 import * as JsBin from "@debutter/jsbin";
+import type { Context, Input } from "hono";
+import type { WSContext, WSEvents } from "hono/ws";
+import type { ServerWebSocket } from "bun";
 
 /** Usernames mapped to streams */
 const clientStreams: Map<string, Stream> = new Map();
 
 class Stream {
-	#sockets: WebSocket[];
+	#sockets: WSContext<WebSocket>[];
 	#session: TokenPayload;
 	#pings: number;
 	#pingInterval: NodeJS.Timeout | null;
 	#memory: Uint8Array[];
 
-	constructor(ws: WebSocket, session: TokenPayload) {
+	constructor(ws: WSContext<WebSocket>, session: TokenPayload) {
 		this.#sockets = [];
 		this.#session = session;
 		this.remix(ws);
@@ -30,17 +31,27 @@ class Stream {
 	async send(data: Uint8Array) {
 		// TODO: Figure out the proper type of the data
 		const key = await getUserPublicKey(this.#session.username);
-		if (key === null) return; // TODO: Save the message instead of dropping it
+		if (!key) return; // We can assume that the user should have a public key
 
-		const encrypted = await openpgp.encrypt({
-			message: await openpgp.createMessage({
-				binary: data
-			}),
-			encryptionKeys: await openpgp.readKey({
+		let encrypted: Uint8Array;
+
+		try {
+			const encryptionKey = await openpgp.readKey({
 				binaryKey: key
-			}),
-			format: "binary"
-		});
+			});
+			const messageBody = await openpgp.createMessage({
+				binary: data
+			});
+
+			encrypted = await openpgp.encrypt({
+				message: messageBody,
+				encryptionKeys: encryptionKey,
+				format: "binary"
+			});
+		} catch (error) {
+			console.error("Failed to encrypt message", error);
+			return;
+		}
 
 		if (this.isAlive()) {
 			for (const ws of this.#sockets) {
@@ -71,7 +82,7 @@ class Stream {
 	}
 	isAlive() {
 		for (const ws of this.#sockets) {
-			if (ws.readyState === ws.OPEN) return true;
+			if (ws.readyState === 1) return true;
 		}
 		return false;
 	}
@@ -86,73 +97,64 @@ class Stream {
 		this.#memory = [];
 		return true;
 	}
-	remix(ws: WebSocket) {
+	remix(ws: WSContext<WebSocket>) {
 		this.#sockets.push(ws);
 
 		setOnlineStatus(this.#session.username, true);
+	}
+	onClose() {
+		setOnlineStatus(this.#session.username, this.isAlive());
 
-		ws.on("close", () => {
-			setOnlineStatus(this.#session.username, this.isAlive());
-
-			this.#sockets = this.#sockets.filter(
-				(sock) => sock.readyState === sock.OPEN
-			);
-		});
+		this.#sockets = this.#sockets.filter((sock) => sock.readyState === 1);
 	}
 }
 
-/**
- * Initializes the websocket server responsible for the event stream
- */
-export default function (wss: WebSocketServer) {
-	wss.on("connection", async (ws: WebSocket, req: Request) => {
-		// Authenticate connection
-		const payload = await authenticateRequest(req);
+export const route = (ctx: Context<SessionEnv, string, Input>) =>
+	({
+		async onOpen(_event, ws) {
+			const payload = ctx.var.session;
 
-		if (payload === null) {
-			ws.send(
-				JSON.stringify({
-					error: true,
-					message: "Invalid credentials",
-					code: 501
-				})
-			);
-			ws.close();
-			return;
-		}
+			// Check if the user doesn't have a public key
+			if ((await getUserPublicKey(payload.username)) === null) {
+				ws.send(
+					JSON.stringify({
+						error: true,
+						message: "Unknown public key",
+						code: 107
+					})
+				);
+				ws.close();
+				return;
+			}
 
-		// Check if the user doesn't have a public key
-		if ((await getUserPublicKey(payload.username)) === null) {
-			ws.send(
-				JSON.stringify({
-					error: true,
-					message: "Unknown public key",
-					code: 107
-				})
-			);
-			ws.close();
-			return;
-		}
+			// Initialize the stream
+			let stream: Stream;
 
-		// Initialize the stream
-		let stream: Stream;
+			const existingStream = clientStreams.get(payload.username);
 
-		const existingStream = clientStreams.get(payload.username);
+			if (existingStream instanceof Stream) {
+				stream = existingStream;
+				stream.remix(ws);
+			} else {
+				stream = new Stream(ws, payload);
+				clientStreams.set(payload.username, stream);
+			}
 
-		if (existingStream instanceof Stream) {
-			stream = existingStream;
-			stream.remix(ws);
-		} else {
-			stream = new Stream(ws, payload);
-			clientStreams.set(payload.username, stream);
-		}
+			stream.json({
+				event: "connect",
+				opened: true
+			});
+		},
+		onClose: () => {
+			const payload = ctx.var.session;
+			const stream = clientStreams.get(payload.username);
 
-		stream.json({
-			event: "connect",
-			opened: true
-		});
-	});
-}
+			if (stream instanceof Stream) {
+				stream.onClose();
+			}
+		},
+		onError: (error) => console.error("Websocket error", error)
+	} as WSEvents<ServerWebSocket<undefined>>);
 
 export function getStream(username: string) {
 	const stream = clientStreams.get(username);

@@ -1,43 +1,49 @@
-import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
-import { token_secret } from "../lib/config.js";
-import type { Request, Response } from "express";
-import type { TokenPayload } from "../types.js";
+import type { Context } from "hono";
+import { createMiddleware } from "hono/factory";
+import { verify, sign } from "hono/jwt";
+import { token_secret } from "../lib/config.ts";
+import type { TokenPayload } from "../types.ts";
 
-/**
- * Handles request authentication by ending the response if the request is not authenticated,
- * otherwise the token will be returned
- * @returns Token payload
- */
-export async function authenticateHandler(
-	req: Request,
-	res: Response,
-): Promise<TokenPayload | null> {
-	const payload = await authenticateRequest(req);
+/** Time in seconds before a session token expires */
+const sessionExpiration = 60 * 60 * 24 * 14; // 14 days
 
-	if (payload === null) {
-		// TODO: respond with a different error if the session token has expired
-		res.status(400).json({
-			error: true,
-			message: "Invalid credentials",
-			code: 501,
-		});
-		res.end();
-		return null;
-	}
+export type SessionEnv = {
+	Variables: {
+		session: TokenPayload;
+	};
+};
 
-	return payload;
-}
+export const authMiddleware = createMiddleware<SessionEnv>(
+	async (ctx, next) => {
+		const payload = await authenticateRequest(ctx);
+
+		if (payload === null) {
+			// TODO: respond with a different error if the session token has expired
+			return ctx.json(
+				{
+					error: true,
+					message: "Invalid credentials",
+					code: 501,
+				},
+				400,
+			);
+		}
+
+		ctx.set("session", payload);
+		await next();
+	},
+);
 
 /**
  * Authenticates a user's request
  * @returns Token payload
  */
 export async function authenticateRequest(
-	req: Request,
+	ctx: Context,
 ): Promise<TokenPayload | null> {
-	const authHeader = req.headers.authorization;
-	const wsProtocol = req.headers["sec-websocket-protocol"];
+	const authHeader = ctx.req.header("authorization");
+	const wsProtocol = ctx.req.header("sec-websocket-protocol");
 
 	// Retrieve the token from the request headers
 	let token: string | undefined;
@@ -62,25 +68,25 @@ export async function authenticateRequest(
 	// Verify the token and return the payload
 	if (typeof token !== "string") return null;
 
-	return verifyToken(token);
+	return await verifyToken(token);
 }
 
 /**
  * @returns Token payload
  */
-function verifyToken(token: string): TokenPayload | null {
+async function verifyToken(token: string): Promise<TokenPayload | null> {
 	// A token was not provided
 	if (typeof token !== "string") return null;
 
 	let user: TokenPayload;
 	try {
-		user = jwt.verify(token, token_secret) as TokenPayload;
-	} catch (err) {
+		user = (await verify(token, token_secret)) as TokenPayload;
+	} catch (_err) {
 		return null;
 	}
 
 	// Check if token is too old
-	if (Date.now() - user.iat > 1000 * 60 * 60 * 24 * 14) return null;
+	if (user.iat + sessionExpiration < Math.floor(Date.now() / 1000)) return null;
 
 	// Return the user
 	return user;
@@ -111,11 +117,11 @@ export async function sessionToken(username: string): Promise<{
 	const payload: TokenPayload = {
 		username: username,
 		jti: crypto.randomUUID(),
-		iat: Date.now(),
+		iat: Math.floor(Date.now() / 1000),
 	};
 
 	return {
 		payload: payload,
-		token: jwt.sign(payload, token_secret), // Create token
+		token: await sign(payload, token_secret), // Create token
 	};
 }

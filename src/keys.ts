@@ -1,19 +1,18 @@
-import express from "express";
+import { Hono } from "hono";
 import crypto from "node:crypto";
 import * as openpgp from "openpgp";
-import { setUserPublicKey } from "./lib/data.js";
-import { authenticateHandler } from "./auth/session.js";
+import { setUserPublicKey } from "./lib/data.ts";
+import { authMiddleware } from "./auth/session.ts";
 
-export const router = express.Router();
+export const router = new Hono();
 
 // TODO: add a cooldown for changing the public key
 
 // User ids ~> Nonce
 const nonces = new Map();
 
-router.get("/nonce", async (req, res) => {
-	const tokenPayload = await authenticateHandler(req, res);
-	if (tokenPayload === null) return;
+router.get("/nonce", authMiddleware, (ctx) => {
+	const tokenPayload = ctx.var.session;
 
 	// Generate a random nonce for the user to sign
 	const nonce = crypto.randomBytes(256).toString("base64url");
@@ -23,31 +22,38 @@ router.get("/nonce", async (req, res) => {
 
 	// setTimeout(() => logins.delete(nonce), loginExpiration); // TODO: readd the expiration
 
-	res.status(200).json({
-		success: true,
-		nonce: nonce,
-	});
+	return ctx.json(
+		{
+			success: true,
+			nonce: nonce
+		},
+		200
+	);
 });
-router.post("/verify", async (req, res) => {
-	const tokenPayload = await authenticateHandler(req, res);
-	if (tokenPayload === null) return;
-
-	const { signedNonce, publicKey } = req.body;
+router.post("/verify", authMiddleware, async (ctx) => {
+	const tokenPayload = ctx.var.session;
+	const { signedNonce, publicKey } = await ctx.req.json();
 
 	if (typeof signedNonce !== "string" || typeof publicKey !== "string")
-		return res.status(400).json({
-			error: true,
-			message: "Invalid body",
-			code: 101,
-		});
+		return ctx.json(
+			{
+				error: true,
+				message: "Invalid body",
+				code: 101
+			},
+			400
+		);
 
 	// Check if login nonce exists
 	if (!nonces.has(tokenPayload.username))
-		return res.status(400).json({
-			error: true,
-			message: "Nonce has expired",
-			code: 505,
-		});
+		return ctx.json(
+			{
+				error: true,
+				message: "Nonce has expired",
+				code: 505
+			},
+			400
+		);
 
 	// Verify the signed nonce
 	let unsignedNonce: object;
@@ -57,17 +63,20 @@ router.post("/verify", async (req, res) => {
 		armoredKey = await openpgp.readKey({ armoredKey: publicKey });
 		const { data } = await openpgp.verify({
 			message: await openpgp.readMessage({
-				armoredMessage: signedNonce,
+				armoredMessage: signedNonce
 			}),
-			verificationKeys: armoredKey,
+			verificationKeys: armoredKey
 		});
 		unsignedNonce = data;
-	} catch (error) {
-		return res.status(400).json({
-			error: true,
-			message: "Invalid public key",
-			code: 503,
-		});
+	} catch (_err) {
+		return ctx.json(
+			{
+				error: true,
+				message: "Invalid public key",
+				code: 503
+			},
+			400
+		);
 	}
 
 	// Match the nonce
@@ -75,25 +84,34 @@ router.post("/verify", async (req, res) => {
 	nonces.delete(tokenPayload.username);
 
 	if (unsignedNonce !== nonce)
-		return res.status(400).json({
-			error: true,
-			// TODO: write an error message
-		});
+		return ctx.json(
+			{
+				error: true
+				// TODO: write an error message
+			},
+			400
+		);
 
 	// Save public key
 	const success = await setUserPublicKey(
 		tokenPayload.username,
-		armoredKey.write(),
+		armoredKey.write()
 	);
 
 	if (!success)
-		return res.status(500).json({
-			error: true,
-			message: "Internal server error",
-			code: 106,
-		});
+		return ctx.json(
+			{
+				error: true,
+				message: "Internal server error",
+				code: 106
+			},
+			500
+		);
 
-	res.status(200).json({
-		success: true,
-	});
+	return ctx.json(
+		{
+			success: true
+		},
+		200
+	);
 });

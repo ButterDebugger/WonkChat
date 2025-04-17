@@ -1,0 +1,13 @@
+# Git
+.git
+.gitignore
+
+# Node.js
+node_modules
+
+# Environment variables
+.env
+.env.*
+
+# Attachments folder
+attachments/
