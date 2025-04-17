@@ -2,6 +2,8 @@
   "compilerOptions": {
     /* Language and Environment */
     "target": "ES2022",
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
     /* Modules */
     "module": "ESNext",
     "moduleResolution": "Bundler",
