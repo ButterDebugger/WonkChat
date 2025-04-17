@@ -8,6 +8,11 @@ Just another simplistic and purely anonymous chat app for wonky fellows to chat 
 -   **Simplicity**: A straightforward interface for easy communication.
 -   **Real-time**: Instantly send and receive messages.
 
+## API Documentation
+
+Documentation for the WonkChat's homeserver API can be found [here](https://wonk-docs.debutter.dev/).
+Additionally, you can find and edit the documentation in the [`docs/`](docs) folder within this repository.
+
 ## Getting Started
 
 If you wish to install and run WonkChat, follow these steps:
