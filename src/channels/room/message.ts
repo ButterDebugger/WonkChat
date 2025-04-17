@@ -12,6 +12,15 @@ router.post("/:roomname/message", authMiddleware, async (ctx) => {
 	const { roomname } = ctx.req.param();
 
 	const userSession = await getUserSession(tokenPayload.username);
+	if (userSession === null)
+		return ctx.json(
+			{
+				error: true,
+				message: "User session does not exist",
+				code: 507
+			},
+			400
+		);
 
 	if (!userSession)
 		return ctx.json(

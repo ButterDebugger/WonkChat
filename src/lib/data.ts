@@ -153,14 +153,44 @@ export async function setUserStatus(username: string, online: boolean) {
 		});
 }
 
-export async function addUserToRoom(username: string, roomname: string) {
+export async function addUserToRoom(
+	username: string,
+	roomname: string
+): Promise<boolean> {
 	const user = await getUserSession(username);
 	if (user === null) return false;
 
 	const room = await getRoom(roomname);
 	if (room === null) return false;
 
-	user.rooms.add(roomname);
+	const trx = await turso.transaction("write");
+	try {
+		await trx.execute({
+			sql: "UPDATE users SET rooms = ? WHERE username = ?",
+			args: [
+				JSON.stringify(Array.from(new Set(user.rooms).add(roomname))),
+				username
+			]
+		});
+
+		await trx.execute({
+			sql: "UPDATE rooms SET members = ? WHERE name = ?",
+			args: [
+				JSON.stringify(Array.from(new Set(room.members).add(username))),
+				roomname.toLowerCase()
+			]
+		});
+
+		// Commit the transaction
+		await trx.commit();
+	} catch (err) {
+		// Something went wrong, rollback the transaction
+		await trx.rollback();
+		return false;
+	}
+
+	// Apply the changes to the cache
+	user.rooms.add(roomname.toLowerCase());
 	room.members.add(username);
 
 	return await db
@@ -189,6 +219,7 @@ export async function addUserToRoom(username: string, roomname: string) {
 			return false;
 		});
 }
+
 export async function removeUserFromRoom(username: string, roomname: string) {
 	const user = await getUserSession(username);
 	if (user === null) return false;
@@ -196,7 +227,37 @@ export async function removeUserFromRoom(username: string, roomname: string) {
 	const room = await getRoom(roomname);
 	if (room === null) return false;
 
-	user.rooms.delete(roomname);
+	const userRoomsCopy = new Set(user.rooms);
+	const roomMembersCopy = new Set(room.members);
+
+	userRoomsCopy.delete(roomname);
+	roomMembersCopy.delete(username);
+
+	const trx = await turso.transaction("write");
+	try {
+		await trx.execute({
+			sql: "UPDATE users SET rooms = ? WHERE username = ?",
+			args: [JSON.stringify(Array.from(userRoomsCopy)), username]
+		});
+
+		await trx.execute({
+			sql: "UPDATE rooms SET members = ? WHERE name = ?",
+			args: [
+				JSON.stringify(Array.from(roomMembersCopy)),
+				roomname.toLowerCase()
+			]
+		});
+
+		// Commit the transaction
+		await trx.commit();
+	} catch (err) {
+		// Something went wrong, rollback the transaction
+		await trx.rollback();
+		return false;
+	}
+
+	// Apply the changes to the cache
+	user.rooms.delete(roomname.toLowerCase());
 	room.members.delete(username);
 
 	return await db
