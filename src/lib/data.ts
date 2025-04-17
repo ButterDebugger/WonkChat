@@ -1,6 +1,6 @@
 import * as openpgp from "openpgp";
 import bcrypt from "bcrypt";
-import type { Room, UserSession } from "../types.ts";
+import { Room, type UserSession } from "../types.ts";
 import { db } from "./database.ts";
 
 // Create tables
@@ -59,7 +59,7 @@ export async function getUserSession(
 				color: user.color,
 				offline: !user.online, // NOTE: Legacy key name
 				online: !!user.online, // Convert to boolean
-				rooms: new Set(user.rooms) // Convert to set
+				rooms: new Set(JSON.parse(user.rooms)) // Convert to set
 			} as UserSession;
 		})
 		.catch((err) => {
@@ -86,10 +86,10 @@ export async function createUserProfile(
 				.insertInto("users")
 				.values({
 					username: username,
-					password: await bcrypt.hash(password, 10), // NOTE: did have cost of 10
+					password: await bcrypt.hash(password, 10),
 					color: color,
 					online: false,
-					rooms: JSON.parse("[]"),
+					rooms: "[]",
 					displayName: username
 				})
 				.executeTakeFirst()
@@ -288,7 +288,7 @@ export async function createRoom(
 		.values({
 			name: roomname.toLowerCase(),
 			description: description,
-			members: JSON.parse("[]"),
+			members: "[]",
 			publicKey: publicKeyBuffer,
 			privateKey: privateKeyBuffer
 		})
@@ -309,13 +309,13 @@ export async function getRoom(roomname: string): Promise<Room | null> {
 		.then((room) => {
 			if (!room) return null;
 
-			return {
-				name: room.name,
-				description: room.description,
-				members: new Set(room.members), // Convert to set
-				privateKey: new Uint8Array(room.privateKey),
-				publicKey: new Uint8Array(room.publicKey)
-			} as Room;
+			return new Room(
+				room.name,
+				room.description,
+				new Set(JSON.parse(room.members)), // Convert to set
+				new Uint8Array(room.privateKey),
+				new Uint8Array(room.publicKey)
+			);
 		})
 		.catch((err) => {
 			console.error("Failed to fetch room", err);

@@ -17,9 +17,9 @@ router.post("/:roomname/join", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "User does not exist",
-				code: 401,
+				code: 401
 			},
-			400,
+			400
 		);
 
 	if (!isValidRoomName(roomname))
@@ -27,9 +27,9 @@ router.post("/:roomname/join", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Invalid room name",
-				code: 301,
+				code: 301
 			},
-			400,
+			400
 		);
 
 	if (userSession.rooms.has(roomname))
@@ -37,9 +37,9 @@ router.post("/:roomname/join", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Already joined this room",
-				code: 302,
+				code: 302
 			},
-			400,
+			400
 		);
 
 	const room = await getRoom(roomname);
@@ -49,9 +49,9 @@ router.post("/:roomname/join", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Room doesn't exist",
-				code: 303,
+				code: 303
 			},
-			400,
+			400
 		);
 
 	const success = await addUserToRoom(tokenPayload.username, roomname);
@@ -61,9 +61,9 @@ router.post("/:roomname/join", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Internal server error",
-				code: 106,
+				code: 106
 			},
-			500,
+			500
 		);
 
 	for (const username of room.members) {
@@ -77,7 +77,7 @@ router.post("/:roomname/join", authMiddleware, async (ctx) => {
 			room: roomname,
 			username: tokenPayload.username,
 			timestamp: Date.now(),
-			state: "join",
+			state: "join"
 		});
 	}
 
@@ -85,11 +85,11 @@ router.post("/:roomname/join", authMiddleware, async (ctx) => {
 		{
 			name: room.name,
 			description: room.description,
-			key: room.publicKey,
+			key: await room.armoredPublicKey,
 			members: Array.from(room.members),
-			success: true,
+			success: true
 		},
-		200,
+		200
 	);
 });
 

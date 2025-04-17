@@ -21,9 +21,9 @@ router.post("/users/:userid/subscribe", authMiddleware, (ctx) => {
 
 	return ctx.json(
 		{
-			success: true,
+			success: true
 		},
-		200,
+		200
 	);
 });
 
@@ -38,9 +38,9 @@ router.post("/users/:userid/unsubscribe", authMiddleware, (ctx) => {
 
 	return ctx.json(
 		{
-			success: true,
+			success: true
 		},
-		200,
+		200
 	);
 });
 
@@ -54,9 +54,9 @@ router.get("/users/:username/fetch", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "User does not exist",
-				code: 401,
+				code: 401
 			},
-			400,
+			400
 		);
 
 	return ctx.json(
@@ -65,11 +65,11 @@ router.get("/users/:username/fetch", authMiddleware, async (ctx) => {
 			data: {
 				username: session.username,
 				color: session.color,
-				offline: session.offline,
+				offline: session.offline
 			},
-			success: true,
+			success: true
 		},
-		200,
+		200
 	);
 });
 
@@ -84,9 +84,9 @@ router.get("/sync/client", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "User does not exist",
-				code: 401,
+				code: 401
 			},
-			400,
+			400
 		);
 
 	// Get rooms
@@ -100,8 +100,8 @@ router.get("/sync/client", authMiddleware, async (ctx) => {
 		rooms.push({
 			name: room.name,
 			description: room.description,
-			key: room.publicKey,
-			members: Array.from(room.members),
+			key: await room.armoredPublicKey,
+			members: Array.from(room.members)
 		});
 	}
 
@@ -113,9 +113,9 @@ router.get("/sync/client", authMiddleware, async (ctx) => {
 			getUserSession(username).then((session) => ({
 				username: session?.username ?? username,
 				color: session?.color ?? "#ffffff",
-				offline: session?.offline ?? true,
-			})),
-		),
+				offline: session?.offline ?? true
+			}))
+		)
 	);
 
 	return ctx.json(
@@ -125,11 +125,11 @@ router.get("/sync/client", authMiddleware, async (ctx) => {
 			you: {
 				username: session.username,
 				color: session.color,
-				offline: session.offline,
+				offline: session.offline
 			},
-			success: true,
+			success: true
 		},
-		200,
+		200
 	);
 });
 
@@ -142,9 +142,9 @@ router.get("/sync/memory", authMiddleware, (ctx) => {
 			{
 				error: true,
 				message: "Could not find an active stream",
-				code: 601,
+				code: 601
 			},
-			400,
+			400
 		);
 
 	const result = stream.flushMemory();
@@ -154,16 +154,16 @@ router.get("/sync/memory", authMiddleware, (ctx) => {
 			{
 				error: true,
 				message: "Stream is currently inactive",
-				code: 602,
+				code: 602
 			},
-			400,
+			400
 		);
 
 	return ctx.json(
 		{
-			success: true,
+			success: true
 		},
-		200,
+		200
 	);
 });
 

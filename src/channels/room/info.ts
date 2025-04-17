@@ -15,9 +15,9 @@ router.get("/:roomname/info", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "User does not exist",
-				code: 401,
+				code: 401
 			},
-			400,
+			400
 		);
 
 	if (!userSession.rooms.has(roomname))
@@ -25,9 +25,9 @@ router.get("/:roomname/info", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Cannot query info about a room that you are not in",
-				code: 307,
+				code: 307
 			},
-			400,
+			400
 		);
 
 	const room = await getRoom(roomname);
@@ -37,20 +37,20 @@ router.get("/:roomname/info", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Room doesn't exist",
-				code: 303,
+				code: 303
 			},
-			400,
+			400
 		);
 
 	return ctx.json(
 		{
 			name: room.name,
 			description: room.description,
-			key: room.publicKey,
+			key: await room.armoredPublicKey,
 			members: Array.from(room.members),
-			success: true,
+			success: true
 		},
-		200,
+		200
 	);
 });
 

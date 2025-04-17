@@ -16,9 +16,9 @@ router.post("/:roomname/leave", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "User does not exist",
-				code: 401,
+				code: 401
 			},
-			400,
+			400
 		);
 
 	if (!userSession.rooms.has(roomname))
@@ -26,9 +26,9 @@ router.post("/:roomname/leave", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Cannot leave a room that you are already not in",
-				code: 306,
+				code: 306
 			},
-			400,
+			400
 		);
 
 	const room = await getRoom(roomname);
@@ -38,9 +38,9 @@ router.post("/:roomname/leave", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Room doesn't exist",
-				code: 303,
+				code: 303
 			},
-			400,
+			400
 		);
 
 	const success = await removeUserFromRoom(tokenPayload.username, roomname);
@@ -50,9 +50,9 @@ router.post("/:roomname/leave", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Internal server error",
-				code: 106,
+				code: 106
 			},
-			500,
+			500
 		);
 
 	for (const username of room.members) {
@@ -66,15 +66,15 @@ router.post("/:roomname/leave", authMiddleware, async (ctx) => {
 			room: roomname,
 			username: tokenPayload.username,
 			timestamp: Date.now(),
-			state: "leave",
+			state: "leave"
 		});
 	}
 
 	return ctx.json(
 		{
-			success: true,
+			success: true
 		},
-		200,
+		200
 	);
 });
 

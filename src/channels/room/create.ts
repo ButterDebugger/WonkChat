@@ -13,9 +13,9 @@ router.post("/:roomname/create", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Invalid room name",
-				code: 301,
+				code: 301
 			},
-			400,
+			400
 		);
 
 	const room = await createRoom(roomname);
@@ -25,16 +25,16 @@ router.post("/:roomname/create", authMiddleware, async (ctx) => {
 			{
 				error: true,
 				message: "Room already exist",
-				code: 305,
+				code: 305
 			},
-			400,
+			400
 		);
 
 	return ctx.json(
 		{
-			success: true,
+			success: true
 		},
-		200,
+		200
 	);
 });
 

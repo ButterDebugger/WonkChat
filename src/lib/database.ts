@@ -27,7 +27,7 @@ export interface UserTable {
 	displayName: string;
 	password: string;
 	color: string;
-	rooms: JSONColumnType<string[]>;
+	rooms: string; // NOTE: should be JSONColumnType<string[]>
 	online: boolean;
 	publicKey: (ArrayBuffer & { buffer?: undefined }) | undefined;
 }
@@ -35,7 +35,7 @@ export interface UserTable {
 export interface RoomTable {
 	name: Generated<string>;
 	description: string;
-	members: JSONColumnType<string[]>;
+	members: string; // NOTE: should be JSONColumnType<string[]>
 	publicKey: ArrayBuffer & { buffer?: undefined };
 	privateKey: ArrayBuffer & { buffer?: undefined };
 }

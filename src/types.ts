@@ -1,5 +1,6 @@
 import type { JWTPayload } from "hono/utils/jwt/types";
 import type { UUID } from "node:crypto";
+import * as openpgp from "openpgp";
 
 export interface TokenPayload extends JWTPayload {
 	username: string;
@@ -14,13 +15,22 @@ export interface UserSession {
 	online: boolean;
 	rooms: Set<string>;
 }
-export interface Room {
-	name: string;
-	description: string;
-	/** Set of usernames */
-	members: Set<string>;
-	privateKey: Uint8Array;
-	publicKey: Uint8Array;
+export class Room {
+	constructor(
+		public name: string,
+		public description: string,
+		/** Set of usernames */
+		public members: Set<string>,
+		public privateKey: Uint8Array,
+		public publicKey: Uint8Array
+	) {}
+
+	/** @returns The public key in armored format */
+	get armoredPublicKey() {
+		return openpgp
+			.readKey({ binaryKey: this.publicKey })
+			.then((key) => key.armor());
+	}
 }
 export interface Message {
 	content: string;
