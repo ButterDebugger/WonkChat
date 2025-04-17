@@ -89,7 +89,7 @@ export async function createUserProfile(
 					password: await bcrypt.hash(password, 10), // NOTE: did have cost of 10
 					color: color,
 					online: false,
-					rooms: "[]", // TODO: test this
+					rooms: JSON.parse("[]"),
 					displayName: username
 				})
 				.executeTakeFirst()
@@ -245,8 +245,11 @@ export async function getUserViews(
 }
 
 export async function existsRoom(roomname: string) {
+	if (!roomname) return false;
+
 	return await db
 		.selectFrom("rooms")
+		.select(["name"])
 		.where("name", "=", roomname.toLowerCase())
 		.executeTakeFirst()
 		.then((room) => !!room)
@@ -285,7 +288,7 @@ export async function createRoom(
 		.values({
 			name: roomname.toLowerCase(),
 			description: description,
-			members: "[]", // TODO: test this
+			members: JSON.parse("[]"),
 			publicKey: publicKeyBuffer,
 			privateKey: privateKeyBuffer
 		})
