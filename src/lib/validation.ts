@@ -21,6 +21,16 @@ export const PasswordSchema = z.string().min(6).openapi({
 	description: "A good password"
 });
 
+export const ErrorSchema = z.object({
+	error: z.literal(true),
+	message: z.string().openapi({
+		example: "Bad Request"
+	}),
+	code: z.number().openapi({
+		example: 100
+	})
+});
+
 export const HttpSessionHeadersSchema = z.object({
 	authorization: z.string().openapi({
 		example: "Bearer TOKEN"

@@ -3,6 +3,7 @@ import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
 import { getUserSession, getRoom, removeUserFromRoom } from "../../lib/data.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
+	ErrorSchema,
 	HttpSessionHeadersSchema,
 	RoomNameSchema
 } from "../../lib/validation.ts";
@@ -23,6 +24,22 @@ router.openapi(
 		responses: {
 			200: {
 				description: "Success message"
+			},
+			400: {
+				content: {
+					"application/json": {
+						schema: ErrorSchema
+					}
+				},
+				description: "Returns an error"
+			},
+			500: {
+				content: {
+					"application/json": {
+						schema: ErrorSchema
+					}
+				},
+				description: "Something went wrong internally"
 			}
 		}
 	}),

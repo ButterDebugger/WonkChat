@@ -7,7 +7,11 @@ import loginRoute from "./login.tsx";
 import { generateColor, type SessionEnv, sessionToken } from "./session.ts";
 import { compareUserProfile, createUserProfile } from "../lib/data.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { PasswordSchema, UsernameSchema } from "../lib/validation.ts";
+import {
+	ErrorSchema,
+	PasswordSchema,
+	UsernameSchema
+} from "../lib/validation.ts";
 
 export const router = new OpenAPIHono<SessionEnv>();
 
@@ -58,6 +62,14 @@ router.openapi(
 		responses: {
 			200: {
 				description: "Success message"
+			},
+			400: {
+				content: {
+					"application/json": {
+						schema: ErrorSchema
+					}
+				},
+				description: "Returns an error"
 			}
 		}
 	}),
@@ -117,6 +129,22 @@ router.openapi(
 		responses: {
 			200: {
 				description: "Success message"
+			},
+			400: {
+				content: {
+					"application/json": {
+						schema: ErrorSchema
+					}
+				},
+				description: "Returns an error"
+			},
+			500: {
+				content: {
+					"application/json": {
+						schema: ErrorSchema
+					}
+				},
+				description: "Something went wrong internally"
 			}
 		}
 	}),

@@ -5,6 +5,7 @@ import * as openpgp from "openpgp";
 import { isMessage, type Message } from "../../types.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
+	ErrorSchema,
 	HttpSessionHeadersSchema,
 	RoomNameSchema
 } from "../../lib/validation.ts";
@@ -34,6 +35,14 @@ router.openapi(
 		responses: {
 			200: {
 				description: "Success message"
+			},
+			400: {
+				content: {
+					"application/json": {
+						schema: ErrorSchema
+					}
+				},
+				description: "Returns an error"
 			}
 		}
 	}),
