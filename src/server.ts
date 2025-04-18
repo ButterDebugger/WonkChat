@@ -17,12 +17,29 @@ import { route as streamRoute } from "./sockets.ts";
 import { authMiddleware, type SessionEnv } from "./auth/session.ts";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { Scalar } from "@scalar/hono-api-reference";
+import { WsSessionHeadersSchema } from "./lib/validation.ts";
+import type { Handler } from "hono/types";
 
 const app = new OpenAPIHono<SessionEnv>();
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
 
 // Initialize stream route
-app.get("/stream", authMiddleware, upgradeWebSocket(streamRoute));
+app.openapi(
+	{
+		method: "get",
+		path: "/stream",
+		middleware: [authMiddleware] as const,
+		request: {
+			headers: WsSessionHeadersSchema
+		},
+		responses: {
+			101: {
+				description: "Success message"
+			}
+		}
+	},
+	upgradeWebSocket(streamRoute) as unknown as Handler<SessionEnv>
+);
 
 // Add middleware
 app.use(prettyJSON());
