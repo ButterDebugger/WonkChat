@@ -12,13 +12,16 @@ import type { ServerWebSocket } from "bun";
 const clientStreams: Map<string, Stream> = new Map();
 
 class Stream {
-	#sockets: WSContext<WebSocket>[];
+	#sockets: WSContext<ServerWebSocket<undefined>>[];
 	#session: TokenPayload;
 	#pings: number;
 	#pingInterval: NodeJS.Timeout | null;
 	#memory: Uint8Array[];
 
-	constructor(ws: WSContext<WebSocket>, session: TokenPayload) {
+	constructor(
+		ws: WSContext<ServerWebSocket<undefined>>,
+		session: TokenPayload
+	) {
 		this.#sockets = [];
 		this.#session = session;
 		this.remix(ws);
@@ -97,7 +100,7 @@ class Stream {
 		this.#memory = [];
 		return true;
 	}
-	remix(ws: WSContext<WebSocket>) {
+	remix(ws: WSContext<ServerWebSocket<undefined>>) {
 		this.#sockets.push(ws);
 
 		setOnlineStatus(this.#session.username, true);
