@@ -24,15 +24,15 @@ export const authMiddleware = createMiddleware<SessionEnv>(
 				{
 					error: true,
 					message: "Invalid credentials",
-					code: 501,
+					code: 501
 				},
-				400,
+				400
 			);
 		}
 
 		ctx.set("session", payload);
 		await next();
-	},
+	}
 );
 
 /**
@@ -40,7 +40,7 @@ export const authMiddleware = createMiddleware<SessionEnv>(
  * @returns Token payload
  */
 export async function authenticateRequest(
-	ctx: Context,
+	ctx: Context
 ): Promise<TokenPayload | null> {
 	const authHeader = ctx.req.header("authorization");
 	const wsProtocol = ctx.req.header("sec-websocket-protocol");
@@ -86,7 +86,8 @@ async function verifyToken(token: string): Promise<TokenPayload | null> {
 	}
 
 	// Check if token is too old
-	if (user.iat + sessionExpiration < Math.floor(Date.now() / 1000)) return null;
+	if (user.iat + sessionExpiration < Math.floor(Date.now() / 1000))
+		return null;
 
 	// Return the user
 	return user;
@@ -117,11 +118,11 @@ export async function sessionToken(username: string): Promise<{
 	const payload: TokenPayload = {
 		username: username,
 		jti: crypto.randomUUID(),
-		iat: Math.floor(Date.now() / 1000),
+		iat: Math.floor(Date.now() / 1000)
 	};
 
 	return {
 		payload: payload,
-		token: await sign(payload, token_secret), // Create token
+		token: await sign(payload, token_secret) // Create token
 	};
 }

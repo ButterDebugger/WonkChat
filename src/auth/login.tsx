@@ -1,11 +1,12 @@
-import { type Context, Hono } from "hono";
+import type { Context } from "hono";
 import { stream } from "hono/streaming";
 // import type { FC } from "hono/jsx";
 import path from "node:path";
 import process from "node:process";
-import fs from "node:fs";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import type { SessionEnv } from "./session.ts";
 
-const router = new Hono();
+const router = new OpenAPIHono<SessionEnv>();
 
 // const Layout: FC = (props) => {
 // 	return (

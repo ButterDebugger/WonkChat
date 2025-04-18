@@ -1,10 +1,10 @@
-import { Hono } from "hono";
 import crypto from "node:crypto";
 import * as openpgp from "openpgp";
 import { setUserPublicKey } from "./lib/data.ts";
-import { authMiddleware } from "./auth/session.ts";
+import { authMiddleware, type SessionEnv } from "./auth/session.ts";
+import { OpenAPIHono } from "@hono/zod-openapi";
 
-export const router = new Hono();
+export const router = new OpenAPIHono<SessionEnv>();
 
 // TODO: add a cooldown for changing the public key
 

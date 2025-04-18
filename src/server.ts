@@ -16,8 +16,10 @@ import { router as oauthRoute } from "./auth/oauth.ts";
 import { router as keysRoute } from "./keys.ts";
 import { route as streamRoute } from "./sockets.ts";
 import { authMiddleware, type SessionEnv } from "./auth/session.ts";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import { Scalar } from "@scalar/hono-api-reference";
 
-const app = new Hono<SessionEnv>();
+const app = new OpenAPIHono<SessionEnv>();
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
 
 // Initialize stream route
@@ -64,6 +66,23 @@ cleanAttachments();
 
 // Create starting room
 createRoom("wonk", "Welcome to Wonk Chat!");
+
+// Create OpenAPI route and Scalar explorer
+app.get(
+	"/scalar",
+	Scalar({
+		url: "/doc",
+		theme: "elysiajs"
+	})
+);
+
+app.doc31("/doc", {
+	openapi: "3.1.0",
+	info: {
+		version: "1.2.0",
+		title: "Wonk Chat"
+	}
+});
 
 // Unknown endpoint handler
 app.all((ctx) => {

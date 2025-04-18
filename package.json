@@ -10,8 +10,9 @@
 	},
 	"dependencies": {
 		"@debutter/jsbin": "npm:@jsr/debutter__jsbin@1.1.0",
-		"@hono/zod-validator": "^0.4.3",
+		"@hono/zod-openapi": "^0.19.5",
 		"@libsql/kysely-libsql": "^0.4.1",
+		"@scalar/hono-api-reference": "^0.8.2",
 		"bcrypt": "^5.1.1",
 		"chalk": "^5.4.1",
 		"hono": "^4.7.7",

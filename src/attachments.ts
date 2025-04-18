@@ -1,17 +1,17 @@
-import { Hono } from "hono";
 import path from "node:path";
 import fs from "node:fs";
 import process from "node:process";
-import { authMiddleware } from "./auth/session.ts";
+import { authMiddleware, type SessionEnv } from "./auth/session.ts";
 // import { Snowflake } from "./lib/identifier.ts";
 // import type { Upload } from "./types.ts";
 import { serveStatic } from "hono/bun";
+import { OpenAPIHono } from "@hono/zod-openapi";
 
 if (!fs.existsSync(path.join(process.cwd(), "attachments"))) {
 	fs.mkdirSync(path.join(process.cwd(), "attachments"));
 }
 
-export const router = new Hono();
+export const router = new OpenAPIHono<SessionEnv>();
 
 // router.use(
 // 	fileUpload({

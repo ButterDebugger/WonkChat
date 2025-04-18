@@ -1,10 +1,10 @@
-import { Hono } from "hono";
 import { getStream } from "./sockets.ts";
-import { authMiddleware } from "./auth/session.ts";
+import { authMiddleware, type SessionEnv } from "./auth/session.ts";
 import { router as roomRoute } from "./channels/room.ts";
 import { getUserSession, getRoom, getUserViews } from "./lib/data.ts";
+import { OpenAPIHono } from "@hono/zod-openapi";
 
-export const router = new Hono();
+export const router = new OpenAPIHono<SessionEnv>();
 
 const userSubscriptions = new Map();
 

@@ -1,41 +1,63 @@
-import { authMiddleware } from "../../auth/session.ts";
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
 import { createRoom } from "../../lib/data.ts";
 import { isValidRoomName } from "../room.ts";
-import { Hono } from "hono";
+import {
+	HttpSessionHeadersSchema,
+	RoomNameSchema
+} from "../../lib/validation.ts";
 
-const router = new Hono();
+const router = new OpenAPIHono<SessionEnv>();
 
-router.post("/:roomname/create", authMiddleware, async (ctx) => {
-	const { roomname } = ctx.req.param();
-
-	if (!isValidRoomName(roomname))
-		return ctx.json(
-			{
-				error: true,
-				message: "Invalid room name",
-				code: 301
-			},
-			400
-		);
-
-	const room = await createRoom(roomname);
-
-	if (room === false)
-		return ctx.json(
-			{
-				error: true,
-				message: "Room already exist",
-				code: 305
-			},
-			400
-		);
-
-	return ctx.json(
-		{
-			success: true
+router.openapi(
+	createRoute({
+		method: "post",
+		path: "/:roomname/create",
+		middleware: [authMiddleware] as const,
+		request: {
+			headers: HttpSessionHeadersSchema,
+			params: z.object({
+				roomname: RoomNameSchema
+			})
 		},
-		200
-	);
-});
+		responses: {
+			200: {
+				description: "Success message"
+			}
+		}
+	}),
+	async (ctx) => {
+		const { roomname } = ctx.req.valid("param");
+
+		if (!isValidRoomName(roomname))
+			return ctx.json(
+				{
+					error: true,
+					message: "Invalid room name",
+					code: 301
+				},
+				400
+			);
+
+		const room = await createRoom(roomname);
+
+		if (room === false)
+			return ctx.json(
+				{
+					error: true,
+					message: "Room already exist",
+					code: 305
+				},
+				400
+			);
+
+		return ctx.json(
+			{
+				success: true
+			},
+			200
+		);
+	}
+);
 
 export default router;
