@@ -163,57 +163,35 @@ export async function addUserToRoom(
 	const room = await getRoom(roomname);
 	if (room === null) return false;
 
-	const trx = await turso.transaction("write");
-	try {
-		await trx.execute({
-			sql: "UPDATE users SET rooms = ? WHERE username = ?",
-			args: [
-				JSON.stringify(Array.from(new Set(user.rooms).add(roomname))),
-				username
-			]
-		});
-
-		await trx.execute({
-			sql: "UPDATE rooms SET members = ? WHERE name = ?",
-			args: [
-				JSON.stringify(Array.from(new Set(room.members).add(username))),
-				roomname.toLowerCase()
-			]
-		});
-
-		// Commit the transaction
-		await trx.commit();
-	} catch (err) {
-		// Something went wrong, rollback the transaction
-		await trx.rollback();
-		return false;
-	}
-
-	// Apply the changes to the cache
-	user.rooms.add(roomname.toLowerCase());
-	room.members.add(username);
-
 	return await db
 		.transaction()
 		.execute(async (trx) => {
-			// TODO: test this
 			await trx
 				.updateTable("users")
 				.where("username", "=", username)
 				.set({
-					rooms: JSON.stringify(Array.from(user.rooms))
+					rooms: JSON.stringify(
+						Array.from(new Set(user.rooms).add(roomname))
+					)
 				})
 				.executeTakeFirst();
 
 			await trx
 				.updateTable("rooms")
-				.where("name", "=", roomname)
+				.where("name", "=", roomname.toLowerCase())
 				.set({
-					members: JSON.stringify(Array.from(room.members))
+					members: JSON.stringify(
+						Array.from(new Set(room.members).add(username))
+					)
 				})
 				.executeTakeFirst();
 		})
-		.then(() => true)
+		.then(() => {
+			// Apply the changes to the cache
+			user.rooms.add(roomname.toLowerCase());
+			room.members.add(username);
+			return true;
+		})
 		.catch((err) => {
 			console.error("Failed to add user to room", err);
 			return false;
@@ -233,54 +211,31 @@ export async function removeUserFromRoom(username: string, roomname: string) {
 	userRoomsCopy.delete(roomname);
 	roomMembersCopy.delete(username);
 
-	const trx = await turso.transaction("write");
-	try {
-		await trx.execute({
-			sql: "UPDATE users SET rooms = ? WHERE username = ?",
-			args: [JSON.stringify(Array.from(userRoomsCopy)), username]
-		});
-
-		await trx.execute({
-			sql: "UPDATE rooms SET members = ? WHERE name = ?",
-			args: [
-				JSON.stringify(Array.from(roomMembersCopy)),
-				roomname.toLowerCase()
-			]
-		});
-
-		// Commit the transaction
-		await trx.commit();
-	} catch (err) {
-		// Something went wrong, rollback the transaction
-		await trx.rollback();
-		return false;
-	}
-
-	// Apply the changes to the cache
-	user.rooms.delete(roomname.toLowerCase());
-	room.members.delete(username);
-
 	return await db
 		.transaction()
 		.execute(async (trx) => {
-			// TODO: test this
 			await trx
 				.updateTable("users")
 				.where("username", "=", username)
 				.set({
-					rooms: JSON.stringify(Array.from(user.rooms))
+					rooms: JSON.stringify(Array.from(userRoomsCopy))
 				})
 				.executeTakeFirst();
 
 			await trx
 				.updateTable("rooms")
-				.where("name", "=", roomname)
+				.where("name", "=", roomname.toLowerCase())
 				.set({
-					members: JSON.stringify(Array.from(room.members))
+					members: JSON.stringify(Array.from(roomMembersCopy))
 				})
 				.executeTakeFirst();
 		})
-		.then(() => true)
+		.then(() => {
+			// Apply the changes to the cache
+			user.rooms.delete(roomname.toLowerCase());
+			room.members.delete(username);
+			return true;
+		})
 		.catch((err) => {
 			console.error("Failed to remove user from room", err);
 			return false;

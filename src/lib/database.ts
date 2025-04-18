@@ -1,4 +1,4 @@
-import { Kysely, type Generated, type JSONColumnType } from "kysely";
+import { Kysely, type Generated } from "kysely";
 import { LibsqlDialect } from "@libsql/kysely-libsql";
 import {
 	database_auth_Token,
