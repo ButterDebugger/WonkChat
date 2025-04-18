@@ -34,7 +34,9 @@ app.use(cors());
 app.get("/", (ctx) => {
 	return ctx.json(
 		{
-			namespace: namespace
+			namespace: namespace,
+			openapi: "/doc",
+			scalar: "/scalar"
 		},
 		200
 	);
