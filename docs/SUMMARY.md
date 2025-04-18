@@ -5,10 +5,10 @@
 * [💖 About Wonk Chat](README.md)
 * [🔗 Official Links](getting-started/official-links.md)
 
-## Group 1
+## Objects
 
-* [Error Codes](group-1/codes.md)
-* [Identifiers](group-1/identifiers.md)
+* [Error Codes](objects/codes.md)
+* [Identifiers](objects/identifiers.md)
 
 ## Routes
 
