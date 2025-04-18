@@ -1,7 +1,6 @@
 import { getStream } from "../../sockets.ts";
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
 import { getUserSession, getRoom, addUserToRoom } from "../../lib/data.ts";
-import { isValidRoomName } from "../room.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
 	HttpSessionHeadersSchema,
@@ -48,16 +47,6 @@ router.openapi(
 					error: true,
 					message: "User does not exist",
 					code: 401
-				},
-				400
-			);
-
-		if (!isValidRoomName(roomname))
-			return ctx.json(
-				{
-					error: true,
-					message: "Invalid room name",
-					code: 301
 				},
 				400
 			);

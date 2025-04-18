@@ -64,16 +64,6 @@ router.openapi(
 	async (ctx) => {
 		const { verifier } = ctx.req.valid("json");
 
-		// if (typeof verifier !== "string")
-		// 	return ctx.json(
-		// 		{
-		// 			error: true,
-		// 			message: "Invalid body",
-		// 			code: 101
-		// 		},
-		// 		400
-		// 	);
-
 		// Hash verifier
 		const challenge = crypto
 			.createHash("sha256")
@@ -132,34 +122,6 @@ router.openapi(
 	}),
 	async (ctx) => {
 		const { username, password, challenge } = ctx.req.valid("json");
-
-		// if (
-		// 	typeof username !== "string" ||
-		// 	typeof password !== "string" ||
-		// 	typeof challenge !== "string"
-		// )
-		// 	return ctx.json(
-		// 		{
-		// 			error: true,
-		// 			message: "Invalid body",
-		// 			code: 101
-		// 		},
-		// 		400
-		// 	);
-
-		// // Check if credentials are invalid
-		// if (
-		// 	!/^(?! )[\x20-\x7E]{3,16}(?<! )$/g.test(username) ||
-		// 	password.length < 6
-		// )
-		// 	return ctx.json(
-		// 		{
-		// 			error: true,
-		// 			message: "Invalid credentials",
-		// 			code: 501
-		// 		},
-		// 		400
-		// 	);
 
 		// Create a user account
 		const color = generateColor();

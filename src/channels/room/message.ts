@@ -87,16 +87,6 @@ router.openapi(
 
 		const { message } = ctx.req.valid("json");
 
-		// if (typeof message !== "string")
-		// 	return ctx.json(
-		// 		{
-		// 			error: true,
-		// 			message: "Invalid body",
-		// 			code: 101
-		// 		},
-		// 		400
-		// 	);
-
 		let decrypted: Message;
 		try {
 			const { data } = await openpgp.decrypt({

@@ -1,7 +1,6 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
 import { createRoom } from "../../lib/data.ts";
-import { isValidRoomName } from "../room.ts";
 import {
 	HttpSessionHeadersSchema,
 	RoomNameSchema
@@ -28,16 +27,6 @@ router.openapi(
 	}),
 	async (ctx) => {
 		const { roomname } = ctx.req.valid("param");
-
-		if (!isValidRoomName(roomname))
-			return ctx.json(
-				{
-					error: true,
-					message: "Invalid room name",
-					code: 301
-				},
-				400
-			);
 
 		const room = await createRoom(roomname);
 
