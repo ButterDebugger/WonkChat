@@ -13,7 +13,7 @@ export const UsernameSchema = z
 	.regex(/^(?! )[\x20-\x7E]{3,16}(?<! )$/g)
 	.openapi({
 		example: "john_doe",
-		description: "A creative username"
+		description: "An awesome username"
 	});
 
 export const PasswordSchema = z.string().min(6).openapi({
