@@ -4,7 +4,7 @@
     "": {
       "name": "wonkchat",
       "dependencies": {
-        "@debutter/jsbin": "npm:@jsr/debutter__jsbin@1.1.0",
+        "@debutter/jsbin": "npm:@jsr/debutter__jsbin@^1.4.0",
         "@hono/zod-openapi": "^0.19.5",
         "@libsql/kysely-libsql": "^0.4.1",
         "@scalar/hono-api-reference": "^0.8.2",
@@ -28,13 +28,11 @@
   "packages": {
     "@asteasolutions/zod-to-openapi": ["@asteasolutions/zod-to-openapi@7.3.0", "", { "dependencies": { "openapi3-ts": "^4.1.2" }, "peerDependencies": { "zod": "^3.20.2" } }, "sha512-7tE/r1gXwMIvGnXVUdIqUhCU1RevEFC4Jk6Bussa0fk1ecbnnINkZzj1EOAJyE/M3AI25DnHT/zKQL1/FPFi8Q=="],
 
-    "@debutter/jsbin": ["@jsr/debutter__jsbin@1.1.0", "https://npm.jsr.io/~/11/@jsr/debutter__jsbin/1.1.0.tgz", { "dependencies": { "@jsr/debutter__helper": "^1.0.0" } }, "sha512-nY8k3eA6KAoX6zdWEcdMV7gl64mw0MUgv7WhhS730PlGYi0b01Cfx/Uj2zqUc0WZmga/U2Xecp1lA0jMze2YBA=="],
+    "@debutter/jsbin": ["@jsr/debutter__jsbin@1.4.0", "https://npm.jsr.io/~/11/@jsr/debutter__jsbin/1.4.0.tgz", { "dependencies": { "core-js": "^3.41.0" } }, "sha512-r2rxA6A4HK7LrHtD+pog8+6RNIXuAUq8mY2V2Hh+uviqL03Au9bNf39x9L4AQe8ZIlPQp0i6IgvceCtnmnByYg=="],
 
     "@hono/zod-openapi": ["@hono/zod-openapi@0.19.5", "", { "dependencies": { "@asteasolutions/zod-to-openapi": "^7.3.0", "@hono/zod-validator": "^0.4.3" }, "peerDependencies": { "hono": ">=4.3.6", "zod": "3.*" } }, "sha512-n2RqdZL7XIaWPwBNygctG/1eySyRtSBnS7l+pIsP3f2JW5P2l7Smm6SLluscrGwB5l2C2fxbfvhWoC6Ig+SxXw=="],
 
     "@hono/zod-validator": ["@hono/zod-validator@0.4.3", "", { "peerDependencies": { "hono": ">=3.9.0", "zod": "^3.19.1" } }, "sha512-xIgMYXDyJ4Hj6ekm9T9Y27s080Nl9NXHcJkOvkXPhubOLj8hZkOL8pDnnXfvCf5xEE8Q4oMFenQUZZREUY2gqQ=="],
-
-    "@jsr/debutter__helper": ["@jsr/debutter__helper@1.1.0", "https://npm.jsr.io/~/11/@jsr/debutter__helper/1.1.0.tgz", {}, "sha512-U60EnyCdq9NcCcGZmLE6EgNIpQWszJq9zGeYT08/8yB5n/QTZYnSxIIBKEgEibpw3m97cfZTRKzwz1F7AzF5Yg=="],
 
     "@libsql/client": ["@libsql/client@0.8.1", "", { "dependencies": { "@libsql/core": "^0.8.1", "@libsql/hrana-client": "^0.6.2", "js-base64": "^3.7.5", "libsql": "^0.3.10", "promise-limit": "^2.7.0" } }, "sha512-xGg0F4iTDFpeBZ0r4pA6icGsYa5rG6RAG+i/iLDnpCAnSuTqEWMDdPlVseiq4Z/91lWI9jvvKKiKpovqJ1kZWA=="],
 
@@ -111,6 +109,8 @@
     "concat-map": ["concat-map@0.0.1", "", {}, "sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg=="],
 
     "console-control-strings": ["console-control-strings@1.1.0", "", {}, "sha512-ty/fTekppD2fIwRvnZAVdeOiGd1c7YXEixbgJTNzqcxJWKQnjJ/V1bNEEE6hygpM3WjwHFUVK6HTjWSzV4a8sQ=="],
+
+    "core-js": ["core-js@3.41.0", "", {}, "sha512-SJ4/EHwS36QMJd6h/Rg+GyR4A5xE0FSI3eZ+iBVpfqf1x0eTSg1smWLHrA+2jQThZSh97fmSgFSU8B61nxosxA=="],
 
     "data-uri-to-buffer": ["data-uri-to-buffer@4.0.1", "", {}, "sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A=="],
 
