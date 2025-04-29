@@ -1,6 +1,6 @@
 import type { SessionEnv } from "./auth/session.ts";
 import { getUserPublicKey, getUserSession, setUserStatus } from "./lib/data.ts";
-import { getSubscribers } from "./gateway.ts";
+import { getSubscribers } from "./users.ts";
 import * as openpgp from "openpgp";
 import type { TokenPayload, UserSession } from "./types.ts";
 import * as JsBin from "@debutter/jsbin";

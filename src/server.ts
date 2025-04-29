@@ -8,7 +8,9 @@ import {
 	clean as cleanAttachments
 } from "./attachments.ts";
 import chalk from "chalk";
-import { router as gatewayRoute } from "./gateway.ts";
+import { router as roomRoute } from "./channels/room.ts";
+import { router as usersRoute } from "./users.ts";
+import { router as syncRoute } from "./sync.ts";
 import { createRoom } from "./lib/data.ts";
 import { namespace, port } from "./lib/config.ts";
 import { router as oauthRoute } from "./auth/oauth.ts";
@@ -75,8 +77,12 @@ app.route("/oauth", oauthRoute);
 // Key exchange routes
 app.route("/keys", keysRoute);
 
-// Handle api gateway
-app.route("/", gatewayRoute);
+// Room routes
+app.route("/room", roomRoute);
+
+app.route("/", usersRoute);
+
+app.route("/", syncRoute);
 
 // Clear attachments folder and handle attachments route
 app.route("/", attachmentsRoute);
