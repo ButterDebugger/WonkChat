@@ -121,7 +121,7 @@ export const route = (ctx: Context<SessionEnv, string, Input>) =>
 			if ((await getUserPublicKey(payload.username)) === null) {
 				ws.send(
 					JSON.stringify({
-						error: true,
+						success: false,
 						message: "Unknown public key",
 						code: 107
 					})

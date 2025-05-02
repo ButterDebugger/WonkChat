@@ -94,7 +94,7 @@ router.openapi(
 		if (typeof signedNonce !== "string" || typeof publicKey !== "string")
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Invalid body",
 					code: 101
 				},
@@ -105,7 +105,7 @@ router.openapi(
 		if (!nonces.has(tokenPayload.username))
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Nonce has expired",
 					code: 505
 				},
@@ -128,7 +128,7 @@ router.openapi(
 		} catch (_err) {
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Invalid public key",
 					code: 503
 				},
@@ -143,7 +143,7 @@ router.openapi(
 		if (unsignedNonce !== nonce)
 			return ctx.json(
 				{
-					error: true
+					success: false
 					// TODO: write an error message
 				},
 				400
@@ -158,7 +158,7 @@ router.openapi(
 		if (!success)
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Internal server error",
 					code: 106
 				},

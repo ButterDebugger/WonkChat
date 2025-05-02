@@ -30,7 +30,7 @@ const limiter = rateLimiter({
 	handler: (ctx, _next, options) => {
 		return ctx.json(
 			{
-				error: true,
+				success: false,
 				message: options.message,
 				code: 502
 			},
@@ -88,7 +88,7 @@ router.openapi(
 		if (typeof token !== "string")
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Invalid verifier",
 					code: 501
 				},
@@ -158,7 +158,7 @@ router.openapi(
 		if (success === null)
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Internal server error",
 					code: 106
 				},
@@ -173,7 +173,7 @@ router.openapi(
 			if (!correct)
 				return ctx.json(
 					{
-						error: true,
+						success: false,
 						message: "Invalid credentials",
 						code: 501
 					},

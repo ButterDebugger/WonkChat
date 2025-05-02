@@ -54,7 +54,7 @@ router.openapi(
 		if (userSession === null)
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "User session does not exist",
 					code: 507
 				},
@@ -64,7 +64,7 @@ router.openapi(
 		if (!userSession)
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "User does not exist",
 					code: 401
 				},
@@ -74,7 +74,7 @@ router.openapi(
 		if (!userSession.rooms.has(roomname))
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message:
 						"Cannot send a message in a room that you are not in",
 					code: 304
@@ -87,7 +87,7 @@ router.openapi(
 		if (room === null)
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Room doesn't exist",
 					code: 303
 				},
@@ -108,7 +108,7 @@ router.openapi(
 			if (typeof data !== "string" || !data.startsWith("{"))
 				return ctx.json(
 					{
-						error: true,
+						success: false,
 						message: "Invalid body",
 						code: 101
 					},
@@ -119,7 +119,7 @@ router.openapi(
 		} catch (_err) {
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Invalid encrypted body",
 					code: 104
 				},
@@ -130,7 +130,7 @@ router.openapi(
 		if (!isMessage(decrypted))
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Invalid encrypted body",
 					code: 104
 				},
@@ -142,7 +142,7 @@ router.openapi(
 		if (content.length > 1000 || content.replace(/\s/g, "").length === 0)
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Invalid message content",
 					code: 201
 				},

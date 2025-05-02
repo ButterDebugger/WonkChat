@@ -37,7 +37,7 @@ router.openapi(
 		if (!session)
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "User does not exist",
 					code: 401
 				},
@@ -118,7 +118,7 @@ router.openapi(
 		if (stream === null)
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Could not find an active stream",
 					code: 601
 				},
@@ -130,7 +130,7 @@ router.openapi(
 		if (!result)
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Stream is currently inactive",
 					code: 602
 				},

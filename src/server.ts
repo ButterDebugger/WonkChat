@@ -112,7 +112,7 @@ app.doc31("/doc", {
 app.all((ctx) => {
 	return ctx.json(
 		{
-			error: true,
+			success: false,
 			message: "Unknown endpoint",
 			code: 105
 		},

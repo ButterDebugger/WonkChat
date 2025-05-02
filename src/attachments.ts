@@ -30,7 +30,7 @@ router.post("/upload", authMiddleware, async (ctx) => {
 	if (!files || Object.keys(files).length === 0) {
 		return ctx.json(
 			{
-				error: true,
+				success: false,
 				message: "Missing files",
 				code: 103
 			},

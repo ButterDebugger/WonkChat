@@ -22,7 +22,7 @@ export const authMiddleware = createMiddleware<SessionEnv>(
 			// TODO: respond with a different error if the session token has expired
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Invalid credentials",
 					code: 501
 				},

@@ -42,7 +42,7 @@ router.openapi(
 		if (!session)
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "User does not exist",
 					code: 401
 				},

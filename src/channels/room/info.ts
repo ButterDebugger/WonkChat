@@ -42,7 +42,7 @@ router.openapi(
 		if (userSession === null)
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "User session does not exist",
 					code: 507
 				},
@@ -52,7 +52,7 @@ router.openapi(
 		if (!userSession)
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "User does not exist",
 					code: 401
 				},
@@ -62,7 +62,7 @@ router.openapi(
 		if (!userSession.rooms.has(roomname))
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message:
 						"Cannot query info about a room that you are not in",
 					code: 307
@@ -75,7 +75,7 @@ router.openapi(
 		if (room === null)
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Room doesn't exist",
 					code: 303
 				},

@@ -42,7 +42,7 @@ router.openapi(
 		if (room === false)
 			return ctx.json(
 				{
-					error: true,
+					success: false,
 					message: "Room already exist",
 					code: 305
 				},

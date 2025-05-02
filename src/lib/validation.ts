@@ -22,7 +22,7 @@ export const PasswordSchema = z.string().min(6).openapi({
 });
 
 export const ErrorSchema = z.object({
-	error: z.literal(true),
+	success: z.literal(false),
 	message: z.string().openapi({
 		example: "Bad Request"
 	}),
@@ -32,9 +32,12 @@ export const ErrorSchema = z.object({
 });
 
 export const HttpSessionHeadersSchema = z.object({
-	authorization: z.string().openapi({
-		example: "Bearer TOKEN"
-	})
+	authorization: z
+		.string()
+		.regex(/^Bearer .+$/g)
+		.openapi({
+			example: "Bearer TOKEN"
+		})
 });
 
 export const WsSessionHeadersSchema = z.object({
