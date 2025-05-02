@@ -3,45 +3,6 @@ import bcrypt from "bcrypt";
 import { Room, type UserSession } from "../types.ts";
 import { db } from "./database.ts";
 
-// Create tables
-await db.introspection.getTables().then(async (tables) => {
-	const tableNames = tables.map((table) => table.name);
-
-	if (!tableNames.includes("users")) {
-		// Users table doesn't exist, so create it
-		console.log("Creating users table");
-
-		await db.schema
-			.createTable("users")
-			.addColumn("username", "text", (col) => col.primaryKey())
-			.addColumn("displayName", "text", (col) => col.notNull())
-			.addColumn("password", "text", (col) => col.notNull())
-			.addColumn("color", "text", (col) => col.notNull())
-			.addColumn("rooms", "jsonb", (col) => col.notNull())
-			.addColumn("online", "boolean", (col) => col.notNull())
-			.addColumn("publicKey", "blob")
-			.execute();
-
-		console.log("Created users table");
-	}
-
-	if (!tableNames.includes("rooms")) {
-		// Rooms table doesn't exist, so create it
-		console.log("Creating rooms table");
-
-		await db.schema
-			.createTable("rooms")
-			.addColumn("name", "text", (col) => col.primaryKey())
-			.addColumn("description", "text", (col) => col.notNull())
-			.addColumn("members", "jsonb", (col) => col.notNull())
-			.addColumn("publicKey", "blob", (col) => col.notNull())
-			.addColumn("privateKey", "blob", (col) => col.notNull())
-			.execute();
-
-		console.log("Created rooms table");
-	}
-});
-
 // Interface functions:
 export async function getUserSession(
 	username: string
