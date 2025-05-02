@@ -2,8 +2,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import {
 	FileMigrationProvider,
+	type JSONColumnType,
 	Kysely,
 	Migrator,
+	ParseJSONResultsPlugin,
 	type Generated
 } from "kysely";
 import { LibsqlDialect } from "@libsql/kysely-libsql";
@@ -20,7 +22,8 @@ export const db = new Kysely<Database>({
 		syncUrl: database_sync_url,
 		authToken: database_auth_Token,
 		syncInterval: 60 // Sync every minute
-	})
+	}),
+	plugins: [new ParseJSONResultsPlugin()]
 });
 
 // Migrate database to the latest version
@@ -69,7 +72,7 @@ export interface UserTable {
 	displayName: string;
 	password: string;
 	color: string;
-	rooms: string; // NOTE: should be JSONColumnType<string[]>
+	rooms: JSONColumnType<string[]>;
 	online: boolean;
 	publicKey: (ArrayBuffer & { buffer?: undefined }) | undefined;
 }
@@ -77,7 +80,7 @@ export interface UserTable {
 export interface RoomTable {
 	name: Generated<string>;
 	description: string;
-	members: string; // NOTE: should be JSONColumnType<string[]>
+	members: JSONColumnType<string[]>;
 	publicKey: ArrayBuffer & { buffer?: undefined };
 	privateKey: ArrayBuffer & { buffer?: undefined };
 }

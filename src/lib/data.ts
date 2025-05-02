@@ -20,7 +20,7 @@ export async function getUserSession(
 				color: user.color,
 				offline: !user.online, // NOTE: Legacy key name
 				online: !!user.online, // Convert to boolean
-				rooms: new Set(JSON.parse(user.rooms)) // Convert to set
+				rooms: new Set(user.rooms) // Convert to set
 			} as UserSession;
 		})
 		.catch((err) => {
@@ -289,7 +289,7 @@ export async function getRoom(roomname: string): Promise<Room | null> {
 			return new Room(
 				room.name,
 				room.description,
-				new Set(JSON.parse(room.members)), // Convert to set
+				new Set(room.members), // Convert to set
 				new Uint8Array(room.privateKey),
 				new Uint8Array(room.publicKey)
 			);
