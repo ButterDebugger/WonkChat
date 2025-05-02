@@ -9,7 +9,7 @@ import {
 } from "./attachments.ts";
 import chalk from "chalk";
 import { router as roomRoute } from "./channels/room.ts";
-import { router as usersRoute } from "./users.ts";
+import { router as usersRoute } from "./users/user.ts";
 import { router as syncRoute } from "./sync.ts";
 import { createRoom } from "./lib/data.ts";
 import { namespace, port } from "./lib/config.ts";
