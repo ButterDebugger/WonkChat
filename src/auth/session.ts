@@ -4,6 +4,7 @@ import { createMiddleware } from "hono/factory";
 import { verify, sign } from "hono/jwt";
 import { token_secret } from "../lib/config.ts";
 import type { TokenPayload } from "../types.ts";
+import { Color } from "../lib/structures.ts";
 
 /** Time in seconds before a session token expires */
 const sessionExpiration = 60 * 60 * 24 * 14; // 14 days
@@ -93,11 +94,15 @@ async function verifyToken(token: string): Promise<TokenPayload | null> {
 	return user;
 }
 
-export function generateColor(): string {
+export function generateColor(): number {
 	const randomInt = (min = 0, max = 1) =>
 		Math.floor(Math.random() * (max - min + 1) + min);
 
-	const color: number[] = [255, randomInt(36, 255), randomInt(36, 162)];
+	const color: [number, number, number] = [
+		255,
+		randomInt(36, 255),
+		randomInt(36, 162)
+	];
 
 	for (let i = color.length - 1; i > 0; i--) {
 		// Shuffle rgb color array
@@ -108,7 +113,7 @@ export function generateColor(): string {
 	}
 
 	// Return a hex string from the rgb array
-	return `#${color.map((val) => `00${val.toString(16)}`.slice(-2)).join("")}`;
+	return Color.RGBToInt(color[0], color[1], color[2]);
 }
 
 export async function sessionToken(username: string): Promise<{

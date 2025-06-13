@@ -51,21 +51,3 @@ export interface Upload {
 	path: string;
 	success: boolean;
 }
-
-// Database types:
-export interface UserRow {
-	username: string;
-	displayName: string;
-	password: string;
-	color: string;
-	rooms: string;
-	online: boolean;
-	publicKey: Uint8Array;
-}
-export interface RoomRow {
-	name: string;
-	description: string;
-	members: string;
-	publicKey: Uint8Array;
-	privateKey: Uint8Array;
-}

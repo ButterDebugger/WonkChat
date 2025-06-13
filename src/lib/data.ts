@@ -2,6 +2,7 @@ import * as openpgp from "openpgp";
 import bcrypt from "bcrypt";
 import { Room, type UserSession } from "../types.ts";
 import { db } from "./database.ts";
+import { Color } from "./structures.ts";
 
 // Interface functions:
 export async function getUserSession(
@@ -17,7 +18,7 @@ export async function getUserSession(
 
 			return {
 				username: user.username,
-				color: user.color,
+				color: Color.intToHex(user.color),
 				offline: !user.online, // NOTE: Legacy key name
 				online: !!user.online, // Convert to boolean
 				rooms: new Set(user.rooms) // Convert to set
@@ -32,7 +33,7 @@ export async function getUserSession(
 export async function createUserProfile(
 	username: string,
 	password: string,
-	color: string
+	color: number
 ): Promise<boolean | null> {
 	return await db
 		.selectFrom("users")
@@ -47,11 +48,13 @@ export async function createUserProfile(
 				.insertInto("users")
 				.values({
 					username: username,
+					displayName: username,
+					pronouns: "",
+					bio: "",
 					password: await bcrypt.hash(password, 10),
 					color: color,
 					online: false,
-					rooms: "[]",
-					displayName: username
+					rooms: "[]"
 				})
 				.executeTakeFirst()
 				.then(() => true)
@@ -83,7 +86,7 @@ export async function compareUserProfile(username: string, password: string) {
 		});
 }
 
-export async function updateUserProfile(username: string, color: string) {
+export async function updateUserProfile(username: string, color: number) {
 	return await db
 		.updateTable("users")
 		.where("username", "=", username)

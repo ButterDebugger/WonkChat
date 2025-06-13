@@ -29,14 +29,41 @@ export const Snowflake = {
 		const int = base36ToInt(id);
 		const bigTimestamp = (int >> 22n) + epoch;
 		return Number(bigTimestamp);
-	},
+	}
 };
 export const Fingerprint = {
 	generate: (key: BinaryLike) => {
 		const hash = crypto.createHash("sha256").update(key).digest("hex");
 		const int = BigInt(`0x${hash}`);
 		return intToBase36(int);
+	}
+};
+export const Color = {
+	intToHex: (int: number) => {
+		const [r, g, b] = Color.intToRGB(int);
+
+		const rHex = r.toString(16).padStart(2, "0");
+		const gHex = g.toString(16).padStart(2, "0");
+		const bHex = b.toString(16).padStart(2, "0");
+
+		return `#${rHex}${gHex}${bHex}`;
 	},
+	intToRGB: (int: number): [number, number, number] => {
+		const r = (int >> 16) & 0xff;
+		const g = (int >> 8) & 0xff;
+		const b = int & 0xff;
+
+		return [r, g, b];
+	},
+	hexToInt: (hex: string): number => {
+		if (!hex.startsWith("#")) throw new Error("Invalid hex color");
+		if (hex.length !== 7) throw new Error("Invalid hex color");
+
+		return parseInt(hex.slice(1), 16);
+	},
+	RGBToInt: (r: number, g: number, b: number): number => {
+		return (r << 16) | (g << 8) | b;
+	}
 };
 
 export function intToBase36(number: bigint): string {
