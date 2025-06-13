@@ -21,8 +21,3 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 		.addColumn("privateKey", "blob", (col) => col.notNull())
 		.execute();
 }
-
-export async function down(db: Kysely<unknown>): Promise<void> {
-	await db.schema.dropTable("users").execute();
-	await db.schema.dropTable("rooms").execute();
-}
