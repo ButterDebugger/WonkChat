@@ -1,8 +1,8 @@
 import type { SessionEnv } from "./auth/session.ts";
-import { getUserPublicKey, getUserSession, setUserStatus } from "./lib/data.ts";
+import { getUserPublicKey, getUserProfile, setUserStatus } from "./lib/data.ts";
 import { getSubscribers } from "./users/user.ts";
 import * as openpgp from "openpgp";
-import type { TokenPayload, UserSession } from "./types.ts";
+import type { TokenPayload, UserProfile } from "./types.ts";
 import * as JsBin from "@debutter/jsbin";
 import type { Context, Input } from "hono";
 import type { WSContext, WSEvents } from "hono/ws";
@@ -166,7 +166,7 @@ export function getStream(username: string) {
 }
 
 async function setOnlineStatus(username: string, online: boolean) {
-	const userSession = await getUserSession(username);
+	const userSession = await getUserProfile(username);
 	if (userSession !== null) {
 		const changed = userSession.offline !== !online;
 
@@ -180,7 +180,7 @@ async function setOnlineStatus(username: string, online: boolean) {
 
 async function updateUserSubscribers(
 	username: string,
-	userSession: UserSession
+	userProfile: UserProfile
 ) {
 	const viewers = await getSubscribers(username);
 
@@ -190,11 +190,11 @@ async function updateUserSubscribers(
 		if (stream !== null) {
 			stream.json({
 				event: "updateUser",
-				username: userSession.username,
+				username: userProfile.username,
 				data: {
-					username: userSession.username,
-					color: userSession.color,
-					offline: userSession.offline
+					username: userProfile.username,
+					color: userProfile.color,
+					offline: userProfile.offline
 				},
 				timestamp: Date.now()
 			});

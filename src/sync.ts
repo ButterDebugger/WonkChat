@@ -1,6 +1,6 @@
 import { getStream } from "./sockets.ts";
 import { authMiddleware, type SessionEnv } from "./auth/session.ts";
-import { getUserSession, getRoom } from "./lib/data.ts";
+import { getUserProfile, getRoom } from "./lib/data.ts";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { ErrorSchema, HttpSessionHeadersSchema } from "./lib/validation.ts";
 
@@ -31,7 +31,7 @@ router.openapi(
 	async (ctx) => {
 		const tokenPayload = ctx.var.session;
 
-		const session = await getUserSession(tokenPayload.username);
+		const session = await getUserProfile(tokenPayload.username);
 		let viewableUsers: Set<string> = new Set();
 
 		if (!session)
@@ -65,7 +65,7 @@ router.openapi(
 
 		const users = await Promise.all(
 			Array.from(viewableUsers).map((username) =>
-				getUserSession(username).then((session) => ({
+				getUserProfile(username).then((session) => ({
 					username: session?.username ?? username,
 					color: session?.color ?? "#ffffff",
 					offline: session?.offline ?? true

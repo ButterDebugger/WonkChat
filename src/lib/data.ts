@@ -1,13 +1,13 @@
 import * as openpgp from "openpgp";
 import bcrypt from "bcrypt";
-import { Room, type UserSession } from "../types.ts";
+import { Room, type UserProfile } from "../types.ts";
 import { db } from "./database.ts";
 import { Color } from "./structures.ts";
 
 // Interface functions:
-export async function getUserSession(
+export async function getUserProfile(
 	username: string
-): Promise<UserSession | null> {
+): Promise<UserProfile | null> {
 	return await db
 		.selectFrom("users")
 		.selectAll()
@@ -18,11 +18,15 @@ export async function getUserSession(
 
 			return {
 				username: user.username,
+				displayName: user.displayName,
+				pronouns: user.pronouns,
+				avatar: user.avatar,
+				bio: user.bio,
 				color: Color.intToHex(user.color),
 				offline: !user.online, // NOTE: Legacy key name
 				online: !!user.online, // Convert to boolean
 				rooms: new Set(user.rooms) // Convert to set
-			} as UserSession;
+			} satisfies UserProfile;
 		})
 		.catch((err) => {
 			console.error("Failed to fetch user", err);
@@ -121,7 +125,7 @@ export async function addUserToRoom(
 	username: string,
 	roomname: string
 ): Promise<boolean> {
-	const user = await getUserSession(username);
+	const user = await getUserProfile(username);
 	if (user === null) return false;
 
 	const room = await getRoom(roomname);
@@ -163,7 +167,7 @@ export async function addUserToRoom(
 }
 
 export async function removeUserFromRoom(username: string, roomname: string) {
-	const user = await getUserSession(username);
+	const user = await getUserProfile(username);
 	if (user === null) return false;
 
 	const room = await getRoom(roomname);
@@ -209,7 +213,7 @@ export async function removeUserFromRoom(username: string, roomname: string) {
 export async function getUserViews(
 	username: string
 ): Promise<Set<string> | null> {
-	const user = await getUserSession(username);
+	const user = await getUserProfile(username);
 	if (user === null) return null;
 
 	const viewers: Set<string> = new Set();

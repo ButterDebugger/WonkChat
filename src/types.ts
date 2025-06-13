@@ -8,9 +8,16 @@ export interface TokenPayload extends JWTPayload {
 	/** Unix timestamp in seconds when the token was issued */
 	iat: number;
 }
-export interface UserSession {
+export interface UserProfile {
 	username: string;
+	displayName: string;
+	pronouns: string;
+	/** Data URI of a profile picture */
+	avatar: string | null;
+	bio: string;
+	/** Hex string */
 	color: string;
+	/** @deprecated Legacy key name */
 	offline: boolean;
 	online: boolean;
 	rooms: Set<string>;

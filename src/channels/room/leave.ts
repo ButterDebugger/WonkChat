@@ -1,6 +1,6 @@
 import { getStream } from "../../sockets.ts";
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
-import { getUserSession, getRoom, removeUserFromRoom } from "../../lib/data.ts";
+import { getUserProfile, getRoom, removeUserFromRoom } from "../../lib/data.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
 	ErrorSchema,
@@ -47,7 +47,7 @@ router.openapi(
 		const tokenPayload = ctx.var.session;
 		const { roomname } = ctx.req.valid("param");
 
-		const userSession = await getUserSession(tokenPayload.username);
+		const userSession = await getUserProfile(tokenPayload.username);
 		if (userSession === null)
 			return ctx.json(
 				{

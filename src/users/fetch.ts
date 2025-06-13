@@ -1,5 +1,5 @@
 import { authMiddleware, type SessionEnv } from "../auth/session.ts";
-import { getUserSession } from "../lib/data.ts";
+import { getUserProfile } from "../lib/data.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
 	ErrorSchema,
@@ -37,7 +37,7 @@ router.openapi(
 	async (ctx) => {
 		const { username } = ctx.req.valid("param");
 
-		const session = await getUserSession(username);
+		const session = await getUserProfile(username);
 
 		if (!session)
 			return ctx.json(
@@ -54,8 +54,13 @@ router.openapi(
 				username: session.username,
 				data: {
 					username: session.username,
+					displayName: session.displayName,
+					pronouns: session.pronouns,
+					avatar: session.avatar,
+					bio: session.bio,
 					color: session.color,
-					offline: session.offline
+					offline: session.offline,
+					online: session.online
 				},
 				success: true
 			},

@@ -71,7 +71,7 @@ export interface UserTable {
 	username: Generated<string>;
 	displayName: string;
 	pronouns: string;
-	avatar: (ArrayBuffer & { buffer?: undefined }) | undefined;
+	avatar: string | null;
 	bio: string;
 	password: string;
 	color: number;
