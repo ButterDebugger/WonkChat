@@ -158,7 +158,7 @@ router.openapi(
 				author: {
 					username: userSession.username,
 					color: userSession.color,
-					offline: userSession.offline
+					offline: !userSession.online // TODO: Change this to a online field
 				},
 				room: roomname,
 				content: content,

@@ -61,7 +61,7 @@ for (const it of results) {
 	}
 }
 
-// Declare database types
+// Declare database table types
 export interface Database {
 	users: UserTable;
 	rooms: RoomTable;

@@ -23,7 +23,6 @@ export async function getUserProfile(
 				avatar: user.avatar,
 				bio: user.bio,
 				color: Color.intToHex(user.color),
-				offline: !user.online, // NOTE: Legacy key name
 				online: !!user.online, // Convert to boolean
 				rooms: new Set(user.rooms) // Convert to set
 			} satisfies UserProfile;

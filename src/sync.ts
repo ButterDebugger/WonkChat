@@ -68,7 +68,7 @@ router.openapi(
 				getUserProfile(username).then((session) => ({
 					username: session?.username ?? username,
 					color: session?.color ?? "#ffffff",
-					offline: session?.offline ?? true
+					offline: !(session?.online ?? false) // TODO: Change this to a online field
 				}))
 			)
 		);
@@ -80,7 +80,7 @@ router.openapi(
 				you: {
 					username: session.username,
 					color: session.color,
-					offline: session.offline
+					offline: !session.online // TODO: Change this to a online field
 				},
 				success: true
 			},

@@ -59,7 +59,7 @@ router.openapi(
 					avatar: session.avatar,
 					bio: session.bio,
 					color: session.color,
-					offline: session.offline,
+					offline: !session.online, // TODO: remove this
 					online: session.online
 				},
 				success: true

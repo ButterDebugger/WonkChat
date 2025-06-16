@@ -17,8 +17,6 @@ export interface UserProfile {
 	bio: string;
 	/** Hex string */
 	color: string;
-	/** @deprecated Legacy key name */
-	offline: boolean;
 	online: boolean;
 	rooms: Set<string>;
 }

@@ -168,7 +168,7 @@ export function getStream(username: string) {
 async function setOnlineStatus(username: string, online: boolean) {
 	const userSession = await getUserProfile(username);
 	if (userSession !== null) {
-		const changed = userSession.offline !== !online;
+		const changed = userSession.online !== online;
 
 		await setUserStatus(username, online);
 
@@ -194,7 +194,7 @@ async function updateUserSubscribers(
 				data: {
 					username: userProfile.username,
 					color: userProfile.color,
-					offline: userProfile.offline
+					offline: !userProfile.online // TODO: Change this to a online field
 				},
 				timestamp: Date.now()
 			});
