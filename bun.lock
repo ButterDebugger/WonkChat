@@ -4,7 +4,7 @@
     "": {
       "name": "wonkchat",
       "dependencies": {
-        "@debutter/jsbin": "npm:@jsr/debutter__jsbin@^1.4.0",
+        "@debutter/trufflebyte": "npm:@jsr/debutter__trufflebyte@1.4.1",
         "@hono/zod-openapi": "^0.19.5",
         "@libsql/kysely-libsql": "^0.4.1",
         "@scalar/hono-api-reference": "^0.8.2",
@@ -28,7 +28,7 @@
   "packages": {
     "@asteasolutions/zod-to-openapi": ["@asteasolutions/zod-to-openapi@7.3.0", "", { "dependencies": { "openapi3-ts": "^4.1.2" }, "peerDependencies": { "zod": "^3.20.2" } }, "sha512-7tE/r1gXwMIvGnXVUdIqUhCU1RevEFC4Jk6Bussa0fk1ecbnnINkZzj1EOAJyE/M3AI25DnHT/zKQL1/FPFi8Q=="],
 
-    "@debutter/jsbin": ["@jsr/debutter__jsbin@1.4.0", "https://npm.jsr.io/~/11/@jsr/debutter__jsbin/1.4.0.tgz", { "dependencies": { "core-js": "^3.41.0" } }, "sha512-r2rxA6A4HK7LrHtD+pog8+6RNIXuAUq8mY2V2Hh+uviqL03Au9bNf39x9L4AQe8ZIlPQp0i6IgvceCtnmnByYg=="],
+    "@debutter/trufflebyte": ["@jsr/debutter__trufflebyte@1.4.1", "https://npm.jsr.io/~/11/@jsr/debutter__trufflebyte/1.4.1.tgz", { "dependencies": { "core-js": "^3.41.0" } }, "sha512-bQy6RsCC3KXWB5fF5g/YUx1FYgmTGFewhODiG8ewEi7lVytaEHTYtbDpQk+/b8mK4+2nbF1qkNvpPPmDEYVcew=="],
 
     "@hono/zod-openapi": ["@hono/zod-openapi@0.19.5", "", { "dependencies": { "@asteasolutions/zod-to-openapi": "^7.3.0", "@hono/zod-validator": "^0.4.3" }, "peerDependencies": { "hono": ">=4.3.6", "zod": "3.*" } }, "sha512-n2RqdZL7XIaWPwBNygctG/1eySyRtSBnS7l+pIsP3f2JW5P2l7Smm6SLluscrGwB5l2C2fxbfvhWoC6Ig+SxXw=="],
 

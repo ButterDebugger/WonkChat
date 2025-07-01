@@ -3,7 +3,7 @@ import { getUserPublicKey, getUserProfile, setUserStatus } from "./lib/data.ts";
 import { getSubscribers } from "./users/user.ts";
 import * as openpgp from "openpgp";
 import type { TokenPayload, UserProfile } from "./types.ts";
-import * as JsBin from "@debutter/jsbin";
+import * as TruffleByte from "@debutter/trufflebyte";
 import type { Context, Input } from "hono";
 import type { WSContext, WSEvents } from "hono/ws";
 import type { ServerWebSocket } from "bun";
@@ -65,7 +65,7 @@ class Stream {
 		}
 	}
 	async json(data: object) {
-		await this.send(JsBin.encode(data));
+		await this.send(TruffleByte.encode(data));
 	}
 	#initPings() {
 		if (this.#pingInterval !== null) clearInterval(this.#pingInterval);
