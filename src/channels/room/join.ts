@@ -1,4 +1,4 @@
-import { getStream } from "../../sockets.ts";
+import { getWaterfall } from "../../sockets.ts";
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
 import { getUserProfile, getRoom, addUserToRoom } from "../../lib/data.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
@@ -105,10 +105,10 @@ router.openapi(
 		for (const username of room.members) {
 			if (username === tokenPayload.username) continue;
 
-			const stream = getStream(username);
-			if (stream === null) continue;
+			const waterfall = getWaterfall(username);
+			if (waterfall === null) continue;
 
-			stream.json({
+			waterfall.send({
 				event: "updateMember",
 				room: roomname,
 				username: tokenPayload.username,

@@ -52,3 +52,9 @@
 | :--: | ------------------------------- |
 | 601  | Could not find an active stream |
 | 602  | Stream is currently inactive    |
+
+## Media error codes
+
+| Code | Message                |
+| :--: | ---------------------- |
+| 701  | Malformed file content |

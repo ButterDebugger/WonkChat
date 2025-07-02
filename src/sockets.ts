@@ -2,36 +2,112 @@ import type { SessionEnv } from "./auth/session.ts";
 import { getUserPublicKey, getUserProfile, setUserStatus } from "./lib/data.ts";
 import { getSubscribers } from "./users/user.ts";
 import * as openpgp from "openpgp";
-import type { TokenPayload, UserProfile } from "./types.ts";
+import type { TokenPayload, UserProfile, WSData } from "./types.ts";
 import * as TruffleByte from "@debutter/trufflebyte";
 import type { Context, Input } from "hono";
-import type { WSContext, WSEvents } from "hono/ws";
+import type { WSContext, WSEvents, WSMessageReceive } from "hono/ws";
 import type { ServerWebSocket } from "bun";
+import { Snowflake } from "./lib/structures.ts";
 
-/** Usernames mapped to streams */
-const clientStreams: Map<string, Stream> = new Map();
+/** Usernames mapped to a record of websocket ids to streams */
+const clientStreams: Map<string, Waterfall> = new Map();
+
+class Waterfall {
+	/** Websocket IDs mapped to streams */
+	#streams: Record<string, Stream> = {};
+	/** Username / ID of the user this waterfall belongs to */
+	#username: string;
+
+	constructor(username: string) {
+		this.#username = username;
+	}
+
+	/** Sends a message to all streams in the waterfall */
+	async send(data: object) {
+		for (const stream of Object.values(this.#streams)) {
+			await stream.send(data);
+		}
+	}
+
+	/** Emits a message event to the corresponding stream */
+	onMessage(data: WSMessageReceive, ws: WSContext<ServerWebSocket<WSData>>) {
+		const stream = this.getByWs(ws);
+		if (stream === null) return;
+
+		// Emit message event
+		stream.onMessage(data);
+	}
+	/** Emits a close event to the corresponding stream */
+	onClose(ws: WSContext<ServerWebSocket<WSData>>) {
+		const stream = this.getByWs(ws);
+		if (stream === null) return;
+
+		// Remove the stream from the list
+		this.remove(ws);
+
+		// Emit close event
+		stream.onClose();
+	}
+
+	/** @returns The stream for the given websocket connection, or null if it doesn't exist */
+	getByWs(ws: WSContext<ServerWebSocket<WSData>>): Stream | null {
+		return this.#streams[ws.raw!.data.id] ?? null;
+	}
+
+	/** Creates a new stream and adds it to the waterfall */
+	add(
+		id: string,
+		ws: WSContext<ServerWebSocket<WSData>>,
+		session: TokenPayload
+	) {
+		if (session.username !== this.#username) return;
+
+		// Create the stream
+		const stream = new Stream(ws, session);
+		ws.raw!.data.id = id;
+
+		// Add the stream to the dictionary
+		this.#streams[id] = stream;
+
+		// Mark the user as online
+		setOnlineStatus(this.#username, true);
+	}
+
+	/** Removes a stream from the waterfall based on the websocket connection */
+	remove(ws: WSContext<ServerWebSocket<WSData>>) {
+		const id = ws.raw!.data.id;
+
+		delete this.#streams[id];
+
+		// Mark the user as offline if there are no more streams
+		if (Object.keys(this.#streams).length === 0) {
+			setOnlineStatus(this.#username, false);
+		}
+	}
+}
 
 class Stream {
-	#sockets: WSContext<ServerWebSocket<undefined>>[];
+	#socket: WSContext<ServerWebSocket<WSData>>;
 	#session: TokenPayload;
 	#pings: number;
 	#pingInterval: NodeJS.Timeout | null;
-	#memory: Uint8Array[];
 
-	constructor(
-		ws: WSContext<ServerWebSocket<undefined>>,
-		session: TokenPayload
-	) {
-		this.#sockets = [];
+	constructor(ws: WSContext<ServerWebSocket<WSData>>, session: TokenPayload) {
+		this.#socket = ws;
+
 		this.#session = session;
-		this.remix(ws);
 		this.#pings = 0;
 		this.#pingInterval = null;
-		this.#memory = [];
 		this.#initPings();
 	}
 
-	async send(data: Uint8Array) {
+	get socket() {
+		return this.#socket;
+	}
+
+	async send(payload: object) {
+		const data = TruffleByte.encode(payload);
+
 		// TODO: Figure out the proper type of the data
 		const key = await getUserPublicKey(this.#session.username);
 		if (!key) return; // We can assume that the user should have a public key
@@ -56,16 +132,7 @@ class Stream {
 			return;
 		}
 
-		if (this.isAlive()) {
-			for (const ws of this.#sockets) {
-				ws.send(encrypted);
-			}
-		} else {
-			this.#memory.push(encrypted);
-		}
-	}
-	async json(data: object) {
-		await this.send(TruffleByte.encode(data));
+		this.#socket.send(encrypted);
 	}
 	#initPings() {
 		if (this.#pingInterval !== null) clearInterval(this.#pingInterval);
@@ -77,38 +144,20 @@ class Stream {
 				return;
 			}
 
-			this.json({
+			this.send({
 				event: "ping",
 				ping: this.#pings++
 			});
 		}, 40_000);
 	}
 	isAlive() {
-		for (const ws of this.#sockets) {
-			if (ws.readyState === 1) return true;
-		}
-		return false;
+		return this.#socket.readyState === 1;
 	}
-	flushMemory() {
-		if (!this.isAlive()) return false;
-
-		for (const msg of this.#memory) {
-			for (const ws of this.#sockets) {
-				ws.send(msg);
-			}
-		}
-		this.#memory = [];
-		return true;
-	}
-	remix(ws: WSContext<ServerWebSocket<undefined>>) {
-		this.#sockets.push(ws);
-
-		setOnlineStatus(this.#session.username, true);
+	onMessage(data: WSMessageReceive) {
+		// TODO: Handle messages
 	}
 	onClose() {
-		setOnlineStatus(this.#session.username, this.isAlive());
-
-		this.#sockets = this.#sockets.filter((sock) => sock.readyState === 1);
+		// TODO: Handle close
 	}
 }
 
@@ -130,39 +179,51 @@ export const route = (ctx: Context<SessionEnv, string, Input>) =>
 				return;
 			}
 
-			// Initialize the stream
-			let stream: Stream;
+			// Initialize the websocket stream
+			let stream = new Stream(ws, payload);
+			ws.raw!.data.id = Snowflake.generate();
 
-			const existingStream = clientStreams.get(payload.username);
+			// Get the waterfall for the user
+			let waterfall = clientStreams.get(payload.username);
 
-			if (existingStream instanceof Stream) {
-				stream = existingStream;
-				stream.remix(ws);
-			} else {
-				stream = new Stream(ws, payload);
-				clientStreams.set(payload.username, stream);
+			if (!(waterfall instanceof Waterfall)) {
+				waterfall = new Waterfall(payload.username);
 			}
 
-			stream.json({
+			// Add the stream to the waterfall
+			waterfall.add(Snowflake.generate(), ws, payload);
+			clientStreams.set(payload.username, waterfall);
+
+			// Send connect message
+			stream.send({
 				event: "connect",
 				opened: true
 			});
 		},
-		onClose: () => {
+		onMessage(event, ws) {
 			const payload = ctx.var.session;
-			const stream = clientStreams.get(payload.username);
+			const waterfall = clientStreams.get(payload.username);
+			if (waterfall === undefined) return;
 
-			if (stream instanceof Stream) {
-				stream.onClose();
-			}
+			// Emit message event
+			waterfall.onMessage(event.data, ws);
+		},
+		onClose: (_event, ws) => {
+			const payload = ctx.var.session;
+			const waterfall = clientStreams.get(payload.username);
+			if (waterfall === undefined) return;
+
+			// Emit close event
+			waterfall.onClose(ws);
 		},
 		onError: (error) => console.error("Websocket error", error)
-	} as WSEvents<ServerWebSocket<undefined>>);
+	} as WSEvents<ServerWebSocket<WSData>>);
 
-export function getStream(username: string) {
-	const stream = clientStreams.get(username);
-	if (!(stream instanceof Stream)) return null;
-	return stream;
+/**
+ * @returns The stream for the given username, or null if it either doesn't exist or isn't properly initialized
+ */
+export function getWaterfall(username: string): Waterfall | null {
+	return clientStreams.get(username) ?? null;
 }
 
 async function setOnlineStatus(username: string, online: boolean) {
@@ -185,19 +246,18 @@ async function updateUserSubscribers(
 	const viewers = await getSubscribers(username);
 
 	for (const subscriber of viewers) {
-		const stream = getStream(subscriber);
+		const waterfall = getWaterfall(subscriber);
+		if (waterfall === null) continue;
 
-		if (stream !== null) {
-			stream.json({
-				event: "updateUser",
+		waterfall.send({
+			event: "updateUser",
+			username: userProfile.username,
+			data: {
 				username: userProfile.username,
-				data: {
-					username: userProfile.username,
-					color: userProfile.color,
-					offline: !userProfile.online // TODO: Change this to a online field
-				},
-				timestamp: Date.now()
-			});
-		}
+				color: userProfile.color,
+				offline: !userProfile.online // TODO: Change this to a online field
+			},
+			timestamp: Date.now()
+		});
 	}
 }

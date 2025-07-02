@@ -10,20 +10,22 @@ import {
 import chalk from "chalk";
 import { router as roomRoute } from "./channels/room.ts";
 import { router as usersRoute } from "./users/user.ts";
-import { router as syncRoute } from "./sync.ts";
 import { createRoom } from "./lib/data.ts";
 import { namespace, port } from "./lib/config.ts";
 import { router as oauthRoute } from "./auth/oauth.ts";
-import { router as keysRoute } from "./keys.ts";
 import { route as streamRoute } from "./sockets.ts";
+// import { router as mediaRoute } from "./media/media.ts";
+import { router as meRoute } from "./me/me.ts";
 import { authMiddleware, type SessionEnv } from "./auth/session.ts";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { Scalar } from "@scalar/hono-api-reference";
 import { WsSessionHeadersSchema } from "./lib/validation.ts";
 import type { Handler } from "hono/types";
+import { WSData } from "./types.ts";
 
 const app = new OpenAPIHono<SessionEnv>();
-const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
+const { upgradeWebSocket, websocket } =
+	createBunWebSocket<ServerWebSocket<WSData>>();
 
 // Initialize stream route
 app.openapi(
@@ -74,19 +76,20 @@ app.get("/ping", (ctx) => {
 // Auth routes
 app.route("/oauth", oauthRoute);
 
-// Key exchange routes
-app.route("/keys", keysRoute);
-
 // Room routes
 app.route("/room", roomRoute);
 
+// User routes
 app.route("/", usersRoute);
 
-app.route("/", syncRoute);
+// Me routes
+app.route("/me", meRoute);
 
 // Clear attachments folder and handle attachments route
 app.route("/", attachmentsRoute);
 cleanAttachments();
+
+// app.route("/media", mediaRoute); // TODO: finish implementing this
 
 // Create starting room
 createRoom("wonk", "Welcome to Wonk Chat!");

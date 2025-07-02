@@ -1,4 +1,4 @@
-import { getStream } from "../../sockets.ts";
+import { getWaterfall } from "../../sockets.ts";
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
 import { getUserProfile, getRoom } from "../../lib/data.ts";
 import * as openpgp from "openpgp";
@@ -150,10 +150,10 @@ router.openapi(
 			);
 
 		for (const username of room.members) {
-			const stream = getStream(username);
-			if (stream === null) continue;
+			const waterfall = getWaterfall(username);
+			if (waterfall === null) continue;
 
-			stream.json({
+			waterfall.send({
 				event: "message",
 				author: {
 					username: userSession.username,

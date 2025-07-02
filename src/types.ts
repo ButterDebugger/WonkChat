@@ -8,6 +8,9 @@ export interface TokenPayload extends JWTPayload {
 	/** Unix timestamp in seconds when the token was issued */
 	iat: number;
 }
+export interface WSData {
+	id: string;
+}
 export interface UserProfile {
 	username: string;
 	displayName: string;

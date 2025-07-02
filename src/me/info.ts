@@ -1,15 +1,14 @@
-import { getStream } from "./sockets.ts";
-import { authMiddleware, type SessionEnv } from "./auth/session.ts";
-import { getUserProfile, getRoom } from "./lib/data.ts";
+import { authMiddleware, type SessionEnv } from "../auth/session.ts";
+import { getUserProfile, getRoom } from "../lib/data.ts";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { ErrorSchema, HttpSessionHeadersSchema } from "./lib/validation.ts";
+import { ErrorSchema, HttpSessionHeadersSchema } from "../lib/validation.ts";
 
 export const router = new OpenAPIHono<SessionEnv>();
 
 router.openapi(
 	createRoute({
 		method: "get",
-		path: "/sync/client",
+		path: "/",
 		middleware: [authMiddleware] as const,
 		request: {
 			headers: HttpSessionHeadersSchema
@@ -82,63 +81,6 @@ router.openapi(
 					color: session.color,
 					offline: !session.online // TODO: Change this to a online field
 				},
-				success: true
-			},
-			200
-		);
-	}
-);
-
-router.openapi(
-	createRoute({
-		method: "get",
-		path: "/sync/memory",
-		middleware: [authMiddleware] as const,
-		request: {
-			headers: HttpSessionHeadersSchema
-		},
-		responses: {
-			200: {
-				description: "Success message"
-			},
-			400: {
-				content: {
-					"application/json": {
-						schema: ErrorSchema
-					}
-				},
-				description: "Returns an error"
-			}
-		}
-	}),
-	(ctx) => {
-		const tokenPayload = ctx.var.session;
-
-		const stream = getStream(tokenPayload.username);
-		if (stream === null)
-			return ctx.json(
-				{
-					success: false,
-					message: "Could not find an active stream",
-					code: 601
-				},
-				400
-			);
-
-		const result = stream.flushMemory();
-
-		if (!result)
-			return ctx.json(
-				{
-					success: false,
-					message: "Stream is currently inactive",
-					code: 602
-				},
-				400
-			);
-
-		return ctx.json(
-			{
 				success: true
 			},
 			200
