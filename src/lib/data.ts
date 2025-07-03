@@ -209,7 +209,7 @@ export async function removeUserFromRoom(username: string, roomname: string) {
 		});
 }
 
-export async function getUserViews(
+export async function getUserViews( // NOTE: this is no longer used
 	username: string
 ): Promise<Set<string> | null> {
 	const user = await getUserProfile(username);

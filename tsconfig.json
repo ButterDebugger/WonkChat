@@ -1,12 +1,16 @@
 {
   "compilerOptions": {
     /* Language and Environment */
-    "target": "ES2022",
+    "lib": [
+      "ESNext"
+    ],
+    "target": "ESNext",
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     /* Modules */
-    "module": "ESNext",
+    "module": "preserve",
     "moduleResolution": "Bundler",
+    "moduleDetection": "force",
     "allowImportingTsExtensions": true,
     "noEmit": true,
     /* Emit */

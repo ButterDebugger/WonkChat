@@ -10,6 +10,7 @@ export interface TokenPayload extends JWTPayload {
 }
 export interface WSData {
 	id: string;
+	subscriptions: Set<string>;
 }
 export interface UserProfile {
 	username: string;
