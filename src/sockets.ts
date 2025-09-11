@@ -93,9 +93,9 @@ class Waterfall {
 			await setUserStatus(this.#username, online);
 
 			if (changed) {
-				const viewers =
-					streamSubscriptions.get(`user:${this.#username}:updates`) ??
-					new Set();
+				const viewers = getSubscribers(
+					`user:${this.#username}:updates`
+				);
 
 				for (const stream of viewers) {
 					stream.send({
@@ -211,8 +211,7 @@ class Stream {
 				for (const listen of this.#socket.raw.data.subscriptions.difference(
 					newSubscriptions
 				)) {
-					const streams =
-						streamSubscriptions.get(listen) ?? new Set();
+					const streams = getSubscribers(listen);
 					streams.delete(this);
 					streamSubscriptions.set(listen, streams);
 
@@ -223,8 +222,7 @@ class Stream {
 				for (const listen of newSubscriptions.difference(
 					this.#socket.raw.data.subscriptions
 				)) {
-					const streams =
-						streamSubscriptions.get(listen) ?? new Set();
+					const streams = getSubscribers(listen);
 					streams.add(this);
 					streamSubscriptions.set(listen, streams);
 				}
@@ -237,7 +235,7 @@ class Stream {
 	onClose() {
 		// Unsubscribe from all subscriptions
 		for (const listen of this.#socket.raw.data.subscriptions) {
-			const streams = streamSubscriptions.get(listen) ?? new Set();
+			const streams = getSubscribers(listen);
 			streams.delete(this);
 			streamSubscriptions.set(listen, streams);
 		}
@@ -397,4 +395,8 @@ function isWSSocket(ws: WSContext<ServerWebSocket<WSData>>): ws is WSSocket {
 
 function isObject(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getSubscribers(topic: string) {
+	return streamSubscriptions.get(topic) ?? new Set();
 }
