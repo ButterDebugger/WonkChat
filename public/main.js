@@ -72,7 +72,7 @@ formEle.addEventListener("submit", (event) => {
 	submitBtn.innerText = "Authorizing";
 
 	axios
-		.post("/oauth/authorize", {
+		.post("/auth/authorize", {
 			username: usernameEle.value,
 			password: passwordEle.value,
 			challenge: params.get("challenge"),

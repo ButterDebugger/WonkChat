@@ -12,7 +12,7 @@ import { router as roomRoute } from "./channels/room.ts";
 import { router as usersRoute } from "./users/user.ts";
 import { createRoom } from "./lib/data.ts";
 import { namespace, port } from "./lib/config.ts";
-import { router as oauthRoute } from "./auth/oauth.ts";
+import { router as authRoute } from "./auth/auth.ts";
 import { route as streamRoute } from "./sockets.ts";
 // import { router as mediaRoute } from "./media/media.ts";
 import { router as meRoute } from "./me/me.ts";
@@ -74,7 +74,7 @@ app.get("/ping", (ctx) => {
 });
 
 // Auth routes
-app.route("/oauth", oauthRoute);
+app.route("/auth", authRoute);
 
 // Room routes
 app.route("/room", roomRoute);
