@@ -1,5 +1,5 @@
 import { authMiddleware, type SessionEnv } from "../auth/session.ts";
-import { getUserProfile, getRoom } from "../lib/data.ts";
+import { getUserProfileByUsername, getRoomById } from "../lib/data.ts";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { ErrorSchema, HttpSessionHeadersSchema } from "../lib/validation.ts";
 
@@ -30,7 +30,7 @@ router.openapi(
 	async (ctx) => {
 		const tokenPayload = ctx.var.session;
 
-		const session = await getUserProfile(tokenPayload.username);
+		const session = await getUserProfileByUsername(tokenPayload.username);
 		let viewableUsers: Set<string> = new Set();
 
 		if (!session)
@@ -44,14 +44,21 @@ router.openapi(
 			);
 
 		// Get rooms
-		const rooms = [];
-		for (const roomname of session.rooms) {
-			const room = await getRoom(roomname);
+		const rooms: {
+			id: string;
+			name: string;
+			description: string;
+			key: string;
+			members: string[];
+		}[] = [];
+		for (const roomId of session.rooms) {
+			const room = await getRoomById(roomId);
 			if (room === null) continue;
 
 			viewableUsers = new Set([...viewableUsers, ...room.members]);
 
 			rooms.push({
+				id: room.id,
 				name: room.name,
 				description: room.description,
 				key: await room.armoredPublicKey,
@@ -64,7 +71,8 @@ router.openapi(
 
 		const users = await Promise.all(
 			Array.from(viewableUsers).map((username) =>
-				getUserProfile(username).then((session) => ({
+				getUserProfileByUsername(username).then((session) => ({
+					id: session?.id ?? "",
 					username: session?.username ?? username,
 					color: session?.color ?? "#ffffff",
 					offline: !(session?.online ?? false) // TODO: Change this to a online field
@@ -77,6 +85,7 @@ router.openapi(
 				rooms: rooms,
 				users: users,
 				you: {
+					id: session.id,
 					username: session.username,
 					color: session.color,
 					offline: !session.online // TODO: Change this to a online field

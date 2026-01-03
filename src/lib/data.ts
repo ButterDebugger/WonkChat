@@ -1,11 +1,13 @@
 import * as openpgp from "openpgp";
 import bcrypt from "bcrypt";
 import { Room, type UserProfile } from "../types.ts";
-import { db } from "./database.ts";
-import { Color } from "./structures.ts";
+import { db, RoomInviteTable } from "./database.ts";
+import { Color, InviteCode, Snowflake } from "./structures.ts";
+import { generateColor } from "../auth/session.ts";
 
 // Interface functions:
-export async function getUserProfile(
+
+export async function getUserProfileByUsername(
 	username: string
 ): Promise<UserProfile | null> {
 	return await db
@@ -17,6 +19,7 @@ export async function getUserProfile(
 			if (!user) return null;
 
 			return {
+				id: user.id,
 				username: user.username,
 				displayName: user.displayName,
 				pronouns: user.pronouns,
@@ -50,6 +53,7 @@ export async function createUserProfile(
 			return db
 				.insertInto("users")
 				.values({
+					id: Snowflake.generate(),
 					username: username,
 					displayName: username,
 					pronouns: "",
@@ -70,6 +74,60 @@ export async function createUserProfile(
 			console.error("Failed to check if user exists", err);
 			return null;
 		});
+}
+
+export async function createOrCompareUserProfile(
+	username: string,
+	password: string,
+): Promise<Pick<UserProfile, "id" | "username"> | null> {
+	// Check if the username is taken
+	const existingUser = await db
+		.selectFrom("users")
+		.select(["id", "username", "password"])
+		.where("username", "=", username)
+		.executeTakeFirst()
+		.catch((err) => {
+			console.error("Failed to check if user exists", err);
+			return null;
+		});
+
+	if (existingUser === null) return null; // Cancel if there was an error
+
+	if (existingUser) {
+		// Compare the password
+		const correct = await bcrypt.compare(password, existingUser.password);
+
+		if (!correct) return null;
+
+		return {
+			id: existingUser.id,
+			username: existingUser.username
+		};
+	} else {
+		// Create the user
+		const newUser = await db
+			.insertInto("users")
+			.values({
+				id: Snowflake.generate(),
+				username: username,
+				displayName: username,
+				pronouns: "",
+				bio: "",
+				password: await bcrypt.hash(password, 10),
+				color: generateColor(),
+				online: false,
+				rooms: "[]"
+			})
+			.returning(["id", "username"])
+			.executeTakeFirst();
+
+		if (!newUser) return null; // Cancel if there was an error
+
+		return {
+			id: newUser.id,
+			username: newUser.username
+		};
+	}
 }
 
 export async function compareUserProfile(username: string, password: string) {
@@ -122,12 +180,12 @@ export async function setUserStatus(username: string, online: boolean) {
 
 export async function addUserToRoom(
 	username: string,
-	roomname: string
+	roomId: string
 ): Promise<boolean> {
-	const user = await getUserProfile(username);
+	const user = await getUserProfileByUsername(username);
 	if (user === null) return false;
 
-	const room = await getRoom(roomname);
+	const room = await getRoomById(roomId);
 	if (room === null) return false;
 
 	return await db
@@ -138,25 +196,25 @@ export async function addUserToRoom(
 				.where("username", "=", username)
 				.set({
 					rooms: JSON.stringify(
-						Array.from(new Set(user.rooms).add(roomname))
+						Array.from(new Set(user.rooms).add(roomId))
 					)
 				})
 				.executeTakeFirst();
 
 			await trx
 				.updateTable("rooms")
-				.where("name", "=", roomname.toLowerCase())
+				.where("id", "=", roomId)
 				.set({
 					members: JSON.stringify(
-						Array.from(new Set(room.members).add(username))
+						Array.from(new Set(room.members).add(user.id))
 					)
 				})
 				.executeTakeFirst();
 		})
 		.then(() => {
 			// Apply the changes to the cache
-			user.rooms.add(roomname.toLowerCase());
-			room.members.add(username);
+			user.rooms.add(roomId);
+			room.members.add(user.id);
 			return true;
 		})
 		.catch((err) => {
@@ -165,18 +223,18 @@ export async function addUserToRoom(
 		});
 }
 
-export async function removeUserFromRoom(username: string, roomname: string) {
-	const user = await getUserProfile(username);
+export async function removeUserFromRoom(username: string, roomId: string) {
+	const user = await getUserProfileByUsername(username);
 	if (user === null) return false;
 
-	const room = await getRoom(roomname);
+	const room = await getRoomById(roomId);
 	if (room === null) return false;
 
 	const userRoomsCopy = new Set(user.rooms);
 	const roomMembersCopy = new Set(room.members);
 
-	userRoomsCopy.delete(roomname);
-	roomMembersCopy.delete(username);
+	userRoomsCopy.delete(roomId);
+	roomMembersCopy.delete(user.id);
 
 	return await db
 		.transaction()
@@ -191,7 +249,7 @@ export async function removeUserFromRoom(username: string, roomname: string) {
 
 			await trx
 				.updateTable("rooms")
-				.where("name", "=", roomname.toLowerCase())
+				.where("id", "=", roomId)
 				.set({
 					members: JSON.stringify(Array.from(roomMembersCopy))
 				})
@@ -199,8 +257,8 @@ export async function removeUserFromRoom(username: string, roomname: string) {
 		})
 		.then(() => {
 			// Apply the changes to the cache
-			user.rooms.delete(roomname.toLowerCase());
-			room.members.delete(username);
+			user.rooms.delete(roomId);
+			room.members.delete(user.id);
 			return true;
 		})
 		.catch((err) => {
@@ -209,45 +267,10 @@ export async function removeUserFromRoom(username: string, roomname: string) {
 		});
 }
 
-export async function getUserViews( // NOTE: this is no longer used
-	username: string
-): Promise<Set<string> | null> {
-	const user = await getUserProfile(username);
-	if (user === null) return null;
-
-	const viewers: Set<string> = new Set();
-
-	for (const roomname of user.rooms) {
-		const room = await getRoom(roomname);
-		if (room === null) continue;
-
-		for (const viewer of room.members) viewers.add(viewer);
-	}
-
-	return viewers;
-}
-
-export async function existsRoom(roomname: string) {
-	if (!roomname) return false;
-
-	return await db
-		.selectFrom("rooms")
-		.select(["name"])
-		.where("name", "=", roomname.toLowerCase())
-		.executeTakeFirst()
-		.then((room) => !!room)
-		.catch((err) => {
-			console.error("Failed to check if room exists", err);
-			return true; // Assume the room exists if an error occurs
-		});
-}
-
 export async function createRoom(
 	roomname: string,
 	description = "No description provided"
-) {
-	if (await existsRoom(roomname)) return false;
-
+): Promise<Room | null> {
 	const { publicKey, privateKey } = await openpgp.generateKey({
 		type: "curve25519",
 		userIDs: [
@@ -266,33 +289,47 @@ export async function createRoom(
 	new Uint8Array(privateKeyBuffer).set(privateKey);
 
 	// Insert room
-	return await db
+	const room = await db
 		.insertInto("rooms")
 		.values({
+			id: Snowflake.generate(),
 			name: roomname.toLowerCase(),
 			description: description,
 			members: "[]",
 			publicKey: publicKeyBuffer,
 			privateKey: privateKeyBuffer
 		})
+		.returningAll()
 		.executeTakeFirst()
-		.then(() => true)
 		.catch((err) => {
 			console.error("Failed to create room", err);
-			return false;
+
+			return null;
 		});
+
+	if (!room) return null;
+
+	return new Room(
+		room.id,
+		room.name,
+		room.description,
+		new Set(room.members), // Convert to set
+		new Uint8Array(room.privateKey),
+		new Uint8Array(room.publicKey)
+	);
 }
 
-export async function getRoom(roomname: string): Promise<Room | null> {
+export async function getRoomById(roomId: string): Promise<Room | null> {
 	return await db
 		.selectFrom("rooms")
 		.selectAll()
-		.where("name", "=", roomname.toLowerCase())
+		.where("id", "=", roomId)
 		.executeTakeFirst()
 		.then((room) => {
 			if (!room) return null;
 
 			return new Room(
+				room.id,
 				room.name,
 				room.description,
 				new Set(room.members), // Convert to set
@@ -329,7 +366,7 @@ export async function setUserPublicKey(
 		});
 }
 
-export async function getUserPublicKey(
+export async function getUserPublicKeyByUsername(
 	username: string
 ): Promise<Uint8Array | null> {
 	return await db
@@ -344,6 +381,51 @@ export async function getUserPublicKey(
 		})
 		.catch((err) => {
 			console.error("Failed to fetch users public key", err);
+			return null;
+		});
+}
+
+export async function createRoomInvite(roomId: string, userId: string): Promise<string | null> {
+	const code = InviteCode.generate();
+
+	return await db
+		.insertInto("roomInvites")
+		.values({
+			id: Snowflake.generate(),
+			code: code,
+			roomId: roomId,
+			inviter: userId,
+			createdAt: new Date().toISOString()
+		})
+		.executeTakeFirst()
+		.then(() => code)
+		.catch((err) => {
+			console.error("Failed to create room invite", err);
+			return null;
+		});
+}
+
+export async function getRoomByInviteCode(code: string): Promise<Room | null> {
+	return await db
+		.selectFrom("roomInvites")
+		.where("code", "=", code)
+		.innerJoin("rooms", "rooms.id", "roomInvites.roomId")
+		.selectAll("rooms")
+		.executeTakeFirst()
+		.then((room) => {
+			if (!room) return null;
+
+			return new Room(
+				room.id,
+				room.name,
+				room.description,
+				new Set(room.members), // Convert to set
+				new Uint8Array(room.privateKey),
+				new Uint8Array(room.publicKey)
+			);
+		})
+		.catch((err) => {
+			console.error("Failed to fetch room invite", err);
 			return null;
 		});
 }

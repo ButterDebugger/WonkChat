@@ -1,10 +1,10 @@
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
-import { getRoom, getUserProfile } from "../../lib/data.ts";
+import { getRoomById, getUserProfileByUsername } from "../../lib/data.ts";
 import { createRoute, z, OpenAPIHono } from "@hono/zod-openapi";
 import {
 	ErrorSchema,
 	HttpSessionHeadersSchema,
-	RoomNameSchema
+	SnowflakeSchema
 } from "../../lib/validation.ts";
 
 const router = new OpenAPIHono<SessionEnv>();
@@ -12,12 +12,12 @@ const router = new OpenAPIHono<SessionEnv>();
 router.openapi(
 	createRoute({
 		method: "get",
-		path: "/:roomname/info",
+		path: "/:roomid/info",
 		middleware: [authMiddleware] as const,
 		request: {
 			headers: HttpSessionHeadersSchema,
 			params: z.object({
-				roomname: RoomNameSchema
+				roomid: SnowflakeSchema
 			})
 		},
 		responses: {
@@ -36,9 +36,9 @@ router.openapi(
 	}),
 	async (ctx) => {
 		const tokenPayload = ctx.var.session;
-		const { roomname } = ctx.req.valid("param");
+		const { roomid } = ctx.req.valid("param");
 
-		const userSession = await getUserProfile(tokenPayload.username);
+		const userSession = await getUserProfileByUsername(tokenPayload.username);
 		if (userSession === null)
 			return ctx.json(
 				{
@@ -59,7 +59,7 @@ router.openapi(
 				400
 			);
 
-		if (!userSession.rooms.has(roomname))
+		if (!userSession.rooms.has(roomid))
 			return ctx.json(
 				{
 					success: false,
@@ -70,7 +70,7 @@ router.openapi(
 				400
 			);
 
-		const room = await getRoom(roomname);
+		const room = await getRoomById(roomid);
 
 		if (room === null)
 			return ctx.json(
@@ -84,6 +84,7 @@ router.openapi(
 
 		return ctx.json(
 			{
+				id: room.id,
 				name: room.name,
 				description: room.description,
 				key: await room.armoredPublicKey,

@@ -1,8 +1,7 @@
+// @ts-nocheck
 import type { Kysely } from "kysely";
-import { Color } from "../structures.ts";
-import { Database } from "../database.ts";
 
-export async function up(db: Kysely<Database>): Promise<void> {
+export async function up(db: Kysely<unknown>): Promise<void> {
 	const usersData = await db.selectFrom("users").selectAll().execute();
 
 	await db.schema.dropTable("users").execute();

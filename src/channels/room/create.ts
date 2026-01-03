@@ -12,13 +12,19 @@ const router = new OpenAPIHono<SessionEnv>();
 router.openapi(
 	createRoute({
 		method: "post",
-		path: "/:roomname/create",
+		path: "/create",
 		middleware: [authMiddleware] as const,
 		request: {
 			headers: HttpSessionHeadersSchema,
-			params: z.object({
-				roomname: RoomNameSchema
-			})
+			body: {
+				content: {
+					"application/json": {
+						schema: z.object({
+							name: RoomNameSchema
+						})
+					}
+				}
+			}
 		},
 		responses: {
 			200: {
@@ -35,11 +41,11 @@ router.openapi(
 		}
 	}),
 	async (ctx) => {
-		const { roomname } = ctx.req.valid("param");
+		const { name: roomname } = ctx.req.valid("json");
 
 		const room = await createRoom(roomname);
 
-		if (room === false)
+		if (!room)
 			return ctx.json(
 				{
 					success: false,
@@ -51,6 +57,7 @@ router.openapi(
 
 		return ctx.json(
 			{
+				roomId: room.id,
 				success: true
 			},
 			200

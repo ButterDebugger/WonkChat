@@ -1,25 +1,30 @@
-import { getWaterfall } from "../../sockets.ts";
-import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
-import { getUserProfileByUsername, getRoomById, addUserToRoom } from "../../lib/data.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
+import { addUserToRoom, getRoomByInviteCode } from "../../lib/data.ts";
 import {
 	ErrorSchema,
 	HttpSessionHeadersSchema,
-	SnowflakeSchema
 } from "../../lib/validation.ts";
+import { getWaterfall } from "../../sockets.ts";
 
 const router = new OpenAPIHono<SessionEnv>();
 
 router.openapi(
 	createRoute({
 		method: "post",
-		path: "/:roomid/join",
+		path: "/use-invite",
 		middleware: [authMiddleware] as const,
 		request: {
 			headers: HttpSessionHeadersSchema,
-			params: z.object({
-				roomid: SnowflakeSchema
-			})
+			body: {
+				content: {
+					"application/json": {
+						schema: z.object({
+							code: z.string()
+						})
+					}
+				}
+			}
 		},
 		responses: {
 			200: {
@@ -32,65 +37,26 @@ router.openapi(
 					}
 				},
 				description: "Returns an error"
-			},
-			500: {
-				content: {
-					"application/json": {
-						schema: ErrorSchema
-					}
-				},
-				description: "Something went wrong internally"
 			}
 		}
 	}),
 	async (ctx) => {
 		const tokenPayload = ctx.var.session;
-		const { roomid } = ctx.req.valid("param");
+		const { code } = ctx.req.valid("json");
 
-		const userSession = await getUserProfileByUsername(tokenPayload.username);
-		if (userSession === null)
-			return ctx.json(
-				{
-					success: false,
-					message: "User session does not exist",
-					code: 507
-				},
-				400
-			);
-
-		if (!userSession)
-			return ctx.json(
-				{
-					success: false,
-					message: "User does not exist",
-					code: 401
-				},
-				400
-			);
-
-		if (userSession.rooms.has(roomid))
-			return ctx.json(
-				{
-					success: false,
-					message: "Already joined this room",
-					code: 302
-				},
-				400
-			);
-
-		const room = await getRoomById(roomid);
+		const room = await getRoomByInviteCode(code);
 
 		if (room === null)
 			return ctx.json(
 				{
 					success: false,
-					message: "Room doesn't exist",
-					code: 303
+					message: "Invalid invite code",
+					code: 309
 				},
 				400
 			);
 
-		const success = await addUserToRoom(tokenPayload.username, roomid);
+		const success = await addUserToRoom(tokenPayload.username, room.id);
 
 		if (success === null)
 			return ctx.json(

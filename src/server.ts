@@ -11,7 +11,7 @@ import chalk from "chalk";
 import { router as roomRoute } from "./channels/room.ts";
 import { router as usersRoute } from "./users/user.ts";
 import { createRoom } from "./lib/data.ts";
-import { namespace, port } from "./lib/config.ts";
+import { homeserver_url, namespace, port } from "./lib/config.ts";
 import { router as authRoute } from "./auth/auth.ts";
 import { route as streamRoute } from "./sockets.ts";
 // import { router as mediaRoute } from "./media/media.ts";
@@ -73,6 +73,18 @@ app.get("/ping", (ctx) => {
 	);
 });
 
+// Add well-known route
+if (homeserver_url) app.get("/.well-known/wonk", (ctx) => {
+	return ctx.json(
+		{
+			homeserver: {
+				base_url: homeserver_url
+			}
+		},
+		200
+	);
+});
+
 // Auth routes
 app.route("/auth", authRoute);
 
@@ -92,7 +104,7 @@ cleanAttachments();
 // app.route("/media", mediaRoute); // TODO: finish implementing this
 
 // Create starting room
-createRoom("wonk", "Welcome to Wonk Chat!");
+// createRoom("wonk", "Welcome to Wonk Chat!"); // TODO: make a server discovery or something
 
 // Create OpenAPI route and Scalar explorer
 app.get(

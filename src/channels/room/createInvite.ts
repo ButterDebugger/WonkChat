@@ -1,6 +1,5 @@
-import { getWaterfall } from "../../sockets.ts";
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
-import { getUserProfileByUsername, removeUserFromRoom, getRoomById } from "../../lib/data.ts";
+import { getUserProfileByUsername, getRoomById, createRoomInvite } from "../../lib/data.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
 	ErrorSchema,
@@ -13,7 +12,7 @@ const router = new OpenAPIHono<SessionEnv>();
 router.openapi(
 	createRoute({
 		method: "post",
-		path: "/:roomid/leave",
+		path: "/:roomid/create-invite",
 		middleware: [authMiddleware] as const,
 		request: {
 			headers: HttpSessionHeadersSchema,
@@ -48,7 +47,7 @@ router.openapi(
 		const { roomid } = ctx.req.valid("param");
 
 		const userSession = await getUserProfileByUsername(tokenPayload.username);
-		if (userSession === null)
+		if (!userSession)
 			return ctx.json(
 				{
 					success: false,
@@ -58,22 +57,12 @@ router.openapi(
 				400
 			);
 
-		if (!userSession)
-			return ctx.json(
-				{
-					success: false,
-					message: "User does not exist",
-					code: 401
-				},
-				400
-			);
-
 		if (!userSession.rooms.has(roomid))
 			return ctx.json(
 				{
 					success: false,
-					message: "Cannot leave a room that you are already not in",
-					code: 306
+					message: "Cannot create an invite for a room that you are not in",
+					code: 308
 				},
 				400
 			);
@@ -90,12 +79,9 @@ router.openapi(
 				400
 			);
 
-		const success = await removeUserFromRoom(
-			tokenPayload.username,
-			roomid
-		);
+		const inviteCode = await createRoomInvite(roomid, tokenPayload.id);
 
-		if (success === null)
+		if (inviteCode === null)
 			return ctx.json(
 				{
 					success: false,
@@ -105,22 +91,9 @@ router.openapi(
 				500
 			);
 
-		for (const userId of room.members) {
-			if (userId === tokenPayload.id) continue;
-
-			const waterfall = getWaterfall(userId);
-			if (waterfall === null) continue;
-
-			waterfall.send({
-				event: "roomMemberLeave",
-				roomId: roomid,
-				username: tokenPayload.username,
-				timestamp: Date.now()
-			});
-		}
-
 		return ctx.json(
 			{
+				code: inviteCode,
 				success: true
 			},
 			200

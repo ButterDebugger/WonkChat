@@ -1,13 +1,13 @@
 import { getWaterfall } from "../../sockets.ts";
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
-import { getUserProfile, getRoom } from "../../lib/data.ts";
+import { getUserProfileByUsername, getRoomById } from "../../lib/data.ts";
 import * as openpgp from "openpgp";
 import { isMessage, type Message } from "../../types.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
 	ErrorSchema,
 	HttpSessionHeadersSchema,
-	RoomNameSchema
+	SnowflakeSchema
 } from "../../lib/validation.ts";
 
 const router = new OpenAPIHono<SessionEnv>();
@@ -15,12 +15,12 @@ const router = new OpenAPIHono<SessionEnv>();
 router.openapi(
 	createRoute({
 		method: "post",
-		path: "/:roomname/message",
+		path: "/:roomid/message",
 		middleware: [authMiddleware] as const,
 		request: {
 			headers: HttpSessionHeadersSchema,
 			params: z.object({
-				roomname: RoomNameSchema
+				roomid: SnowflakeSchema
 			}),
 			body: {
 				content: {
@@ -48,9 +48,9 @@ router.openapi(
 	}),
 	async (ctx) => {
 		const tokenPayload = ctx.var.session;
-		const { roomname } = ctx.req.valid("param");
+		const { roomid } = ctx.req.valid("param");
 
-		const userSession = await getUserProfile(tokenPayload.username);
+		const userSession = await getUserProfileByUsername(tokenPayload.username);
 		if (userSession === null)
 			return ctx.json(
 				{
@@ -71,7 +71,7 @@ router.openapi(
 				400
 			);
 
-		if (!userSession.rooms.has(roomname))
+		if (!userSession.rooms.has(roomid))
 			return ctx.json(
 				{
 					success: false,
@@ -82,7 +82,7 @@ router.openapi(
 				400
 			);
 
-		const room = await getRoom(roomname);
+		const room = await getRoomById(roomid);
 
 		if (room === null)
 			return ctx.json(
@@ -149,18 +149,19 @@ router.openapi(
 				400
 			);
 
-		for (const username of room.members) {
-			const waterfall = getWaterfall(username);
+		for (const userId of room.members) {
+			const waterfall = getWaterfall(userId);
 			if (waterfall === null) continue;
 
 			waterfall.send({
 				event: "message",
 				author: {
+					id: userSession.id,
 					username: userSession.username,
 					color: userSession.color,
 					offline: !userSession.online // TODO: Change this to a online field
 				},
-				room: roomname,
+				roomId: roomid,
 				content: content,
 				attachments: attachments,
 				timestamp: Date.now()

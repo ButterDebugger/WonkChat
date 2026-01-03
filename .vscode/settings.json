@@ -2,11 +2,12 @@
     "cSpell.words": [
         "debutter",
         "homeserver",
-        "trufflebyte",
         "kysely",
         "libsql",
         "openpgp",
-        "roomname"
+        "roomid",
+        "roomname",
+        "trufflebyte"
     ],
     "deno.enable": false
 }

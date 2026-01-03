@@ -3,16 +3,20 @@ import type { UUID } from "node:crypto";
 import * as openpgp from "openpgp";
 
 export interface TokenPayload extends JWTPayload {
+	id: string;
 	username: string;
 	jti: UUID;
 	/** Unix timestamp in seconds when the token was issued */
 	iat: number;
+	/** Version of the token */
+	version: number;
 }
 export interface WSData {
 	id: string;
 	subscriptions: Set<string>;
 }
 export interface UserProfile {
+	id: string;
 	username: string;
 	displayName: string;
 	pronouns: string;
@@ -26,13 +30,14 @@ export interface UserProfile {
 }
 export class Room {
 	constructor(
+		public id: string,
 		public name: string,
 		public description: string,
-		/** Set of usernames */
+		/** Set of user ids */
 		public members: Set<string>,
 		public privateKey: Uint8Array,
 		public publicKey: Uint8Array
-	) {}
+	) { }
 
 	/** @returns The public key in armored format */
 	get armoredPublicKey() {

@@ -8,6 +8,13 @@ export const RoomNameSchema = z
 		description: "Room name"
 	});
 
+export const SnowflakeSchema = z
+	.string()
+	.regex(/^[0-9a-z]+$/g)
+	.openapi({
+		description: "Snowflake ID"
+	});
+
 export const UsernameSchema = z
 	.string()
 	.regex(/^(?! )[\x20-\x7E]{3,16}(?<! )$/g)

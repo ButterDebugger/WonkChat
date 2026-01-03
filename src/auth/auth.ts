@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 import { createMiddleware } from "hono/factory";
 import loginRoute from "./login.tsx";
 import { generateColor, type SessionEnv, sessionToken } from "./session.ts";
-import { compareUserProfile, createUserProfile } from "../lib/data.ts";
+import { compareUserProfile, createOrCompareUserProfile, createUserProfile } from "../lib/data.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
 	ErrorSchema,
@@ -152,37 +152,23 @@ router.openapi(
 		const { username, password, challenge } = ctx.req.valid("json");
 
 		// Create a user account
-		const color = generateColor();
-		const success = await createUserProfile(username, password, color);
+		const user = await createOrCompareUserProfile(username, password);
 
-		if (success === null)
+		if (user === null)
+			// NOTE: This could also mean there was an internal error
 			return ctx.json(
 				{
 					success: false,
-					message: "Internal server error",
-					code: 106
+					message: "Invalid credentials",
+					code: 501
 				},
-				500
+				400
 			);
 
-		// User account already exists
-		if (success === false) {
-			// Check if password is correct
-			const correct = await compareUserProfile(username, password);
-
-			if (!correct)
-				return ctx.json(
-					{
-						success: false,
-						message: "Invalid credentials",
-						code: 501
-					},
-					400
-				);
-		}
-
 		// Store access token
-		accessUsers.set(challenge, (await sessionToken(username)).token);
+		const { token } = await sessionToken(user.id, username);
+
+		accessUsers.set(challenge, token);
 		setTimeout(() => accessUsers.delete(challenge), accessExpiration);
 
 		return ctx.json(

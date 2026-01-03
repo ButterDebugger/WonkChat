@@ -5,6 +5,8 @@ import leave from "./room/leave.ts";
 import join from "./room/join.ts";
 import type { SessionEnv } from "../auth/session.ts";
 import { OpenAPIHono } from "@hono/zod-openapi";
+import createInvite from "./room/createInvite.ts";
+import useInvite from "./room/useInvite.ts";
 
 export const router = new OpenAPIHono<SessionEnv>();
 
@@ -13,6 +15,8 @@ router.route("/", leave);
 router.route("/", create);
 router.route("/", message);
 router.route("/", info);
+router.route("/", createInvite);
+router.route("/", useInvite);
 // TODO: add typing route
 
 export function isValidRoomName(roomname: string) {

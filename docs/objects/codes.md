@@ -18,15 +18,17 @@
 
 ## Room error codes
 
-| Code | Message                                             |
-| :--: | --------------------------------------------------- |
-| 301  | Invalid room name                                   |
-| 302  | Already joined this room                            |
-| 303  | Room doesn't exist                                  |
-| 304  | Cannot send a message in a room that you are not in |
-| 305  | Room already exist                                  |
-| 306  | Cannot leave a room that you are already not in     |
-| 307  | Cannot query info about a room that you are not in  |
+| Code | Message                                                |
+| :--: | ------------------------------------------------------ |
+| 301  | Invalid room name                                      |
+| 302  | Already joined this room                               |
+| 303  | Room doesn't exist                                     |
+| 304  | Cannot send a message in a room that you are not in    |
+| 305  | Room already exist                                     |
+| 306  | Cannot leave a room that you are already not in        |
+| 307  | Cannot query info about a room that you are not in     |
+| 308  | Cannot create an invite for a room that you are not in |
+| 309  | Invalid invite code                                    |
 
 ## User error codes
 

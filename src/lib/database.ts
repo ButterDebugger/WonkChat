@@ -65,9 +65,14 @@ for (const it of results) {
 export interface Database {
 	users: UserTable;
 	rooms: RoomTable;
+	roomInvites: RoomInviteTable;
+	spaces: SpaceTable;
 }
 
 export interface UserTable {
+	/** Primary key */
+	id: Generated<string>;
+	/** Unique username */
 	username: Generated<string>;
 	displayName: string;
 	pronouns: string;
@@ -81,9 +86,34 @@ export interface UserTable {
 }
 
 export interface RoomTable {
-	name: Generated<string>;
+	/** Primary key */
+	id: Generated<string>;
+	name: string;
 	description: string;
 	members: JSONColumnType<string[]>;
 	publicKey: ArrayBuffer & { buffer?: undefined };
 	privateKey: ArrayBuffer & { buffer?: undefined };
+	/** Parent space ID, or null if it does not belong to a space */
+	parentSpace: string | null;
+}
+
+export interface RoomInviteTable {
+	/** Primary key */
+	id: Generated<string>;
+	/** Unique code */
+	code: string;
+	/** Room ID */
+	roomId: string;
+	/** The user ID of the user who created the invite */
+	inviter: string;
+	/** ISO timestamp */
+	createdAt: string;
+}
+
+export interface SpaceTable {
+	/** Primary key */
+	id: Generated<string>;
+	name: string;
+	description: string;
+	members: JSONColumnType<string[]>;
 }

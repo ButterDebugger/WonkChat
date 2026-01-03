@@ -8,6 +8,7 @@ import { Color } from "../lib/structures.ts";
 
 /** Time in seconds before a session token expires */
 const sessionExpiration = 60 * 60 * 24 * 14; // 14 days
+const tokenVersion = 1;
 
 export type SessionEnv = {
 	Variables: {
@@ -90,6 +91,9 @@ async function verifyToken(token: string): Promise<TokenPayload | null> {
 	if (user.iat + sessionExpiration < Math.floor(Date.now() / 1000))
 		return null;
 
+	// Check if token version is correct
+	if (user.version !== tokenVersion) return null;
+
 	// Return the user
 	return user;
 }
@@ -116,14 +120,16 @@ export function generateColor(): number {
 	return Color.RGBToInt(color[0], color[1], color[2]);
 }
 
-export async function sessionToken(username: string): Promise<{
+export async function sessionToken(id: string, username: string): Promise<{
 	payload: TokenPayload;
 	token: string;
 }> {
 	const payload: TokenPayload = {
-		username: username,
+		id,
+		username,
 		jti: crypto.randomUUID(),
-		iat: Math.floor(Date.now() / 1000)
+		iat: Math.floor(Date.now() / 1000),
+		version: tokenVersion
 	};
 
 	return {

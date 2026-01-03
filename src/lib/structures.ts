@@ -65,6 +65,11 @@ export const Color = {
 		return (r << 16) | (g << 8) | b;
 	}
 };
+export const InviteCode = {
+	generate: () => {
+		return intToBase36(BigInt(crypto.randomBytes(8).readBigUInt64BE(0)));
+	}
+}
 
 export function intToBase36(number: bigint): string {
 	const baseChars = "0123456789abcdefghijklmnopqrstuvwxyz";
