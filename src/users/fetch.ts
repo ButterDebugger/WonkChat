@@ -1,10 +1,10 @@
 import { authMiddleware, type SessionEnv } from "../auth/session.ts";
-import { getUserProfileByUsername } from "../lib/data.ts";
+import { getUserProfileById, getUserProfileByUsername } from "../lib/data.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
 	ErrorSchema,
 	HttpSessionHeadersSchema,
-	UsernameSchema
+	SnowflakeSchema,
 } from "../lib/validation.ts";
 
 const router = new OpenAPIHono<SessionEnv>();
@@ -12,12 +12,12 @@ const router = new OpenAPIHono<SessionEnv>();
 router.openapi(
 	createRoute({
 		method: "get",
-		path: "/user/:username/fetch",
+		path: "/user/:id/fetch",
 		middleware: [authMiddleware] as const,
 		request: {
 			headers: HttpSessionHeadersSchema,
 			params: z.object({
-				username: UsernameSchema
+				id: SnowflakeSchema
 			})
 		},
 		responses: {
@@ -35,9 +35,9 @@ router.openapi(
 		}
 	}),
 	async (ctx) => {
-		const { username } = ctx.req.valid("param");
+		const { id } = ctx.req.valid("param");
 
-		const userProfile = await getUserProfileByUsername(username);
+		const userProfile = await getUserProfileById(id);
 
 		if (!userProfile)
 			return ctx.json(

@@ -36,6 +36,35 @@ export async function getUserProfileByUsername(
 		});
 }
 
+export async function getUserProfileById(
+	userId: string
+): Promise<UserProfile | null> {
+	return await db
+		.selectFrom("users")
+		.selectAll()
+		.where("id", "=", userId)
+		.executeTakeFirst()
+		.then((user) => {
+			if (!user) return null;
+
+			return {
+				id: user.id,
+				username: user.username,
+				displayName: user.displayName,
+				pronouns: user.pronouns,
+				avatar: user.avatar,
+				bio: user.bio,
+				color: Color.intToHex(user.color),
+				online: !!user.online, // Convert to boolean
+				rooms: new Set(user.rooms) // Convert to set
+			} satisfies UserProfile;
+		})
+		.catch((err) => {
+			console.error("Failed to fetch user", err);
+			return null;
+		});
+}
+
 export async function createUserProfile(
 	username: string,
 	password: string,
