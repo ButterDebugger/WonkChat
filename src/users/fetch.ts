@@ -37,9 +37,9 @@ router.openapi(
 	async (ctx) => {
 		const { username } = ctx.req.valid("param");
 
-		const session = await getUserProfileByUsername(username);
+		const userProfile = await getUserProfileByUsername(username);
 
-		if (!session)
+		if (!userProfile)
 			return ctx.json(
 				{
 					success: false,
@@ -51,16 +51,16 @@ router.openapi(
 
 		return ctx.json(
 			{
-				username: session.username,
+				id: userProfile.id,
 				data: {
-					username: session.username,
-					displayName: session.displayName,
-					pronouns: session.pronouns,
-					avatar: session.avatar,
-					bio: session.bio,
-					color: session.color,
-					offline: !session.online, // TODO: remove this
-					online: session.online
+					username: userProfile.username,
+					displayName: userProfile.displayName,
+					pronouns: userProfile.pronouns,
+					avatar: userProfile.avatar,
+					bio: userProfile.bio,
+					color: userProfile.color,
+					offline: !userProfile.online, // TODO: remove this
+					online: userProfile.online
 				},
 				success: true
 			},
