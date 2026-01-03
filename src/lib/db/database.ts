@@ -13,7 +13,7 @@ import {
 	database_auth_token,
 	database_sync_url,
 	database_url
-} from "./config.ts";
+} from "../config.ts";
 
 // Setup database client
 export const db = new Kysely<Database>({

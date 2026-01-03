@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
-import { addUserToRoom, getRoomByInviteCode } from "../../lib/data.ts";
+import { addUserToRoom, getRoomByInviteCode } from "../../lib/db/query.ts";
 import {
 	ErrorSchema,
 	HttpSessionHeadersSchema,

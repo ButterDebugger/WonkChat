@@ -1,9 +1,9 @@
 import * as openpgp from "openpgp";
 import bcrypt from "bcrypt";
-import { Room, type UserProfile } from "../types.ts";
+import { Room, type UserProfile } from "../../types.ts";
 import { db, RoomInviteTable } from "./database.ts";
-import { Color, InviteCode, Snowflake } from "./structures.ts";
-import { generateColor } from "../auth/session.ts";
+import { Color, InviteCode, Snowflake } from "../structures.ts";
+import { generateColor } from "../../auth/session.ts";
 
 // Interface functions:
 

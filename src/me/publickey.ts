@@ -1,5 +1,5 @@
 import * as openpgp from "openpgp";
-import { setUserPublicKey } from "../lib/data.ts";
+import { setUserPublicKey } from "../lib/db/query.ts";
 import { authMiddleware, type SessionEnv } from "../auth/session.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { HttpSessionHeadersSchema, ErrorSchema } from "../lib/validation.ts";

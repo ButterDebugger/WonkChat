@@ -1,5 +1,5 @@
 import type { Kysely } from "kysely";
-import { Snowflake } from "../structures.ts";
+import { Snowflake } from "../../structures.ts";
 import { Database, RoomTable, UserTable } from "../database.ts";
 
 export async function up(db: Kysely<Database & {

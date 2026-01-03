@@ -10,11 +10,11 @@ import {
 import chalk from "chalk";
 import { router as roomRoute } from "./channels/room.ts";
 import { router as usersRoute } from "./users/user.ts";
-import { createRoom } from "./lib/data.ts";
+import { createRoom } from "./lib/db/query.ts";
 import { homeserver_url, namespace, port } from "./lib/config.ts";
 import { router as authRoute } from "./auth/auth.ts";
 import { route as streamRoute } from "./sockets.ts";
-// import { router as mediaRoute } from "./media/media.ts";
+import { router as mediaRoute } from "./media/media.ts";
 import { router as meRoute } from "./me/me.ts";
 import { authMiddleware, type SessionEnv } from "./auth/session.ts";
 import { OpenAPIHono } from "@hono/zod-openapi";
@@ -101,7 +101,7 @@ app.route("/me", meRoute);
 app.route("/", attachmentsRoute);
 cleanAttachments();
 
-// app.route("/media", mediaRoute); // TODO: finish implementing this
+app.route("/media", mediaRoute); // TODO: finish implementing this
 
 // Create starting room
 // createRoom("wonk", "Welcome to Wonk Chat!"); // TODO: make a server discovery or something

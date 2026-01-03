@@ -1,6 +1,6 @@
 import { getWaterfall } from "../../sockets.ts";
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
-import { getUserProfileByUsername, removeUserFromRoom, getRoomById } from "../../lib/data.ts";
+import { getUserProfileByUsername, removeUserFromRoom, getRoomById } from "../../lib/db/query.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
 	ErrorSchema,
