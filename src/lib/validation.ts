@@ -2,7 +2,8 @@ import { z } from "@hono/zod-openapi";
 
 export const RoomNameSchema = z
 	.string()
-	.regex(/^[a-z0-9_]{3,16}$/g)
+	.min(3)
+	.max(100)
 	.openapi({
 		example: "wonk",
 		description: "Room name"
