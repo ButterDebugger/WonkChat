@@ -3,10 +3,6 @@ import { prettyJSON } from "hono/pretty-json";
 import { trimTrailingSlash } from "hono/trailing-slash";
 import { createBunWebSocket } from "hono/bun";
 import type { ServerWebSocket } from "bun";
-import {
-	router as attachmentsRoute,
-	clean as cleanAttachments
-} from "./attachments.ts";
 import chalk from "chalk";
 import { router as roomRoute } from "./channels/room.ts";
 import { router as usersRoute } from "./users/user.ts";
@@ -98,11 +94,9 @@ app.route("/", usersRoute);
 // Me routes
 app.route("/me", meRoute);
 
-// Clear attachments folder and handle attachments route
-app.route("/", attachmentsRoute);
-cleanAttachments();
-
-app.route("/media", mediaRoute); // TODO: finish implementing this
+// Media routes
+app.route("/media", mediaRoute);
+invalidateOldUploads();
 
 // Create starting room
 // createRoom("wonk", "Welcome to Wonk Chat!"); // TODO: make a server discovery or something
