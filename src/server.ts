@@ -151,7 +151,7 @@ Bun.serve({
 	},
 	maxRequestBodySize: Math.max(
 		1024 * 1024 * 128, // 128MB
-		maxChunkSize
+		maxChunkSize + 1 // NOTE: not sure the plus 1 is necessary, would have to check with Bun's source code
 	)
 });
 

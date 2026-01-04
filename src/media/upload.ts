@@ -155,7 +155,7 @@ router.openapi(
 		method: "patch",
 		path: "/:id",
 		middleware: [authMiddleware, bodyLimit({
-			maxSize: maxChunkSize,
+			maxSize: maxChunkSize + 1, // Add one byte because Hono's body limit middleware uses > and not >=
 			onError: (c) => {
 				return c.json(
 					{
