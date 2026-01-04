@@ -4,8 +4,8 @@ import { rateLimiter } from "hono-rate-limiter";
 import crypto from "node:crypto";
 import { createMiddleware } from "hono/factory";
 import loginRoute from "./login.tsx";
-import { generateColor, type SessionEnv, sessionToken } from "./session.ts";
-import { compareUserProfile, createOrCompareUserProfile, createUserProfile } from "../lib/db/query.ts";
+import { type SessionEnv, sessionToken } from "./session.ts";
+import { createOrCompareUserProfile } from "../lib/db/query.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
 	ErrorSchema,

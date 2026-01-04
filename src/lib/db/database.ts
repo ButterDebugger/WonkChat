@@ -84,6 +84,8 @@ export interface UserTable {
 	rooms: JSONColumnType<string[]>;
 	online: boolean;
 	publicKey: (ArrayBuffer & { buffer?: undefined }) | undefined;
+	/** ISO timestamp */
+	lastOnline: string | null;
 }
 
 export interface RoomTable {
@@ -107,9 +109,6 @@ export interface RoomInviteTable {
 	roomId: string;
 	/** The user ID of the user who created the invite */
 	inviter: string;
-	/** ISO timestamp */
-	// NOTE: Not really needed since the id stores the same information
-	createdAt: string;
 }
 
 export interface SpaceTable {

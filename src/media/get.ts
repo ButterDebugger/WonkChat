@@ -1,8 +1,7 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { authMiddleware, SessionEnv } from "../auth/session.ts";
-import { HttpSessionHeadersSchema } from "../lib/validation.ts";
+import { SessionEnv } from "../auth/session.ts";
 import { stream } from "hono/streaming";
-import { basename, join } from "node:path";
+import { basename } from "node:path";
 import { s3 } from "bun";
 import { getMediaById } from "../lib/db/query.ts";
 
@@ -12,9 +11,7 @@ router.openapi(
 	createRoute({
 		method: "get",
 		path: "/:id/:filename",
-		// middleware: [authMiddleware] as const,
 		request: {
-			// headers: HttpSessionHeadersSchema,
 			params: z.object({
 				id: z.string(),
 				filename: z.string()

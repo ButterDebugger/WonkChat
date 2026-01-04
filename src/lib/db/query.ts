@@ -65,46 +65,6 @@ export async function getUserProfileById(
 		});
 }
 
-export async function createUserProfile(
-	username: string,
-	password: string,
-	color: number
-): Promise<boolean | null> {
-	return await db
-		.selectFrom("users")
-		.selectAll()
-		.where("username", "=", username)
-		.executeTakeFirst()
-		.then(async (user) => {
-			// Check if user already exists
-			if (user) return false;
-
-			return db
-				.insertInto("users")
-				.values({
-					id: Snowflake.generate(),
-					username: username,
-					displayName: username,
-					pronouns: "",
-					bio: "",
-					password: await bcrypt.hash(password, 10),
-					color: color,
-					online: false,
-					rooms: "[]"
-				})
-				.executeTakeFirst()
-				.then(() => true)
-				.catch((err) => {
-					console.error("Failed to create user", err);
-					return null;
-				});
-		})
-		.catch((err) => {
-			console.error("Failed to check if user exists", err);
-			return null;
-		});
-}
-
 export async function createOrCompareUserProfile(
 	username: string,
 	password: string,
@@ -145,7 +105,8 @@ export async function createOrCompareUserProfile(
 				password: await bcrypt.hash(password, 10),
 				color: generateColor(),
 				online: false,
-				rooms: "[]"
+				rooms: "[]",
+				lastOnline: new Date().toISOString()
 			})
 			.returning(["id", "username"])
 			.executeTakeFirst();
@@ -159,45 +120,13 @@ export async function createOrCompareUserProfile(
 	}
 }
 
-export async function compareUserProfile(username: string, password: string) {
-	return await db
-		.selectFrom("users")
-		.select("password")
-		.where("username", "=", username)
-		.executeTakeFirst()
-		.then(async (user) => {
-			if (!user) return false;
-
-			return await bcrypt.compare(password, user.password);
-		})
-		.catch((err) => {
-			console.error("Failed to fetch users credentials", err);
-			return false;
-		});
-}
-
-export async function updateUserProfile(username: string, color: number) {
-	return await db
-		.updateTable("users")
-		.where("username", "=", username)
-		.set({
-			username: username,
-			color: color
-		})
-		.executeTakeFirst()
-		.then(() => true)
-		.catch((err) => {
-			console.error("Failed to update users username and color", err);
-			return false;
-		});
-}
-
 export async function setUserStatus(username: string, online: boolean) {
 	return await db
 		.updateTable("users")
 		.where("username", "=", username)
 		.set({
-			online: online
+			online: online,
+			lastOnline: new Date().toISOString()
 		})
 		.executeTakeFirst()
 		.then(() => true)
@@ -423,8 +352,7 @@ export async function createRoomInvite(roomId: string, userId: string): Promise<
 			id: Snowflake.generate(),
 			code: code,
 			roomId: roomId,
-			inviter: userId,
-			createdAt: new Date().toISOString()
+			inviter: userId
 		})
 		.executeTakeFirst()
 		.then(() => code)

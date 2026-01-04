@@ -16,7 +16,7 @@ const streamSubscriptions: Map<string, Set<Stream>> = new Map();
 class Waterfall {
 	/** Websocket IDs mapped to streams */
 	#streams: Record<string, Stream> = {};
-	/** Username / ID of the user this waterfall belongs to */
+	/** Username of the user this waterfall belongs to */
 	#username: string;
 
 	constructor(username: string) {

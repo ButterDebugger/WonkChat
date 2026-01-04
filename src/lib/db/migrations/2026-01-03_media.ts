@@ -1,7 +1,6 @@
 import type { Kysely } from "kysely";
-import { Database } from "../database.ts";
 
-export async function up(db: Kysely<Database>): Promise<void> {
+export async function up(db: Kysely<any>): Promise<void> {
 	// Create a new users table
 	await db.schema
 		.createTable("media")
