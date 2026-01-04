@@ -28,4 +28,6 @@ if (!Bun.env.S3_ACCESS_KEY_ID) throw new Error("S3_ACCESS_KEY_ID is not set");
 
 // Media config
 
-export const maxChunkSize = 1024 * 1024; // 1 MB; TODO: make this a configurable constant
+// TODO: make these constants configurable
+export const maxUploadAge = 1000 * 60 * 60 * 6; // 6 hours
+export const maxChunkSize = 1024 * 1024; // 1 MB

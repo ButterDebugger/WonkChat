@@ -22,6 +22,7 @@ import { Scalar } from "@scalar/hono-api-reference";
 import { WsSessionHeadersSchema } from "./lib/validation.ts";
 import type { Handler } from "hono/types";
 import { WSData } from "./types.ts";
+import { invalidateOldUploads } from "./media/upload.ts";
 
 const app = new OpenAPIHono<SessionEnv>();
 const { upgradeWebSocket, websocket } =
@@ -159,3 +160,8 @@ console.log(
 	chalk.bgGreen.bold(" LISTENING "),
 	chalk.white(`API server is running on port ${port}`)
 );
+
+// Every 5 minutes, clean up any expired data
+setInterval(() => {
+	invalidateOldUploads();
+}, 1000 * 60 * 5);

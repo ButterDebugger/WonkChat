@@ -1,7 +1,7 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { authMiddleware, SessionEnv } from "../auth/session.ts";
 import { ErrorSchema, HttpSessionHeadersSchema } from "../lib/validation.ts";
-import { maxChunkSize } from "../lib/config.ts";
+import { maxChunkSize, maxUploadAge } from "../lib/config.ts";
 import crypto from "node:crypto";
 import { join } from "node:path";
 import { mkdtemp, rmdir } from "node:fs/promises";
@@ -346,7 +346,7 @@ router.openapi(
 		await sink.end();
 
 		// Delete the temporary directory
-		await rmdir(upload.tempPath, { recursive: true });
+		await rmdir(upload.tempPath, { recursive: true }).catch(console.error);
 
 		// Check if the checksum matches
 		const calculatedChecksum = checksumHash.digest("hex");
@@ -365,6 +365,9 @@ router.openapi(
 			);
 		}
 
+		// Remove the upload from the list of active uploads
+		activeUploads.delete(id);
+
 		// Save the file to the database
 		await addMediaEntry(
 			id,
@@ -378,3 +381,17 @@ router.openapi(
 		}, 200);
 	}
 );
+
+export async function invalidateOldUploads() {
+	const expiration = Date.now() - maxUploadAge;
+
+	for (const [id, upload] of activeUploads.entries()) {
+		if (Snowflake.getTimestamp(id) < expiration) {
+			await rmdir(upload.tempPath, { recursive: true }).catch(console.error);
+
+			activeUploads.delete(id);
+
+			console.log(`Deleted expired upload ${id}`);
+		}
+	}
+}
