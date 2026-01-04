@@ -1,11 +1,10 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { authMiddleware, SessionEnv } from "../auth/session.ts";
 import { ErrorSchema, HttpSessionHeadersSchema } from "../lib/validation.ts";
-import { bodyLimit } from "hono/body-limit";
 import { maxChunkSize } from "../lib/config.ts";
 import crypto from "node:crypto";
 import { join } from "node:path";
-import { mkdtemp, readdir, rmdir } from "node:fs/promises";
+import { mkdtemp, rmdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { s3 } from "bun";
 import { addMediaEntry } from "../lib/db/query.ts";
@@ -154,19 +153,7 @@ router.openapi(
 	createRoute({
 		method: "patch",
 		path: "/:id",
-		middleware: [authMiddleware, bodyLimit({
-			maxSize: maxChunkSize + 1, // Add one byte because Hono's body limit middleware uses > and not >=
-			onError: (c) => {
-				return c.json(
-					{
-						success: false,
-						message: "Request body is to large",
-						code: 108
-					},
-					400 // NOTE: Should be 413
-				);
-			},
-		})] as const,
+		middleware: [authMiddleware] as const,
 		request: {
 			params: z.object({
 				id: z.string()
@@ -233,8 +220,21 @@ router.openapi(
 			);
 		}
 
-		// Hash the file and check if it is valid
+		// Cancel if the file is too large
 		const buffer = new Uint8Array(await file.arrayBuffer());
+
+		if (buffer.length > maxChunkSize) {
+			return ctx.json(
+				{
+					success: false as const,
+					message: "Request body is to large",
+					code: 108
+				},
+				400 // NOTE: Should be 413
+			);
+		}
+
+		// Hash the file and check if it is valid
 		const hash = crypto.createHash("sha256").update(buffer).digest("hex");
 
 		if (!upload.hashesThatHaveNotBeenUploadedYet.has(hash)) {
