@@ -67,6 +67,7 @@ export interface Database {
 	rooms: RoomTable;
 	roomInvites: RoomInviteTable;
 	spaces: SpaceTable;
+	media: MediaTable;
 }
 
 export interface UserTable {
@@ -107,6 +108,7 @@ export interface RoomInviteTable {
 	/** The user ID of the user who created the invite */
 	inviter: string;
 	/** ISO timestamp */
+	// NOTE: Not really needed since the id stores the same information
 	createdAt: string;
 }
 
@@ -116,4 +118,17 @@ export interface SpaceTable {
 	name: string;
 	description: string;
 	members: JSONColumnType<string[]>;
+}
+
+export interface MediaTable {
+	/** Primary key */
+	id: Generated<string>;
+	/** The unique path to the media on the S3 bucket */
+	path: string;
+	/** The user ID of the user who uploaded the media */
+	userId: string;
+	/** The MIME type of the media */
+	mimeType: string;
+	/** The alternative text of the media */
+	alternativeText: string | null;
 }

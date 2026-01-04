@@ -10,8 +10,8 @@ import {
 import chalk from "chalk";
 import { router as roomRoute } from "./channels/room.ts";
 import { router as usersRoute } from "./users/user.ts";
-import { createRoom } from "./lib/db/query.ts";
-import { homeserver_url, namespace, port } from "./lib/config.ts";
+// import { createRoom } from "./lib/db/query.ts";
+import { homeserver_url, maxChunkSize, namespace, port } from "./lib/config.ts";
 import { router as authRoute } from "./auth/auth.ts";
 import { route as streamRoute } from "./sockets.ts";
 import { router as mediaRoute } from "./media/media.ts";
@@ -148,7 +148,11 @@ Bun.serve({
 		return new Response("500 Internal server error", {
 			status: 500
 		});
-	}
+	},
+	maxRequestBodySize: Math.max(
+		1024 * 1024 * 128, // 128MB
+		maxChunkSize
+	)
 });
 
 console.log(

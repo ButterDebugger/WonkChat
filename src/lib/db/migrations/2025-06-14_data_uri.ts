@@ -1,7 +1,6 @@
-// @ts-nocheck
 import type { Kysely } from "kysely";
 
-export async function up(db: Kysely<unknown>): Promise<void> {
+export async function up(db: Kysely<any>): Promise<void> {
 	const usersData = await db.selectFrom("users").selectAll().execute();
 
 	await db.schema.dropTable("users").execute();

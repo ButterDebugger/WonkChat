@@ -1,11 +1,7 @@
 import type { Kysely } from "kysely";
 import { Snowflake } from "../../structures.ts";
-import { Database, RoomTable, UserTable } from "../database.ts";
 
-export async function up(db: Kysely<Database & {
-	__new_users: UserTable;
-	__new_rooms: RoomTable;
-}>): Promise<void> {
+export async function up(db: Kysely<any>): Promise<void> {
 	// Create a new users table
 	await db.schema
 		.createTable("__new_users")

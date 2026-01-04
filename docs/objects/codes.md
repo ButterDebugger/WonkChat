@@ -1,14 +1,15 @@
 ## Request error codes
 
-| Code | Message                |
-| :--: | ---------------------- |
-| 101  | Invalid body           |
-| 102  | Missing query string   |
-| 103  | Missing files          |
-| 104  | Invalid encrypted body |
-| 105  | Unknown endpoint       |
-| 106  | Internal server error  |
-| 107  | Unknown public key     |
+| Code | Message                  |
+| :--: | ------------------------ |
+| 101  | Invalid body             |
+| 102  | Missing query string     |
+| 103  | Missing files            |
+| 104  | Invalid encrypted body   |
+| 105  | Unknown endpoint         |
+| 106  | Internal server error    |
+| 107  | Unknown public key       |
+| 108  | Request body is to large |
 
 ## Message error codes
 
@@ -57,6 +58,11 @@
 
 ## Media error codes
 
-| Code | Message                |
-| :--: | ---------------------- |
-| 701  | Malformed file content |
+| Code | Message                                                 |
+| :--: | ------------------------------------------------------- |
+| 701  | File does not exist                                     |
+| 702  | Filename does not match                                 |
+| 703  | Upload does not exist or has been aborted by the server |
+| 704  | Chunk has already been uploaded or is invalid           |
+| 705  | Not all chunks have been uploaded                       |
+| 706  | Completed file does not match the expected checksum     |

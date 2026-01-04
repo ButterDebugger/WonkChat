@@ -1,6 +1,6 @@
 import type { Kysely } from "kysely";
 
-export async function up(db: Kysely<unknown>): Promise<void> {
+export async function up(db: Kysely<any>): Promise<void> {
 	await db.schema
 		.createTable("users")
 		.addColumn("username", "text", (col) => col.primaryKey())
