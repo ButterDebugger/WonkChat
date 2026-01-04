@@ -72,6 +72,8 @@ router.openapi(
 		// Stream the file
 		const readStream = file.stream();
 
+		ctx.header("Content-Type", media.mimeType);
+
 		return stream(ctx, async (stream) => {
 			stream.onAbort(() => {
 				// TODO: handle this
