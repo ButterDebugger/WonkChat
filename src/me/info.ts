@@ -1,6 +1,6 @@
 import { authMiddleware, type SessionEnv } from "../auth/session.ts";
 import { getUserProfileByUsername, getRoomById } from "../lib/db/query.ts";
-import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { ErrorSchema, HttpSessionHeadersSchema } from "../lib/validation.ts";
 
 export const router = new OpenAPIHono<SessionEnv>();
@@ -11,21 +11,51 @@ router.openapi(
 		path: "/",
 		middleware: [authMiddleware] as const,
 		request: {
-			headers: HttpSessionHeadersSchema
+			headers: HttpSessionHeadersSchema,
 		},
 		responses: {
 			200: {
-				description: "Success message"
+				description: "Success message",
+				content: {
+					"application/json": {
+						schema: z.object({
+							rooms: z.array(
+								z.object({
+									id: z.string(),
+									name: z.string(),
+									description: z.string(),
+									key: z.string(),
+									members: z.array(z.string()),
+								}),
+							),
+							users: z.array(
+								z.object({
+									id: z.string(),
+									username: z.string(),
+									color: z.string(),
+									offline: z.boolean(),
+								}),
+							),
+							you: z.object({
+								id: z.string(),
+								username: z.string(),
+								color: z.string(),
+								offline: z.boolean(),
+							}),
+							success: z.literal(true as const),
+						}),
+					},
+				},
 			},
 			400: {
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
+						schema: ErrorSchema,
+					},
 				},
-				description: "Returns an error"
-			}
-		}
+				description: "Returns an error",
+			},
+		},
 	}),
 	async (ctx) => {
 		const tokenPayload = ctx.var.session;
@@ -36,11 +66,11 @@ router.openapi(
 		if (!session)
 			return ctx.json(
 				{
-					success: false,
+					success: false as const,
 					message: "User does not exist",
-					code: 401
+					code: 401,
 				},
-				400
+				400,
 			);
 
 		// Get rooms
@@ -51,6 +81,7 @@ router.openapi(
 			key: string;
 			members: string[];
 		}[] = [];
+
 		for (const roomId of session.rooms) {
 			const room = await getRoomById(roomId);
 			if (room === null) continue;
@@ -62,7 +93,7 @@ router.openapi(
 				name: room.name,
 				description: room.description,
 				key: await room.armoredPublicKey,
-				members: Array.from(room.members)
+				members: Array.from(room.members),
 			});
 		}
 
@@ -75,9 +106,9 @@ router.openapi(
 					id: session?.id ?? "",
 					username: session?.username ?? username,
 					color: session?.color ?? "#ffffff",
-					offline: !(session?.online ?? false) // TODO: Change this to a online field
-				}))
-			)
+					offline: !(session?.online ?? false), // TODO: Change this to a online field
+				})),
+			),
 		);
 
 		return ctx.json(
@@ -88,11 +119,11 @@ router.openapi(
 					id: session.id,
 					username: session.username,
 					color: session.color,
-					offline: !session.online // TODO: Change this to a online field
+					offline: !session.online, // TODO: Change this to a online field
 				},
-				success: true
+				success: true as const,
 			},
-			200
+			200,
 		);
-	}
+	},
 );

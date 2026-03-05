@@ -20,29 +20,44 @@ router.openapi(
 					"application/json": {
 						schema: z.object({
 							publicKey: z.string().openapi({
-								description: "The public key"
+								description: "The public key",
 							}),
 							signature: z.string().openapi({
-								description: "The signature of the public key"
-							})
-						})
-					}
-				}
-			}
+								description: "The signature of the public key",
+							}),
+						}),
+					},
+				},
+			},
 		},
 		responses: {
 			200: {
-				description: "Success message"
+				description: "Success message",
+				content: {
+					"application/json": {
+						schema: z.object({
+							success: z.literal(true as const),
+						}),
+					},
+				},
 			},
 			400: {
 				description: "Returns an error",
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
-				}
-			}
-		}
+						schema: ErrorSchema,
+					},
+				},
+			},
+			500: {
+				description: "Something went wrong internally",
+				content: {
+					"application/json": {
+						schema: ErrorSchema,
+					},
+				},
+			},
+		},
 	}),
 	async (ctx) => {
 		const tokenPayload = ctx.var.session;
@@ -51,11 +66,11 @@ router.openapi(
 		if (typeof publicKey !== "string" || typeof signature !== "string")
 			return ctx.json(
 				{
-					success: false,
+					success: false as const,
 					message: "Invalid body",
-					code: 101
+					code: 101,
 				},
-				400
+				400,
 			);
 
 		// Read the public key
@@ -66,11 +81,11 @@ router.openapi(
 		} catch (_err) {
 			return ctx.json(
 				{
-					success: false,
+					success: false as const,
 					message: "Invalid public key",
-					code: 503
+					code: 503,
 				},
-				400
+				400,
 			);
 		}
 
@@ -78,52 +93,49 @@ router.openapi(
 		try {
 			const { data } = await openpgp.verify({
 				message: await openpgp.readMessage({
-					armoredMessage: signature
+					armoredMessage: signature,
 				}),
-				verificationKeys: armoredKey
+				verificationKeys: armoredKey,
 			});
 
 			if (data !== publicKey)
 				return ctx.json(
 					{
-						success: false,
+						success: false as const,
 						message: "Invalid signature",
-						code: 504
+						code: 504,
 					},
-					400
+					400,
 				);
 		} catch (_err) {
 			return ctx.json(
 				{
-					success: false,
+					success: false as const,
 					message: "Invalid signature",
-					code: 504
+					code: 504,
 				},
-				400
+				400,
 			);
 		}
 
 		// Save public key
-		const success = await setUserPublicKey(
-			tokenPayload.username,
-			armoredKey.write()
-		);
+		const success = await setUserPublicKey(tokenPayload.username, armoredKey.write());
 
 		if (!success)
 			return ctx.json(
 				{
-					success: false,
+					success: false as const,
 					message: "Internal server error",
-					code: 106
+					code: 106,
 				},
-				500
+				500,
 			);
 
 		return ctx.json(
 			{
-				success: true
+				success: true as const,
 			},
-			200
+			200,
 		);
-	}
+	},
 );
