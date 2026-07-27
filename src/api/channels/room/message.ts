@@ -1,14 +1,11 @@
 import { getWaterfall } from "../../../sockets.ts";
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
-import { getUserProfileByUsername, getRoomById } from "../../../lib/db/query.ts";
+import { getUserProfileByUsername } from "../../../lib/db/queries/users.ts";
+import { getRoomById } from "../../../lib/db/queries/rooms.ts";
 import * as openpgp from "openpgp";
 import { isMessage, type Message } from "../../../types.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import {
-	ErrorSchema,
-	HttpSessionHeadersSchema,
-	SnowflakeSchema
-} from "../../../lib/validation.ts";
+import { ErrorSchema, HttpSessionHeadersSchema, SnowflakeSchema } from "../../../lib/validation.ts";
 
 const router = new OpenAPIHono<SessionEnv>();
 
@@ -20,31 +17,31 @@ router.openapi(
 		request: {
 			headers: HttpSessionHeadersSchema,
 			params: z.object({
-				roomid: SnowflakeSchema
+				roomid: SnowflakeSchema,
 			}),
 			body: {
 				content: {
 					"application/json": {
 						schema: z.object({
-							message: z.string()
-						})
-					}
-				}
-			}
+							message: z.string(),
+						}),
+					},
+				},
+			},
 		},
 		responses: {
 			200: {
-				description: "Success message"
+				description: "Success message",
 			},
 			400: {
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
+						schema: ErrorSchema,
+					},
 				},
-				description: "Returns an error"
-			}
-		}
+				description: "Returns an error",
+			},
+		},
 	}),
 	async (ctx) => {
 		const tokenPayload = ctx.var.session;
@@ -56,9 +53,9 @@ router.openapi(
 				{
 					success: false,
 					message: "User session does not exist",
-					code: 507
+					code: 507,
 				},
-				400
+				400,
 			);
 
 		if (!userSession)
@@ -66,20 +63,19 @@ router.openapi(
 				{
 					success: false,
 					message: "User does not exist",
-					code: 401
+					code: 401,
 				},
-				400
+				400,
 			);
 
 		if (!userSession.rooms.has(roomid))
 			return ctx.json(
 				{
 					success: false,
-					message:
-						"Cannot send a message in a room that you are not in",
-					code: 304
+					message: "Cannot send a message in a room that you are not in",
+					code: 304,
 				},
-				400
+				400,
 			);
 
 		const room = await getRoomById(roomid);
@@ -89,9 +85,9 @@ router.openapi(
 				{
 					success: false,
 					message: "Room doesn't exist",
-					code: 303
+					code: 303,
 				},
-				400
+				400,
 			);
 
 		const { message } = ctx.req.valid("json");
@@ -101,8 +97,8 @@ router.openapi(
 			const { data } = await openpgp.decrypt({
 				message: await openpgp.readMessage({ armoredMessage: message }),
 				decryptionKeys: await openpgp.readPrivateKey({
-					binaryKey: room.privateKey
-				})
+					binaryKey: room.privateKey,
+				}),
 			});
 
 			if (typeof data !== "string" || !data.startsWith("{"))
@@ -110,20 +106,22 @@ router.openapi(
 					{
 						success: false,
 						message: "Invalid body",
-						code: 101
+						code: 101,
 					},
-					400
+					400,
 				);
 
 			decrypted = JSON.parse(data);
-		} catch (_err) {
+		} catch (err) {
+			console.error(err);
+
 			return ctx.json(
 				{
 					success: false,
 					message: "Invalid encrypted body",
-					code: 104
+					code: 104,
 				},
-				400
+				400,
 			);
 		}
 
@@ -132,9 +130,9 @@ router.openapi(
 				{
 					success: false,
 					message: "Invalid encrypted body",
-					code: 104
+					code: 104,
 				},
-				400
+				400,
 			);
 
 		const { content, attachments } = decrypted;
@@ -144,9 +142,9 @@ router.openapi(
 				{
 					success: false,
 					message: "Invalid message content",
-					code: 201
+					code: 201,
 				},
-				400
+				400,
 			);
 
 		for (const userId of room.members) {
@@ -159,22 +157,22 @@ router.openapi(
 					id: userSession.id,
 					username: userSession.username,
 					color: userSession.color,
-					offline: !userSession.online // TODO: Change this to a online field
+					offline: !userSession.online, // TODO: Change this to a online field
 				},
 				roomId: roomid,
 				content: content,
 				attachments: attachments,
-				timestamp: Date.now()
+				timestamp: Date.now(),
 			});
 		}
 
 		return ctx.json(
 			{
-				success: true
+				success: true,
 			},
-			200
+			200,
 		);
-	}
+	},
 );
 
 export default router;

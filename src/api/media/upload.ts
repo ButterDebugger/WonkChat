@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { authMiddleware, SessionEnv } from "../auth/session.ts";
+import { authMiddleware, type SessionEnv } from "../auth/session.ts";
 import { ErrorSchema, HttpSessionHeadersSchema } from "../../lib/validation.ts";
 import { maxChunkSize, maxUploadAge } from "../../lib/config.ts";
 import crypto from "node:crypto";
@@ -7,19 +7,22 @@ import { join } from "node:path";
 import { mkdtemp, rmdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { s3 } from "bun";
-import { addMediaEntry } from "../../lib/db/query.ts";
+import { addMediaEntry } from "../../lib/db/queries/media.ts";
 import { Snowflake } from "../../lib/structures.ts";
 
 export const router = new OpenAPIHono<SessionEnv>();
 
-const activeUploads: Map<string, {
-	filename: string;
-	size: number;
-	mimeType: string;
-	tempPath: string;
-	hashes: string[];
-	hashesThatHaveNotBeenUploadedYet: Set<string>;
-}> = new Map();
+const activeUploads: Map<
+	string,
+	{
+		filename: string;
+		size: number;
+		mimeType: string;
+		tempPath: string;
+		hashes: string[];
+		hashesThatHaveNotBeenUploadedYet: Set<string>;
+	}
+> = new Map();
 
 router.openapi(
 	createRoute({
@@ -37,20 +40,23 @@ router.openapi(
 						schema: z.object({
 							success: z.literal(true),
 							maxChunkSize: z.literal(maxChunkSize).openapi({
-								description: "The maximum chunk size in bytes"
-							})
-						})
-					}
-				}
-			}
-		}
+								description: "The maximum chunk size in bytes",
+							}),
+						}),
+					},
+				},
+			},
+		},
 	}),
 	(ctx) => {
-		return ctx.json({
-			success: true as const,
-			maxChunkSize: maxChunkSize
-		}, 200);
-	}
+		return ctx.json(
+			{
+				success: true as const,
+				maxChunkSize: maxChunkSize,
+			},
+			200,
+		);
+	},
 );
 
 router.openapi(
@@ -65,22 +71,21 @@ router.openapi(
 					"application/json": {
 						schema: z.object({
 							name: z.string().min(1).openapi({
-								description: "The name of the file"
+								description: "The name of the file",
 							}),
 							size: z.number().int().min(1).positive().openapi({
-								description:
-									"The total length of the file in bytes"
+								description: "The total length of the file in bytes",
 							}),
 							mimeType: z.string().openapi({
-								description: "The mime type of the file"
+								description: "The mime type of the file",
 							}),
 							hashes: z.array(z.string()).min(1).openapi({
-								description: "A list of hashes of the file"
-							})
-						})
-					}
-				}
-			}
+								description: "A list of hashes of the file",
+							}),
+						}),
+					},
+				},
+			},
 		},
 		responses: {
 			200: {
@@ -90,45 +95,45 @@ router.openapi(
 						schema: z.object({
 							success: z.literal(true),
 							uploadId: z.string().openapi({
-								description: "The upload id"
-							})
-						})
-					}
-				}
+								description: "The upload id",
+							}),
+						}),
+					},
+				},
 			},
 			400: {
 				description: "Returns an error",
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
-				}
+						schema: ErrorSchema,
+					},
+				},
 			},
 			500: {
 				description: "Returns an error",
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
-				}
-			}
-		}
+						schema: ErrorSchema,
+					},
+				},
+			},
+		},
 	}),
 	async (ctx) => {
 		const { name, size, mimeType, hashes } = ctx.req.valid("json");
 
 		// Create a temporary directory for the upload
 		const uploadId = Snowflake.generate();
-		const tempPath = await mkdtemp(join(tmpdir(), 'wonk-media-')).catch(console.error);
+		const tempPath = await mkdtemp(join(tmpdir(), "wonk-media-")).catch(console.error);
 
 		if (!tempPath) {
 			return ctx.json(
 				{
 					success: false as const,
 					message: "Internal server error",
-					code: 106
+					code: 106,
 				},
-				500
+				500,
 			);
 		}
 
@@ -139,14 +144,17 @@ router.openapi(
 			mimeType: mimeType,
 			tempPath: tempPath,
 			hashes: hashes,
-			hashesThatHaveNotBeenUploadedYet: new Set(hashes)
+			hashesThatHaveNotBeenUploadedYet: new Set(hashes),
 		});
 
-		return ctx.json({
-			success: true as const,
-			uploadId: uploadId
-		}, 200);
-	}
+		return ctx.json(
+			{
+				success: true as const,
+				uploadId: uploadId,
+			},
+			200,
+		);
+	},
 );
 
 router.openapi(
@@ -156,17 +164,17 @@ router.openapi(
 		middleware: [authMiddleware] as const,
 		request: {
 			params: z.object({
-				id: z.string()
+				id: z.string(),
 			}),
 			body: {
 				content: {
 					"multipart/form-data": {
 						schema: z.custom((e) => {
-							return e?.file instanceof File
-						})
-					}
-				}
-			}
+							return e?.file instanceof File;
+						}),
+					},
+				},
+			},
 		},
 		responses: {
 			200: {
@@ -174,20 +182,20 @@ router.openapi(
 				content: {
 					"application/json": {
 						schema: z.object({
-							success: z.literal(true)
-						})
-					}
-				}
+							success: z.literal(true),
+						}),
+					},
+				},
 			},
 			400: {
 				description: "Returns an error",
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
-				}
-			}
-		}
+						schema: ErrorSchema,
+					},
+				},
+			},
+		},
 	}),
 	async (ctx) => {
 		const { id } = ctx.req.valid("param");
@@ -200,9 +208,9 @@ router.openapi(
 				{
 					success: false as const,
 					message: "Upload does not exist or has been aborted by the server",
-					code: 703
+					code: 703,
 				},
-				400
+				400,
 			);
 		}
 
@@ -214,9 +222,9 @@ router.openapi(
 				{
 					success: false as const,
 					message: "Invalid body",
-					code: 101
+					code: 101,
 				},
-				400
+				400,
 			);
 		}
 
@@ -228,9 +236,9 @@ router.openapi(
 				{
 					success: false as const,
 					message: "Request body is to large",
-					code: 108
+					code: 108,
 				},
-				400 // NOTE: Should be 413
+				400, // NOTE: Should be 413
 			);
 		}
 
@@ -242,9 +250,9 @@ router.openapi(
 				{
 					success: false as const,
 					message: "Chunk has already been uploaded or is invalid",
-					code: 704
+					code: 704,
 				},
-				400
+				400,
 			);
 		}
 
@@ -254,10 +262,13 @@ router.openapi(
 		// Write the file to the temporary directory
 		await Bun.write(join(upload.tempPath, hash), buffer);
 
-		return ctx.json({
-			success: true as const
-		}, 200);
-	}
+		return ctx.json(
+			{
+				success: true as const,
+			},
+			200,
+		);
+	},
 );
 
 router.openapi(
@@ -268,33 +279,33 @@ router.openapi(
 		request: {
 			headers: HttpSessionHeadersSchema,
 			params: z.object({
-				id: z.string()
+				id: z.string(),
 			}),
 			body: {
 				content: {
 					"application/json": {
 						schema: z.object({
 							checksum: z.string().openapi({
-								description: "A sha256 checksum of the file"
-							})
-						})
-					}
-				}
-			}
+								description: "A sha256 checksum of the file",
+							}),
+						}),
+					},
+				},
+			},
 		},
 		responses: {
 			200: {
-				description: "Success message"
+				description: "Success message",
 			},
 			400: {
 				description: "Returns an error",
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
-				}
-			}
-		}
+						schema: ErrorSchema,
+					},
+				},
+			},
+		},
 	}),
 	async (ctx) => {
 		const tokenPayload = ctx.var.session;
@@ -309,9 +320,9 @@ router.openapi(
 				{
 					success: false as const,
 					message: "Upload does not exist or has been aborted by the server",
-					code: 703
+					code: 703,
 				},
-				400
+				400,
 			);
 		}
 
@@ -321,9 +332,9 @@ router.openapi(
 				{
 					success: false as const,
 					message: "Not all chunks have been uploaded",
-					code: 705
+					code: 705,
 				},
-				400
+				400,
 			);
 		}
 
@@ -359,9 +370,9 @@ router.openapi(
 				{
 					success: false as const,
 					message: "Completed file does not match the expected checksum",
-					code: 706
+					code: 706,
 				},
-				400
+				400,
 			);
 		}
 
@@ -369,17 +380,15 @@ router.openapi(
 		activeUploads.delete(id);
 
 		// Save the file to the database
-		await addMediaEntry(
-			id,
-			mediaPath,
-			tokenPayload.id,
-			upload.mimeType
-		)
+		await addMediaEntry(id, mediaPath, tokenPayload.id, upload.mimeType);
 
-		return ctx.json({
-			success: true as const,
-		}, 200);
-	}
+		return ctx.json(
+			{
+				success: true as const,
+			},
+			200,
+		);
+	},
 );
 
 export async function invalidateOldUploads() {

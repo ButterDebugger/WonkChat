@@ -1,11 +1,7 @@
 import { authMiddleware, type SessionEnv } from "../auth/session.ts";
-import { getUserProfileById, getUserProfileByUsername } from "../../lib/db/query.ts";
+import { getUserProfileById } from "../../lib/db/queries/users.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import {
-	ErrorSchema,
-	HttpSessionHeadersSchema,
-	SnowflakeSchema,
-} from "../../lib/validation.ts";
+import { ErrorSchema, HttpSessionHeadersSchema, SnowflakeSchema } from "../../lib/validation.ts";
 
 const router = new OpenAPIHono<SessionEnv>();
 
@@ -17,22 +13,22 @@ router.openapi(
 		request: {
 			headers: HttpSessionHeadersSchema,
 			params: z.object({
-				id: SnowflakeSchema
-			})
+				id: SnowflakeSchema,
+			}),
 		},
 		responses: {
 			200: {
-				description: "Success message"
+				description: "Success message",
 			},
 			400: {
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
+						schema: ErrorSchema,
+					},
 				},
-				description: "Returns an error"
-			}
-		}
+				description: "Returns an error",
+			},
+		},
 	}),
 	async (ctx) => {
 		const { id } = ctx.req.valid("param");
@@ -44,9 +40,9 @@ router.openapi(
 				{
 					success: false,
 					message: "User does not exist",
-					code: 401
+					code: 401,
 				},
-				400
+				400,
 			);
 
 		return ctx.json(
@@ -60,13 +56,13 @@ router.openapi(
 					bio: userProfile.bio,
 					color: userProfile.color,
 					offline: !userProfile.online, // TODO: remove this
-					online: userProfile.online
+					online: userProfile.online,
 				},
-				success: true
+				success: true,
 			},
-			200
+			200,
 		);
-	}
+	},
 );
 
 export default router;

@@ -1,12 +1,9 @@
 import { getWaterfall } from "../../../sockets.ts";
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
-import { getUserProfileByUsername, getRoomById, addUserToRoom } from "../../../lib/db/query.ts";
+import { getRoomById, addUserToRoom } from "../../../lib/db/queries/rooms.ts";
+import { getUserProfileByUsername } from "../../../lib/db/queries/users.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import {
-	ErrorSchema,
-	HttpSessionHeadersSchema,
-	SnowflakeSchema
-} from "../../../lib/validation.ts";
+import { ErrorSchema, HttpSessionHeadersSchema, SnowflakeSchema } from "../../../lib/validation.ts";
 
 const router = new OpenAPIHono<SessionEnv>();
 
@@ -18,30 +15,30 @@ router.openapi(
 		request: {
 			headers: HttpSessionHeadersSchema,
 			params: z.object({
-				roomid: SnowflakeSchema
-			})
+				roomid: SnowflakeSchema,
+			}),
 		},
 		responses: {
 			200: {
-				description: "Success message"
+				description: "Success message",
 			},
 			400: {
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
+						schema: ErrorSchema,
+					},
 				},
-				description: "Returns an error"
+				description: "Returns an error",
 			},
 			500: {
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
+						schema: ErrorSchema,
+					},
 				},
-				description: "Something went wrong internally"
-			}
-		}
+				description: "Something went wrong internally",
+			},
+		},
 	}),
 	async (ctx) => {
 		const tokenPayload = ctx.var.session;
@@ -53,9 +50,9 @@ router.openapi(
 				{
 					success: false,
 					message: "User session does not exist",
-					code: 507
+					code: 507,
 				},
-				400
+				400,
 			);
 
 		if (!userSession)
@@ -63,9 +60,9 @@ router.openapi(
 				{
 					success: false,
 					message: "User does not exist",
-					code: 401
+					code: 401,
 				},
-				400
+				400,
 			);
 
 		if (userSession.rooms.has(roomid))
@@ -73,9 +70,9 @@ router.openapi(
 				{
 					success: false,
 					message: "Already joined this room",
-					code: 302
+					code: 302,
 				},
-				400
+				400,
 			);
 
 		const room = await getRoomById(roomid);
@@ -85,9 +82,9 @@ router.openapi(
 				{
 					success: false,
 					message: "Room doesn't exist",
-					code: 303
+					code: 303,
 				},
-				400
+				400,
 			);
 
 		const success = await addUserToRoom(tokenPayload.username, roomid);
@@ -97,9 +94,9 @@ router.openapi(
 				{
 					success: false,
 					message: "Internal server error",
-					code: 106
+					code: 106,
 				},
-				500
+				500,
 			);
 
 		for (const userId of room.members) {
@@ -112,7 +109,7 @@ router.openapi(
 				event: "roomMemberJoin",
 				roomId: room.id,
 				username: tokenPayload.username,
-				timestamp: Date.now()
+				timestamp: Date.now(),
 			});
 		}
 
@@ -123,11 +120,11 @@ router.openapi(
 				description: room.description,
 				key: await room.armoredPublicKey,
 				members: Array.from(room.members),
-				success: true
+				success: true,
 			},
-			200
+			200,
 		);
-	}
+	},
 );
 
 export default router;

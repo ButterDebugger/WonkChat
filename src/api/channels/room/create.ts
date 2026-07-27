@@ -1,11 +1,7 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
-import { createRoom } from "../../../lib/db/query.ts";
-import {
-	ErrorSchema,
-	HttpSessionHeadersSchema,
-	RoomNameSchema
-} from "../../../lib/validation.ts";
+import { createRoom } from "../../../lib/db/queries/rooms.ts";
+import { ErrorSchema, HttpSessionHeadersSchema, RoomNameSchema } from "../../../lib/validation.ts";
 
 const router = new OpenAPIHono<SessionEnv>();
 
@@ -20,25 +16,25 @@ router.openapi(
 				content: {
 					"application/json": {
 						schema: z.object({
-							name: RoomNameSchema
-						})
-					}
-				}
-			}
+							name: RoomNameSchema,
+						}),
+					},
+				},
+			},
 		},
 		responses: {
 			200: {
-				description: "Success message"
+				description: "Success message",
 			},
 			400: {
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
+						schema: ErrorSchema,
+					},
 				},
-				description: "Returns an error"
-			}
-		}
+				description: "Returns an error",
+			},
+		},
 	}),
 	async (ctx) => {
 		const { name: roomname } = ctx.req.valid("json");
@@ -50,19 +46,19 @@ router.openapi(
 				{
 					success: false,
 					message: "Room already exist",
-					code: 305
+					code: 305,
 				},
-				400
+				400,
 			);
 
 		return ctx.json(
 			{
 				roomId: room.id,
-				success: true
+				success: true,
 			},
-			200
+			200,
 		);
-	}
+	},
 );
 
 export default router;

@@ -3,7 +3,7 @@ import type { SessionEnv } from "../auth/session.ts";
 import { stream } from "hono/streaming";
 import { basename } from "node:path";
 import { s3 } from "bun";
-import { getMediaById } from "../../lib/db/query.ts";
+import { getMediaById } from "../../lib/db/queries/media.ts";
 
 export const router = new OpenAPIHono<SessionEnv>();
 
@@ -14,14 +14,14 @@ router.openapi(
 		request: {
 			params: z.object({
 				id: z.string(),
-				filename: z.string()
-			})
+				filename: z.string(),
+			}),
 		},
 		responses: {
 			200: {
-				description: "The requested file"
-			}
-		}
+				description: "The requested file",
+			},
+		},
 	}),
 	async (ctx) => {
 		const { id, filename } = ctx.req.valid("param");
@@ -34,9 +34,9 @@ router.openapi(
 				{
 					success: false,
 					message: "File does not exist",
-					code: 701
+					code: 701,
 				},
-				400
+				400,
 			);
 		}
 
@@ -46,9 +46,9 @@ router.openapi(
 				{
 					success: false,
 					message: "Filename does not match",
-					code: 702
+					code: 702,
 				},
-				400
+				400,
 			);
 		}
 
@@ -60,9 +60,9 @@ router.openapi(
 				{
 					success: false,
 					message: "File does not exist",
-					code: 701
+					code: 701,
 				},
-				400
+				400,
 			);
 		}
 
@@ -81,5 +81,5 @@ router.openapi(
 				stream.write(chunk);
 			}
 		});
-	}
+	},
 );

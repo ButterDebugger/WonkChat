@@ -1,5 +1,9 @@
 import type { SessionEnv } from "./api/auth/session.ts";
-import { getUserPublicKeyByUsername, getUserProfileByUsername, setUserStatus } from "./lib/db/query.ts";
+import {
+	getUserPublicKeyByUsername,
+	getUserProfileByUsername,
+	setUserStatus,
+} from "./lib/db/queries/users.ts";
 import * as openpgp from "openpgp";
 import type { TokenPayload, WSData } from "./types.ts";
 import * as TruffleByte from "@debutter/trufflebyte";
@@ -93,9 +97,7 @@ class Waterfall {
 			await setUserStatus(this.#username, online);
 
 			if (changed) {
-				const viewers = getSubscribers(
-					`user:${this.#username}:updates`
-				);
+				const viewers = getSubscribers(`user:${this.#username}:updates`);
 
 				for (const stream of viewers) {
 					stream.send({
@@ -105,9 +107,9 @@ class Waterfall {
 							id: userProfile.id,
 							username: userProfile.username,
 							color: userProfile.color,
-							offline: !userProfile.online // TODO: Change this to a online field
+							offline: !userProfile.online, // TODO: Change this to a online field
 						},
-						timestamp: Date.now()
+						timestamp: Date.now(),
 					});
 				}
 			}
@@ -145,16 +147,16 @@ class Stream {
 
 		try {
 			const encryptionKey = await openpgp.readKey({
-				binaryKey: key
+				binaryKey: key,
 			});
 			const messageBody = await openpgp.createMessage({
-				binary: data
+				binary: data,
 			});
 
 			encrypted = await openpgp.encrypt({
 				message: messageBody,
 				encryptionKeys: encryptionKey,
-				format: "binary"
+				format: "binary",
 			});
 		} catch (error) {
 			console.error("Failed to encrypt message", error);
@@ -168,14 +170,13 @@ class Stream {
 
 		this.#pingInterval = setInterval(() => {
 			if (!this.isAlive()) {
-				if (this.#pingInterval !== null)
-					clearInterval(this.#pingInterval);
+				if (this.#pingInterval !== null) clearInterval(this.#pingInterval);
 				return;
 			}
 
 			this.send({
 				event: "ping",
-				ping: this.#pings++
+				ping: this.#pings++,
 			});
 		}, 40_000);
 	}
@@ -189,7 +190,7 @@ class Stream {
 		switch (event) {
 			case "pong":
 				this.send({
-					event: "pong"
+					event: "pong",
 				});
 				break;
 			case "listen":
@@ -202,15 +203,14 @@ class Stream {
 
 				for (const listen of subscriptions) {
 					if (typeof listen !== "string") continue;
-					if (!/^(channel|user):([^:\s]+):([^:\s]+)$/gm.test(listen))
-						continue;
+					if (!/^(channel|user):([^:\s]+):([^:\s]+)$/gm.test(listen)) continue;
 
 					newSubscriptions.add(listen);
 				}
 
 				// Unsubscribe from the old subscriptions
 				for (const listen of this.#socket.raw.data.subscriptions.difference(
-					newSubscriptions
+					newSubscriptions,
 				)) {
 					const streams = getSubscribers(listen);
 					streams.delete(this);
@@ -221,7 +221,7 @@ class Stream {
 
 				// Subscribe to new subscriptions
 				for (const listen of newSubscriptions.difference(
-					this.#socket.raw.data.subscriptions
+					this.#socket.raw.data.subscriptions,
 				)) {
 					const streams = getSubscribers(listen);
 					streams.add(this);
@@ -247,126 +247,126 @@ class Stream {
 }
 
 export const route = (ctx: Context<SessionEnv, string, Input>) =>
-({
-	async onOpen(_event, ws) {
-		// Check if the websocket is properly initialized
-		if (!isWSSocket(ws)) {
-			ws.send(
-				JSON.stringify({
-					success: false,
-					message: "Internal server error",
-					code: 106
-				})
-			);
-			ws.close();
-			return;
-		}
+	({
+		async onOpen(_event, ws) {
+			// Check if the websocket is properly initialized
+			if (!isWSSocket(ws)) {
+				ws.send(
+					JSON.stringify({
+						success: false,
+						message: "Internal server error",
+						code: 106,
+					}),
+				);
+				ws.close();
+				return;
+			}
 
-		const payload = ctx.var.session;
+			const payload = ctx.var.session;
 
-		// Check if the user doesn't have a public key
-		if ((await getUserPublicKeyByUsername(payload.username)) === null) {
-			ws.send(
-				JSON.stringify({
-					success: false,
-					message: "Unknown public key",
-					code: 107
-				})
-			);
-			ws.close();
-			return;
-		}
+			// Check if the user doesn't have a public key
+			if ((await getUserPublicKeyByUsername(payload.username)) === null) {
+				ws.send(
+					JSON.stringify({
+						success: false,
+						message: "Unknown public key",
+						code: 107,
+					}),
+				);
+				ws.close();
+				return;
+			}
 
-		// Get the waterfall for the user
-		let waterfall = clientStreams.get(payload.username);
+			// Get the waterfall for the user
+			let waterfall = clientStreams.get(payload.username);
 
-		if (!(waterfall instanceof Waterfall)) {
-			waterfall = new Waterfall(payload.username);
-		}
+			if (!(waterfall instanceof Waterfall)) {
+				waterfall = new Waterfall(payload.username);
+			}
 
-		// Initialize the websocket stream to the waterfall
-		const stream = waterfall.add(Snowflake.generate(), ws, payload);
+			// Initialize the websocket stream to the waterfall
+			const stream = waterfall.add(Snowflake.generate(), ws, payload);
 
-		if (stream === null) {
-			ws.send(
-				JSON.stringify({
-					success: false,
-					message: "Internal server error",
-					code: 106
-				})
-			);
-			ws.close();
-			return;
-		}
+			if (stream === null) {
+				ws.send(
+					JSON.stringify({
+						success: false,
+						message: "Internal server error",
+						code: 106,
+					}),
+				);
+				ws.close();
+				return;
+			}
 
-		clientStreams.set(payload.id, waterfall);
+			clientStreams.set(payload.id, waterfall);
 
-		// Send connect message
-		stream.send({
-			event: "connect",
-			opened: true
-		});
-	},
-	async onMessage(event, ws) {
-		// Check if the websocket is properly initialized
-		if (!isWSSocket(ws)) {
-			ws.send(
-				JSON.stringify({
-					success: false,
-					message: "Internal server error",
-					code: 106
-				})
-			);
-			ws.close();
-			return;
-		}
+			// Send connect message
+			stream.send({
+				event: "connect",
+				opened: true,
+			});
+		},
+		async onMessage(event, ws) {
+			// Check if the websocket is properly initialized
+			if (!isWSSocket(ws)) {
+				ws.send(
+					JSON.stringify({
+						success: false,
+						message: "Internal server error",
+						code: 106,
+					}),
+				);
+				ws.close();
+				return;
+			}
 
-		// Get the waterfall for the user
-		const payload = ctx.var.session;
-		const waterfall = clientStreams.get(payload.username);
-		if (waterfall === undefined) return;
+			// Get the waterfall for the user
+			const payload = ctx.var.session;
+			const waterfall = clientStreams.get(payload.username);
+			if (waterfall === undefined) return;
 
-		// Decrypt the message
-		let buffer: Uint8Array;
+			// Decrypt the message
+			let buffer: Uint8Array;
 
-		if (event.data instanceof ArrayBuffer) {
-			buffer = new Uint8Array(event.data);
-		} else if (event.data instanceof Blob) {
-			buffer = new Uint8Array(await event.data.arrayBuffer());
-		} else {
-			return;
-		}
+			if (event.data instanceof ArrayBuffer) {
+				buffer = new Uint8Array(event.data);
+			} else if (event.data instanceof Blob) {
+				buffer = new Uint8Array(await event.data.arrayBuffer());
+			} else {
+				return;
+			}
 
-		const data = TruffleByte.decode(buffer);
-		if (!isObject(data)) return;
+			const data = TruffleByte.decode(buffer);
+			if (!isObject(data)) return;
 
-		// Emit message event
-		waterfall.onMessage(data, ws);
-	},
-	onClose: (_event, ws) => {
-		// Check if the websocket is properly initialized
-		if (!isWSSocket(ws)) {
-			ws.send(
-				JSON.stringify({
-					success: false,
-					message: "Internal server error",
-					code: 106
-				})
-			);
-			ws.close();
-			return;
-		}
+			// Emit message event
+			waterfall.onMessage(data, ws);
+		},
+		onClose: (_event, ws) => {
+			// Check if the websocket is properly initialized
+			if (!isWSSocket(ws)) {
+				ws.send(
+					JSON.stringify({
+						success: false,
+						message: "Internal server error",
+						code: 106,
+					}),
+				);
+				ws.close();
+				return;
+			}
 
-		// Get the waterfall for the user
-		const payload = ctx.var.session;
-		const waterfall = clientStreams.get(payload.username);
-		if (waterfall === undefined) return;
+			// Get the waterfall for the user
+			const payload = ctx.var.session;
+			const waterfall = clientStreams.get(payload.username);
+			if (waterfall === undefined) return;
 
-		// Emit close event
-		waterfall.onClose(ws);
-	},
-	onError: (error) => console.error("Websocket error", error)
-} as WSEvents<ServerWebSocket<WSData>>);
+			// Emit close event
+			waterfall.onClose(ws);
+		},
+		onError: (error) => console.error("Websocket error", error),
+	}) as WSEvents<ServerWebSocket<WSData>>;
 
 /**
  * @returns The stream for the given user id, or null if it either doesn't exist or isn't properly initialized

@@ -5,13 +5,9 @@ import crypto from "node:crypto";
 import { createMiddleware } from "hono/factory";
 import loginRoute from "./login.tsx";
 import { type SessionEnv, sessionToken } from "./session.ts";
-import { createOrCompareUserProfile } from "../../lib/db/query.ts";
+import { createOrCompareUserProfile } from "../../lib/db/queries/users.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import {
-	ErrorSchema,
-	PasswordSchema,
-	UsernameSchema
-} from "../../lib/validation.ts";
+import { ErrorSchema, PasswordSchema, UsernameSchema } from "../../lib/validation.ts";
 
 export const router = new OpenAPIHono<SessionEnv>();
 
@@ -32,11 +28,11 @@ const limiter = rateLimiter({
 			{
 				success: false,
 				message: options.message,
-				code: 502
+				code: 502,
 			},
-			429
+			429,
 		);
-	}
+	},
 });
 
 const limiterMiddleware = createMiddleware((ctx, next) => limiter(ctx, next));
@@ -53,34 +49,31 @@ router.openapi(
 				content: {
 					"application/json": {
 						schema: z.object({
-							verifier: z.string()
-						})
-					}
-				}
-			}
+							verifier: z.string(),
+						}),
+					},
+				},
+			},
 		},
 		responses: {
 			200: {
-				description: "Success message"
+				description: "Success message",
 			},
 			400: {
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
+						schema: ErrorSchema,
+					},
 				},
-				description: "Returns an error"
-			}
-		}
+				description: "Returns an error",
+			},
+		},
 	}),
 	async (ctx) => {
 		const { verifier } = ctx.req.valid("json");
 
 		// Hash verifier
-		const challenge = crypto
-			.createHash("sha256")
-			.update(verifier)
-			.digest("base64url");
+		const challenge = crypto.createHash("sha256").update(verifier).digest("base64url");
 
 		// Get the token
 		const token = accessUsers.get(challenge);
@@ -90,9 +83,9 @@ router.openapi(
 				{
 					success: false,
 					message: "Invalid verifier",
-					code: 501
+					code: 501,
 				},
-				400
+				400,
 			);
 
 		// Delete the challenge
@@ -101,11 +94,11 @@ router.openapi(
 		return ctx.json(
 			{
 				success: true,
-				token: token
+				token: token,
 			},
-			200
+			200,
 		);
-	}
+	},
 );
 
 router.openapi(
@@ -120,33 +113,33 @@ router.openapi(
 						schema: z.object({
 							username: UsernameSchema,
 							password: PasswordSchema,
-							challenge: z.string()
-						})
-					}
-				}
-			}
+							challenge: z.string(),
+						}),
+					},
+				},
+			},
 		},
 		responses: {
 			200: {
-				description: "Success message"
+				description: "Success message",
 			},
 			400: {
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
+						schema: ErrorSchema,
+					},
 				},
-				description: "Returns an error"
+				description: "Returns an error",
 			},
 			500: {
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
+						schema: ErrorSchema,
+					},
 				},
-				description: "Something went wrong internally"
-			}
-		}
+				description: "Something went wrong internally",
+			},
+		},
 	}),
 	async (ctx) => {
 		const { username, password, challenge } = ctx.req.valid("json");
@@ -160,9 +153,9 @@ router.openapi(
 				{
 					success: false,
 					message: "Invalid credentials",
-					code: 501
+					code: 501,
 				},
-				400
+				400,
 			);
 
 		// Store access token
@@ -173,9 +166,9 @@ router.openapi(
 
 		return ctx.json(
 			{
-				success: true
+				success: true,
 			},
-			200
+			200,
 		);
-	}
+	},
 );

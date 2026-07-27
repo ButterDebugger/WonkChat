@@ -1,11 +1,8 @@
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
-import { getRoomById, getUserProfileByUsername } from "../../../lib/db/query.ts";
+import { getUserProfileByUsername } from "../../../lib/db/queries/users.ts";
+import { getRoomById } from "../../../lib/db/queries/rooms.ts";
 import { createRoute, z, OpenAPIHono } from "@hono/zod-openapi";
-import {
-	ErrorSchema,
-	HttpSessionHeadersSchema,
-	SnowflakeSchema
-} from "../../../lib/validation.ts";
+import { ErrorSchema, HttpSessionHeadersSchema, SnowflakeSchema } from "../../../lib/validation.ts";
 
 const router = new OpenAPIHono<SessionEnv>();
 
@@ -17,22 +14,22 @@ router.openapi(
 		request: {
 			headers: HttpSessionHeadersSchema,
 			params: z.object({
-				roomid: SnowflakeSchema
-			})
+				roomid: SnowflakeSchema,
+			}),
 		},
 		responses: {
 			200: {
-				description: "Success message"
+				description: "Success message",
 			},
 			400: {
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
+						schema: ErrorSchema,
+					},
 				},
-				description: "Returns an error"
-			}
-		}
+				description: "Returns an error",
+			},
+		},
 	}),
 	async (ctx) => {
 		const tokenPayload = ctx.var.session;
@@ -44,9 +41,9 @@ router.openapi(
 				{
 					success: false,
 					message: "User session does not exist",
-					code: 507
+					code: 507,
 				},
-				400
+				400,
 			);
 
 		if (!userSession)
@@ -54,20 +51,19 @@ router.openapi(
 				{
 					success: false,
 					message: "User does not exist",
-					code: 401
+					code: 401,
 				},
-				400
+				400,
 			);
 
 		if (!userSession.rooms.has(roomid))
 			return ctx.json(
 				{
 					success: false,
-					message:
-						"Cannot query info about a room that you are not in",
-					code: 307
+					message: "Cannot query info about a room that you are not in",
+					code: 307,
 				},
-				400
+				400,
 			);
 
 		const room = await getRoomById(roomid);
@@ -77,9 +73,9 @@ router.openapi(
 				{
 					success: false,
 					message: "Room doesn't exist",
-					code: 303
+					code: 303,
 				},
-				400
+				400,
 			);
 
 		return ctx.json(
@@ -89,11 +85,11 @@ router.openapi(
 				description: room.description,
 				key: await room.armoredPublicKey,
 				members: Array.from(room.members),
-				success: true
+				success: true,
 			},
-			200
+			200,
 		);
-	}
+	},
 );
 
 export default router;

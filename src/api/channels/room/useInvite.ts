@@ -1,10 +1,7 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
-import { addUserToRoom, getRoomByInviteCode } from "../../../lib/db/query.ts";
-import {
-	ErrorSchema,
-	HttpSessionHeadersSchema,
-} from "../../../lib/validation.ts";
+import { addUserToRoom, getRoomByInviteCode } from "../../../lib/db/queries/rooms.ts";
+import { ErrorSchema, HttpSessionHeadersSchema } from "../../../lib/validation.ts";
 import { getWaterfall } from "../../../sockets.ts";
 
 const router = new OpenAPIHono<SessionEnv>();
@@ -20,25 +17,25 @@ router.openapi(
 				content: {
 					"application/json": {
 						schema: z.object({
-							code: z.string()
-						})
-					}
-				}
-			}
+							code: z.string(),
+						}),
+					},
+				},
+			},
 		},
 		responses: {
 			200: {
-				description: "Success message"
+				description: "Success message",
 			},
 			400: {
 				content: {
 					"application/json": {
-						schema: ErrorSchema
-					}
+						schema: ErrorSchema,
+					},
 				},
-				description: "Returns an error"
-			}
-		}
+				description: "Returns an error",
+			},
+		},
 	}),
 	async (ctx) => {
 		const tokenPayload = ctx.var.session;
@@ -51,9 +48,9 @@ router.openapi(
 				{
 					success: false,
 					message: "Invalid invite code",
-					code: 309
+					code: 309,
 				},
-				400
+				400,
 			);
 
 		const success = await addUserToRoom(tokenPayload.username, room.id);
@@ -63,9 +60,9 @@ router.openapi(
 				{
 					success: false,
 					message: "Internal server error",
-					code: 106
+					code: 106,
 				},
-				500
+				500,
 			);
 
 		for (const userId of room.members) {
@@ -78,7 +75,7 @@ router.openapi(
 				event: "roomMemberJoin",
 				roomId: room.id,
 				username: tokenPayload.username,
-				timestamp: Date.now()
+				timestamp: Date.now(),
 			});
 		}
 
@@ -89,11 +86,11 @@ router.openapi(
 				description: room.description,
 				key: await room.armoredPublicKey,
 				members: Array.from(room.members),
-				success: true
+				success: true,
 			},
-			200
+			200,
 		);
-	}
+	},
 );
 
 export default router;
