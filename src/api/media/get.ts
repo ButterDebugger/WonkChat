@@ -1,9 +1,9 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { SessionEnv } from "../auth/session.ts";
+import type { SessionEnv } from "../auth/session.ts";
 import { stream } from "hono/streaming";
 import { basename } from "node:path";
 import { s3 } from "bun";
-import { getMediaById } from "../lib/db/query.ts";
+import { getMediaById } from "../../lib/db/query.ts";
 
 export const router = new OpenAPIHono<SessionEnv>();
 

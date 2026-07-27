@@ -1,4 +1,4 @@
-import type { SessionEnv } from "./auth/session.ts";
+import type { SessionEnv } from "./api/auth/session.ts";
 import { getUserPublicKeyByUsername, getUserProfileByUsername, setUserStatus } from "./lib/db/query.ts";
 import * as openpgp from "openpgp";
 import type { TokenPayload, WSData } from "./types.ts";

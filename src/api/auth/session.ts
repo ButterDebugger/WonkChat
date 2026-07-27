@@ -2,9 +2,9 @@ import crypto from "node:crypto";
 import type { Context } from "hono";
 import { createMiddleware } from "hono/factory";
 import { verify, sign } from "hono/jwt";
-import { token_secret } from "../lib/config.ts";
-import type { TokenPayload } from "../types.ts";
-import { Color } from "../lib/structures.ts";
+import { token_secret } from "../../lib/config.ts";
+import type { TokenPayload } from "../../types.ts";
+import { Color } from "../../lib/structures.ts";
 
 /** Time in seconds before a session token expires */
 const sessionExpiration = 60 * 60 * 24 * 14; // 14 days

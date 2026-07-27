@@ -1,36 +1,25 @@
-import { getWaterfall } from "../../sockets.ts";
+import { getWaterfall } from "../../../sockets.ts";
 import { authMiddleware, type SessionEnv } from "../../auth/session.ts";
-import { getUserProfileByUsername, getRoomById } from "../../lib/db/query.ts";
-import * as openpgp from "openpgp";
-import { isMessage, type Message } from "../../types.ts";
+import { getUserProfileByUsername, removeUserFromRoom, getRoomById } from "../../../lib/db/query.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
 	ErrorSchema,
 	HttpSessionHeadersSchema,
 	SnowflakeSchema
-} from "../../lib/validation.ts";
+} from "../../../lib/validation.ts";
 
 const router = new OpenAPIHono<SessionEnv>();
 
 router.openapi(
 	createRoute({
 		method: "post",
-		path: "/:roomid/message",
+		path: "/:roomid/leave",
 		middleware: [authMiddleware] as const,
 		request: {
 			headers: HttpSessionHeadersSchema,
 			params: z.object({
 				roomid: SnowflakeSchema
-			}),
-			body: {
-				content: {
-					"application/json": {
-						schema: z.object({
-							message: z.string()
-						})
-					}
-				}
-			}
+			})
 		},
 		responses: {
 			200: {
@@ -43,6 +32,14 @@ router.openapi(
 					}
 				},
 				description: "Returns an error"
+			},
+			500: {
+				content: {
+					"application/json": {
+						schema: ErrorSchema
+					}
+				},
+				description: "Something went wrong internally"
 			}
 		}
 	}),
@@ -75,9 +72,8 @@ router.openapi(
 			return ctx.json(
 				{
 					success: false,
-					message:
-						"Cannot send a message in a room that you are not in",
-					code: 304
+					message: "Cannot leave a room that you are already not in",
+					code: 306
 				},
 				400
 			);
@@ -94,76 +90,31 @@ router.openapi(
 				400
 			);
 
-		const { message } = ctx.req.valid("json");
+		const success = await removeUserFromRoom(
+			tokenPayload.username,
+			roomid
+		);
 
-		let decrypted: Message;
-		try {
-			const { data } = await openpgp.decrypt({
-				message: await openpgp.readMessage({ armoredMessage: message }),
-				decryptionKeys: await openpgp.readPrivateKey({
-					binaryKey: room.privateKey
-				})
-			});
-
-			if (typeof data !== "string" || !data.startsWith("{"))
-				return ctx.json(
-					{
-						success: false,
-						message: "Invalid body",
-						code: 101
-					},
-					400
-				);
-
-			decrypted = JSON.parse(data);
-		} catch (_err) {
+		if (success === null)
 			return ctx.json(
 				{
 					success: false,
-					message: "Invalid encrypted body",
-					code: 104
+					message: "Internal server error",
+					code: 106
 				},
-				400
-			);
-		}
-
-		if (!isMessage(decrypted))
-			return ctx.json(
-				{
-					success: false,
-					message: "Invalid encrypted body",
-					code: 104
-				},
-				400
-			);
-
-		const { content, attachments } = decrypted;
-
-		if (content.length > 1000 || content.replace(/\s/g, "").length === 0)
-			return ctx.json(
-				{
-					success: false,
-					message: "Invalid message content",
-					code: 201
-				},
-				400
+				500
 			);
 
 		for (const userId of room.members) {
+			if (userId === tokenPayload.id) continue;
+
 			const waterfall = getWaterfall(userId);
 			if (waterfall === null) continue;
 
 			waterfall.send({
-				event: "message",
-				author: {
-					id: userSession.id,
-					username: userSession.username,
-					color: userSession.color,
-					offline: !userSession.online // TODO: Change this to a online field
-				},
+				event: "roomMemberLeave",
 				roomId: roomid,
-				content: content,
-				attachments: attachments,
+				username: tokenPayload.username,
 				timestamp: Date.now()
 			});
 		}

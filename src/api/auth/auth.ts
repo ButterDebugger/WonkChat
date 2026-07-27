@@ -5,13 +5,13 @@ import crypto from "node:crypto";
 import { createMiddleware } from "hono/factory";
 import loginRoute from "./login.tsx";
 import { type SessionEnv, sessionToken } from "./session.ts";
-import { createOrCompareUserProfile } from "../lib/db/query.ts";
+import { createOrCompareUserProfile } from "../../lib/db/query.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
 	ErrorSchema,
 	PasswordSchema,
 	UsernameSchema
-} from "../lib/validation.ts";
+} from "../../lib/validation.ts";
 
 export const router = new OpenAPIHono<SessionEnv>();
 

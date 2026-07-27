@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { Room, type UserProfile } from "../../types.ts";
 import { db } from "./database.ts";
 import { Color, InviteCode, Snowflake } from "../structures.ts";
-import { generateColor } from "../../auth/session.ts";
+import { generateColor } from "../../api/auth/session.ts";
 
 // Interface functions:
 

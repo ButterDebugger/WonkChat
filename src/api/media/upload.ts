@@ -1,14 +1,14 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { authMiddleware, SessionEnv } from "../auth/session.ts";
-import { ErrorSchema, HttpSessionHeadersSchema } from "../lib/validation.ts";
-import { maxChunkSize, maxUploadAge } from "../lib/config.ts";
+import { ErrorSchema, HttpSessionHeadersSchema } from "../../lib/validation.ts";
+import { maxChunkSize, maxUploadAge } from "../../lib/config.ts";
 import crypto from "node:crypto";
 import { join } from "node:path";
 import { mkdtemp, rmdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { s3 } from "bun";
-import { addMediaEntry } from "../lib/db/query.ts";
-import { Snowflake } from "../lib/structures.ts";
+import { addMediaEntry } from "../../lib/db/query.ts";
+import { Snowflake } from "../../lib/structures.ts";
 
 export const router = new OpenAPIHono<SessionEnv>();
 

@@ -1,35 +1,11 @@
 {
-  "compilerOptions": {
-    /* Language and Environment */
-    "lib": [
-      "ESNext"
-    ],
-    "target": "ESNext",
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
-    /* Modules */
-    "module": "preserve",
-    "moduleResolution": "Bundler",
-    "moduleDetection": "force",
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
-    /* Emit */
-    "sourceMap": true,
-    "outDir": "dist",
-    /* Interop Constraints */
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    /* Type Checking */
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    /* Completeness */
-    "skipLibCheck": true,
-  },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules/*",
-    "public/*"
-  ]
+	"files": [],
+	"references": [
+		{
+			"path": "./tsconfig.app.json"
+		},
+		{
+			"path": "./tsconfig.bun.json"
+		}
+	]
 }

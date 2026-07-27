@@ -1,7 +1,7 @@
 import { authMiddleware, type SessionEnv } from "../auth/session.ts";
-import { getUserProfileByUsername, getRoomById } from "../lib/db/query.ts";
+import { getUserProfileByUsername, getRoomById } from "../../lib/db/query.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { ErrorSchema, HttpSessionHeadersSchema } from "../lib/validation.ts";
+import { ErrorSchema, HttpSessionHeadersSchema } from "../../lib/validation.ts";
 
 export const router = new OpenAPIHono<SessionEnv>();
 
