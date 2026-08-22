@@ -36,14 +36,12 @@ export class Room {
 		/** Set of user ids */
 		public members: Set<string>,
 		public privateKey: Uint8Array,
-		public publicKey: Uint8Array
-	) { }
+		public publicKey: Uint8Array,
+	) {}
 
 	/** @returns The public key in armored format */
 	get armoredPublicKey() {
-		return openpgp
-			.readKey({ binaryKey: this.publicKey })
-			.then((key) => key.armor());
+		return openpgp.readKey({ binaryKey: this.publicKey }).then((key) => key.armor());
 	}
 }
 export interface Message {
@@ -54,8 +52,7 @@ export function isMessage(value: Message): value is Message {
 	if (typeof value !== "object") return false;
 	if (typeof value?.content !== "string") return false;
 	if (!Array.isArray(value?.attachments)) return false;
-	if (!value?.attachments.every((value) => typeof value === "string"))
-		return false;
+	if (!value?.attachments.every((value) => typeof value === "string")) return false;
 	return true;
 }
 export interface Upload {

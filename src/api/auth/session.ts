@@ -16,34 +16,30 @@ export type SessionEnv = {
 	};
 };
 
-export const authMiddleware = createMiddleware<SessionEnv>(
-	async (ctx, next) => {
-		const payload = await authenticateRequest(ctx);
+export const authMiddleware = createMiddleware<SessionEnv>(async (ctx, next) => {
+	const payload = await authenticateRequest(ctx);
 
-		if (payload === null) {
-			// TODO: respond with a different error if the session token has expired
-			return ctx.json(
-				{
-					success: false,
-					message: "Invalid credentials",
-					code: 501
-				},
-				400
-			);
-		}
-
-		ctx.set("session", payload);
-		await next();
+	if (payload === null) {
+		// TODO: respond with a different error if the session token has expired
+		return ctx.json(
+			{
+				success: false,
+				message: "Invalid credentials",
+				code: 501,
+			},
+			400,
+		);
 	}
-);
+
+	ctx.set("session", payload);
+	await next();
+});
 
 /**
  * Authenticates a user's request
  * @returns Token payload
  */
-export async function authenticateRequest(
-	ctx: Context
-): Promise<TokenPayload | null> {
+export async function authenticateRequest(ctx: Context): Promise<TokenPayload | null> {
 	const authHeader = ctx.req.header("authorization");
 	const wsProtocol = ctx.req.header("sec-websocket-protocol");
 
@@ -88,8 +84,7 @@ async function verifyToken(token: string): Promise<TokenPayload | null> {
 	}
 
 	// Check if token is too old
-	if (user.iat + sessionExpiration < Math.floor(Date.now() / 1000))
-		return null;
+	if (user.iat + sessionExpiration < Math.floor(Date.now() / 1000)) return null;
 
 	// Check if token version is correct
 	if (user.version !== tokenVersion) return null;
@@ -99,14 +94,9 @@ async function verifyToken(token: string): Promise<TokenPayload | null> {
 }
 
 export function generateColor(): number {
-	const randomInt = (min = 0, max = 1) =>
-		Math.floor(Math.random() * (max - min + 1) + min);
+	const randomInt = (min = 0, max = 1) => Math.floor(Math.random() * (max - min + 1) + min);
 
-	const color: [number, number, number] = [
-		255,
-		randomInt(36, 255),
-		randomInt(36, 162)
-	];
+	const color: [number, number, number] = [255, randomInt(36, 255), randomInt(36, 162)];
 
 	for (let i = color.length - 1; i > 0; i--) {
 		// Shuffle rgb color array
@@ -120,7 +110,10 @@ export function generateColor(): number {
 	return Color.RGBToInt(color[0], color[1], color[2]);
 }
 
-export async function sessionToken(id: string, username: string): Promise<{
+export async function sessionToken(
+	id: string,
+	username: string,
+): Promise<{
 	payload: TokenPayload;
 	token: string;
 }> {
@@ -129,11 +122,11 @@ export async function sessionToken(id: string, username: string): Promise<{
 		username,
 		jti: crypto.randomUUID(),
 		iat: Math.floor(Date.now() / 1000),
-		version: tokenVersion
+		version: tokenVersion,
 	};
 
 	return {
 		payload: payload,
-		token: await sign(payload, token_secret) // Create token
+		token: await sign(payload, token_secret), // Create token
 	};
 }

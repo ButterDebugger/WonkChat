@@ -14,9 +14,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn("avatar", "blob")
 		.addColumn("bio", "text", (col) => col.notNull().defaultTo(""))
 		.addColumn("password", "text", (col) => col.notNull())
-		.addColumn("color", "binary(3)", (col) =>
-			col.notNull().defaultTo(0xffffff)
-		)
+		.addColumn("color", "binary(3)", (col) => col.notNull().defaultTo(0xffffff))
 		.addColumn("rooms", "jsonb", (col) => col.notNull().defaultTo("[]"))
 		.addColumn("online", "boolean", (col) => col.notNull().defaultTo(false))
 		.addColumn("publicKey", "blob")
@@ -35,7 +33,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 				color: Color.hexToInt(user.color),
 				rooms: JSON.stringify(user.rooms),
 				online: user.online,
-				publicKey: user.publicKey
+				publicKey: user.publicKey,
 			})
 			.executeTakeFirst();
 	}

@@ -6,6 +6,8 @@ export const token_secret: SignatureKey =
 	Bun.env.TOKEN_SECRET ?? crypto.randomBytes(64).toString("hex");
 export const namespace: string = <string>Bun.env.NAMESPACE;
 export const homeserver_url = Bun.env.HOMESERVER_URL;
+export const isDev = Bun.env.NODE_ENV === "development";
+export const host = Bun.env.HOST;
 
 if (!namespace) throw new Error("NAMESPACE is not set");
 

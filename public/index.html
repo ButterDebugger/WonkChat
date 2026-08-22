@@ -2,12 +2,30 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<link rel="icon" type="image/svg+xml" href="/vite.svg" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.ico" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Vite App</title>
+		<meta name="description" content="Just another chat app for wonky fellows to chat in." />
+		<meta name="theme-color" content="#5841f7" />
+		<meta property="og:image" content="/icon.png" />
+		<meta property="og:title" content="Wonk Chat: Home" />
+		<meta property="og:site_name" content="Wonk Chat" />
+		<meta property="og:type" content="website" />
+		<title>Wonk Chat</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+			rel="stylesheet"
+		/>
+		<link href="/styles/global.css" rel="stylesheet" />
 	</head>
-	<body>
-		<div id="root"></div>
+	<body class="bg-wackground dark:bg-wackground-dark text-wext dark:text-wext-dark">
+		<div id="root" class="h-full min-h-screen"></div>
 		<script type="module" src="/main.tsx"></script>
 	</body>
 </html>

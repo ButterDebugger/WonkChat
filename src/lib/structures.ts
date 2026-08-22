@@ -29,14 +29,14 @@ export const Snowflake = {
 		const int = base36ToInt(id);
 		const bigTimestamp = (int >> 22n) + epoch;
 		return Number(bigTimestamp);
-	}
+	},
 };
 export const Fingerprint = {
 	generate: (key: BinaryLike) => {
 		const hash = crypto.createHash("sha256").update(key).digest("hex");
 		const int = BigInt(`0x${hash}`);
 		return intToBase36(int);
-	}
+	},
 };
 export const Color = {
 	intToHex: (int: number) => {
@@ -63,13 +63,13 @@ export const Color = {
 	},
 	RGBToInt: (r: number, g: number, b: number): number => {
 		return (r << 16) | (g << 8) | b;
-	}
+	},
 };
 export const InviteCode = {
 	generate: () => {
 		return intToBase36(BigInt(crypto.randomBytes(8).readBigUInt64BE(0)));
-	}
-}
+	},
+};
 
 export function intToBase36(number: bigint): string {
 	const baseChars = "0123456789abcdefghijklmnopqrstuvwxyz";

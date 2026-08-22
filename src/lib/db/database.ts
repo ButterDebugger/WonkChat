@@ -6,14 +6,10 @@ import {
 	Kysely,
 	Migrator,
 	ParseJSONResultsPlugin,
-	type Generated
+	type Generated,
 } from "kysely";
 import { LibsqlDialect } from "@libsql/kysely-libsql";
-import {
-	database_auth_token,
-	database_sync_url,
-	database_url
-} from "../config.ts";
+import { database_auth_token, database_sync_url, database_url } from "../config.ts";
 
 // Setup database client
 export const db = new Kysely<Database>({
@@ -21,9 +17,9 @@ export const db = new Kysely<Database>({
 		url: database_url,
 		syncUrl: database_sync_url,
 		authToken: database_auth_token,
-		syncInterval: 60 // Sync every minute
+		syncInterval: 60, // Sync every minute
 	}),
-	plugins: [new ParseJSONResultsPlugin()]
+	plugins: [new ParseJSONResultsPlugin()],
 });
 
 // Migrate database to the latest version
@@ -32,8 +28,8 @@ const migrator = new Migrator({
 	provider: new FileMigrationProvider({
 		fs,
 		path,
-		migrationFolder: path.join(__dirname, "./migrations")
-	})
+		migrationFolder: path.join(__dirname, "./migrations"),
+	}),
 });
 
 const { error, results } = await migrator.migrateToLatest();
@@ -46,14 +42,10 @@ if (error || typeof results === "undefined") {
 for (const it of results) {
 	switch (it.status) {
 		case "Success":
-			console.log(
-				`Migration "${it.migrationName}" was executed successfully`
-			);
+			console.log(`Migration "${it.migrationName}" was executed successfully`);
 			break;
 		case "NotExecuted":
-			console.log(
-				`"${it.migrationName}" was skipped because it was already executed`
-			);
+			console.log(`"${it.migrationName}" was skipped because it was already executed`);
 			break;
 		case "Error":
 			console.error(`Failed to execute migration "${it.migrationName}"`);

@@ -2,23 +2,23 @@
 
 ## Getting Started
 
-* [💖 About Wonk Chat](README.md)
-* [🔗 Official Links](getting-started/official-links.md)
+- [💖 About Wonk Chat](README.md)
+- [🔗 Official Links](getting-started/official-links.md)
 
 ## Objects
 
-* [Error Codes](objects/codes.md)
-* [Identifiers](objects/identifiers.md)
+- [Error Codes](objects/codes.md)
+- [Identifiers](objects/identifiers.md)
 
 ## Routes
 
-* ```yaml
+- ```yaml
   type: builtin:openapi
   props:
-    models: true
+      models: true
   dependencies:
-    spec:
-      ref:
-        kind: openapi
-        spec: wonk-api-spec
+      spec:
+          ref:
+              kind: openapi
+              spec: wonk-api-spec
   ```

@@ -13,16 +13,20 @@ import { invalidateOldUploads } from "./media/upload.ts";
 import { createBunWebSocket } from "hono/bun";
 import type { ServerWebSocket } from "bun";
 import type { WSData } from "../types.ts";
+import { prettyJSON } from "hono/pretty-json";
 
 export const router = new OpenAPIHono<SessionEnv>();
 export const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket<WSData>>();
+
+// Add middleware
+router.use(prettyJSON());
 
 // Add info route
 router.get("/", (ctx) => {
 	return ctx.json(
 		{
 			namespace: namespace,
-			openapi: "/doc",
+			openapi: "/openapi.json",
 			scalar: "/scalar",
 		},
 		200,
@@ -65,7 +69,7 @@ router.route("/auth", authRoute);
 router.route("/room", roomRoute);
 
 // User routes
-router.route("/", usersRoute);
+router.route("/user", usersRoute);
 
 // Me routes
 router.route("/me", meRoute);
@@ -75,7 +79,7 @@ router.route("/media", mediaRoute);
 invalidateOldUploads();
 
 // Unknown endpoint handler
-router.all((ctx) => {
+router.all("*", (ctx) => {
 	return ctx.json(
 		{
 			success: false,

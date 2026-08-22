@@ -1,12 +1,8 @@
 import { type Kysely } from "kysely";
-import { Database } from "../database.ts";
 
-export async function up(db: Kysely<Database>): Promise<void> {
+export async function up(db: Kysely<any>): Promise<void> {
 	// Drop the createdAt column from roomInvites
-	await db.schema
-		.alterTable("roomInvites")
-		.dropColumn("createdAt")
-		.execute();
+	await db.schema.alterTable("roomInvites").dropColumn("createdAt").execute();
 
 	// Add a lastOnline column to users
 	await db.schema
@@ -19,7 +15,7 @@ export async function up(db: Kysely<Database>): Promise<void> {
 		.updateTable("users")
 		.where("lastOnline", "is", null)
 		.set({
-			lastOnline: new Date().toISOString()
+			lastOnline: new Date().toISOString(),
 		})
 		.execute();
 }

@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+	--font-title: "Montserrat", sans-serif;
+	--font-subtitle: "Poppins", sans-serif;
+
+	/* Main colors */
+	--color-primary: #5841f7;
+	--color-primary-muted: #7c7dff;
+	--color-secondary: #f74185;
+	--color-warning: #d93025;
+	--color-valid: #35c76d;
+
+	/* Text colors */
+	--color-wext: #0e0d11;
+	--color-wext-dark: #ffffff;
+	--color-wext-muted: #474455;
+	--color-wext-muted-dark: #bbbbc3;
+
+	/* Background colors */
+	--color-wackground: hsl(250, 75%, 91%);
+	--color-wackground-dark: hsl(250, 25%, 9%);
+
+	/* Container colors */
+	--color-wontainer: hsla(250, 60%, 83%, 60%);
+	--color-wontainer-dark: hsla(250, 10%, 17%, 60%);
+
+	--color-wontainer-hover: hsla(250, 67%, 73%, 60%);
+	--color-wontainer-hover-dark: hsla(250, 17%, 27%, 60%);
+
+	--color-wontainer-active: hsla(250, 74%, 68%, 60%);
+	--color-wontainer-active-dark: hsla(250, 24%, 32%, 60%);
+
+	/* Secondary container colors */
+	--color-wontainer-secondary: hsla(250, 77%, 94%, 60%);
+	--color-wontainer-secondary-dark: hsla(250, 27%, 6%, 60%);
+
+	--color-wontainer-secondary-hover: hsla(250, 75%, 91%, 60%);
+	--color-wontainer-secondary-hover-dark: hsla(250, 25%, 9%, 60%);
+
+	--color-wontainer-secondary-active: hsla(250, 81%, 87%, 60%);
+	--color-wontainer-secondary-active-dark: hsla(250, 31%, 13%, 60%);
+
+	/* Border colors */
+	--color-worder: hsla(250, 75%, 2%, 20%);
+	--color-worder-dark: hsla(250, 75%, 98%, 20%);
+
+	--color-worder-hover: var(--color-primary-muted);
+}

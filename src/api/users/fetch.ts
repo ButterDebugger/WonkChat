@@ -8,7 +8,7 @@ const router = new OpenAPIHono<SessionEnv>();
 router.openapi(
 	createRoute({
 		method: "get",
-		path: "/user/:id/fetch",
+		path: "/:id/fetch",
 		middleware: [authMiddleware] as const,
 		request: {
 			headers: HttpSessionHeadersSchema,

@@ -3,7 +3,7 @@ import { getConnInfo } from "hono/bun";
 import { rateLimiter } from "hono-rate-limiter";
 import crypto from "node:crypto";
 import { createMiddleware } from "hono/factory";
-import loginRoute from "./login.tsx";
+import loginRoute from "./login.ts";
 import { type SessionEnv, sessionToken } from "./session.ts";
 import { createOrCompareUserProfile } from "../../lib/db/queries/users.ts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";

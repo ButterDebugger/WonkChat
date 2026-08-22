@@ -1,13 +1,16 @@
 {
-    "cSpell.words": [
-        "debutter",
-        "homeserver",
-        "kysely",
-        "libsql",
-        "openpgp",
-        "roomid",
-        "roomname",
-        "trufflebyte"
-    ],
-    "deno.enable": false
+	"cSpell.words": [
+		"debutter",
+		"homeserver",
+		"kysely",
+		"libsql",
+		"openpgp",
+		"roomid",
+		"roomname",
+		"trufflebyte"
+	],
+	"deno.enable": false,
+	"files.associations": {
+		"*.css": "tailwindcss"
+	}
 }

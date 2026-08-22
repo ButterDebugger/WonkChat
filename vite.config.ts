@@ -1,6 +1,7 @@
 import react from "@vitejs/plugin-react";
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
 	build: {
@@ -11,5 +12,5 @@ export default defineConfig({
 	publicDir: resolve(process.cwd(), "static"),
 	root: resolve(process.cwd(), "public"),
 	appType: "spa",
-	plugins: [react()],
+	plugins: [react(), tailwindcss()],
 });
