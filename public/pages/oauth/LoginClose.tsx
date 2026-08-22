@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
-import Button from "../components/Button";
-import Centered from "../layouts/Centered";
+import Button from "../../components/Button";
+import Centered from "../../layouts/Centered";
 
 export default function Login() {
 	const [searchParams, _] = useSearchParams();

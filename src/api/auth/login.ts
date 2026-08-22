@@ -7,7 +7,7 @@ router.get("/", (ctx) => {
 	const { callback, challenge, state } = ctx.req.query();
 
 	return ctx.redirect(
-		`/auth/login?callback=${encodeURIComponent(callback)}&challenge=${encodeURIComponent(challenge)}&state=${encodeURIComponent(state)}`,
+		`/oauth/login?callback=${encodeURIComponent(callback)}&challenge=${encodeURIComponent(challenge)}&state=${encodeURIComponent(state)}`,
 		302,
 	);
 });

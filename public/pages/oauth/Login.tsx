@@ -1,7 +1,7 @@
 import { useSearchParams } from "react-router-dom";
-import Button from "../components/Button";
-import Input from "../components/Input";
-import Centered from "../layouts/Centered";
+import Button from "../../components/Button";
+import Input from "../../components/Input";
+import Centered from "../../layouts/Centered";
 import { createRef, useState } from "react";
 
 export default function Login() {
